@@ -82,6 +82,16 @@ namespace DeeSynk
 
             SwapBuffers();
         }
+        
+        /// <summary>
+        /// The OnUnload method gets called after the Exit() function is called, but before the OpenGL instance is destroyed.
+        /// If something needs to happen after the game has been closed, it should go here.
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnUnload(EventArgs e)
+        {
+            Console.WriteLine('Goodbye!');
+        }
 
         /// <summary>
         /// The HandleKeyboard method listens for any keyboard inputs from the user. Anything dealing
