@@ -90,7 +90,7 @@ namespace DeeSynk
         /// <param name="e"></param>
         protected override void OnUnload(EventArgs e)
         {
-            Console.WriteLine('Goodbye!');
+            Console.WriteLine("Goodbye!");
         }
 
         /// <summary>
