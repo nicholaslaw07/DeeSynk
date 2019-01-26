@@ -3,19 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenTK;
+
+/// <summary>
+/// The Program class acts as a driver for the entirety of the game.
+/// It instantiates an instance of the MainWindow class (which inherits from the GameWindow class),
+/// and then immediately calls the Run method with a specified FPS, which starts the game. 
+/// </summary>
 
 namespace DeeSynk
 {
-    class Program
+    static class Program
     {
-        /// <summary>
-        /// Main method for program
-        /// </summary>
-        /// <param name="args"></param>
-        static void Main(string[] args)
+        [STAThread]
+        static void Main()
         {
-
+            new MainWindow().Run(60);
         }
     }
 }
