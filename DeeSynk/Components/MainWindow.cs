@@ -45,7 +45,6 @@ namespace DeeSynk
         /// <param name="e"></param>
         protected override void OnResize(EventArgs e)
         {
-            base.OnResize(e);
             GL.Viewport(0, 0, Width, Height);
         }
 
@@ -56,7 +55,6 @@ namespace DeeSynk
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
-            base.OnLoad(e);
             CursorVisible = true;
         }
 
@@ -67,7 +65,6 @@ namespace DeeSynk
         /// <param name="e"></param>
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            base.OnUpdateFrame(e);
             HandleKeyboard();
         }
 
@@ -78,8 +75,7 @@ namespace DeeSynk
         /// <param name="e"></param>
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            base.OnRenderFrame(e);
-            Title = $"DeeSynk | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f / e.Time:0}";
+            Title = $"DeeSynk | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f / e.Time:0}"; // adds miscellaneous information to the title bar of the window
 
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
