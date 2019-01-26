@@ -10,26 +10,29 @@ using OpenTK.Input;
 
 namespace DeeSynk
 {
+    /// <summary>
+    /// The MainWindow class contains all the highest level operations going on in the game. All updates,
+    /// drawing, and initialization should occur somewhere in this class.
+    /// </summary>
     public sealed class MainWindow : GameWindow
     {
 
-        private OpenTK.Input.KeyboardState keyState;    // holds current keyboard state, updated every frame
+        private KeyboardState keyState;    // holds current keyboard state, updated every frame
         private Color4 clearColor = Color4.White;     // the color that OpenGL uses to clear the color buffer on each frame
-        
 
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be
         /// passed to the parent class constructor. The title of the window is then set with
         /// additional information, including the current OpenGL version.
         /// </summary>
-        public MainWindow() : base( 700,                                    // initial width
-                                    500,                                    // initial height
+        public MainWindow() : base( 700,                        // initial width
+                                    500,                        // initial height
                                     GraphicsMode.Default,
-                                    "DeeSynk",                              // initial window title
+                                    "DeeSynk",                  // initial window title
                                     GameWindowFlags.Default,
                                     DisplayDevice.Default,
-                                    4,                                      // OpenGL major version
-                                    0,                                      // OpenGL minor version
+                                    4,                          // OpenGL major version
+                                    0,                          // OpenGL minor version
                                     GraphicsContextFlags.ForwardCompatible)
         {
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
@@ -90,7 +93,7 @@ namespace DeeSynk
         /// </summary>
         private void HandleKeyboard()
         {
-            keyState = OpenTK.Input.Keyboard.GetState();
+            keyState = Keyboard.GetState();
 
             if (keyState.IsKeyDown(Key.Escape))
                 Exit();
