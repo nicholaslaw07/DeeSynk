@@ -36,7 +36,6 @@ namespace DeeSynk.Components
                                     GraphicsContextFlags.ForwardCompatible)
         {
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
-            new Managers.ShaderManager();
         }
         
         /// <summary>
