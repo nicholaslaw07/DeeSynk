@@ -7,6 +7,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
+using DeeSynk.Components.Managers;
 
 namespace DeeSynk
 {
@@ -36,6 +37,7 @@ namespace DeeSynk
                                     GraphicsContextFlags.ForwardCompatible)
         {
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
+            new Managers.ShaderManager();
         }
         
         /// <summary>
