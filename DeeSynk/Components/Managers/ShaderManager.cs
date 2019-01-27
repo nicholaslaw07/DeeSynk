@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DeeSynk.Managers.Components
+namespace DeeSynk.Components.Managers
 {
     public class ShaderManager
     {

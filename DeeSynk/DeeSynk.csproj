@@ -51,6 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\MainWindow.cs" />
+    <Compile Include="Components\Managers\FileLoader.cs" />
+    <Compile Include="Components\Managers\ShaderManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
