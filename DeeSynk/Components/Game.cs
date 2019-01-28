@@ -13,6 +13,25 @@ namespace DeeSynk.Components
     {
         public Game()
         {
+        }
+
+        public void LoadAll()
+        {
+
+        }
+
+        public void LoadShaders()
+        {
+
+        }
+
+        public void LoadTextures()
+        {
+
+        }
+
+        public void LoadGameData()
+        {
 
         }
     }

@@ -14,18 +14,32 @@ namespace DeeSynk.Components.Managers
     /// </summary>
     public class ShaderManager
     {
+        private static ShaderManager _shaderManager;
+        private static readonly object syncLock = new object();
+
         private string _vertPath = @"..\..\Resources\Shaders\Vertex";
         private string _fragPath = @"..\..\Resources\Shaders\Fragment";
 
-        private Dictionary<string, int> _shaders;
-        
+        private Dictionary<string, int> _programs;
+
         /// <summary>
         /// Instantiates the program dictionary and begins the chain of events to create the programs and store them in said dictionary.
         /// </summary>
-        public ShaderManager()
+        private ShaderManager()
         {
-            _shaders = new Dictionary<string, int>();
+            _programs = new Dictionary<string, int>();
+        }
 
+        public static ref ShaderManager GetInstance()
+        {
+            if(_shaderManager == null)
+                _shaderManager = new ShaderManager();
+
+            lock (syncLock) { return ref _shaderManager; }
+        }
+
+        public void Load()  //This should be a generic method in the interface
+        {
             CreatePrograms();
         }
 
@@ -36,11 +50,15 @@ namespace DeeSynk.Components.Managers
         private int CompileShader(ShaderType type, string source)
         {
             var shader = GL.CreateShader(type);
+
             GL.ShaderSource(shader, source);
             GL.CompileShader(shader);
+
             var info = GL.GetShaderInfoLog(shader);
+
             if (!string.IsNullOrWhiteSpace(info))
                 Console.WriteLine($"GL.CompileShader [{type}] had info log: {info}");
+
             return shader;
         }
 
@@ -75,7 +93,7 @@ namespace DeeSynk.Components.Managers
                     GL.DeleteShader(shader);                                                    // create the program that you just linked
                 }
 
-                _shaders.Add(fileNames[i], Program);                                            // adds the program created to the shaders dictionary
+                _programs.Add(fileNames[i], Program);                                            // adds the program created to the shaders dictionary
             }
         }
         
@@ -87,9 +105,26 @@ namespace DeeSynk.Components.Managers
         public int GetProgram(string name)
         {
             int programOut = -1;  //if -1 is returned, querying method will handle error
-            _shaders.TryGetValue(name, out programOut);
+            _programs.TryGetValue(name, out programOut);  //Add error console output?
 
             return programOut;
+        }
+
+
+        /// <summary>
+        /// Used during the unloading phase of the program.  Runs through the list of programID's and deletes each one from the GL context.
+        /// </summary>
+        public void Unload()  //This should be a generic method in the interface
+        {
+            foreach(string key in _programs.Keys)
+            {
+                int programID = -1;
+                if(_programs.TryGetValue(key, out programID))
+                {
+                    GL.DeleteProgram(programID);
+                    //Add a verification statement that waits until the shader is infact deleted.  Double check to see if shaders need to be unlinked before deletion and then return a bool.  Add a deconstructor/finalizer?
+                }
+            }
         }
     }
 }
