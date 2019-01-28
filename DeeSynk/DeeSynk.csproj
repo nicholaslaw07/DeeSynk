@@ -50,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\Game.cs" />
+    <Compile Include="Components\Managers\Boss.cs" />
     <Compile Include="Components\MainWindow.cs" />
     <Compile Include="Components\Managers\ShaderManager.cs" />
     <Compile Include="Program.cs" />
@@ -61,7 +63,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\Shaders\" />
+    <Folder Include="Resources\Shaders\Fragment\" />
+    <Folder Include="Resources\Shaders\Vertex\" />
     <Folder Include="Resources\Textures\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
