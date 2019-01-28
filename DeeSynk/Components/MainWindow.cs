@@ -16,6 +16,8 @@ namespace DeeSynk.Components
     /// </summary>
     public sealed class MainWindow : GameWindow
     {
+        private Managers.Boss _boss;
+        private Game _game;
 
         private KeyboardState keyState;    // holds current keyboard state, updated every frame
         private Color4 clearColor = Color4.White;     // the color that OpenGL uses to clear the color buffer on each frame
@@ -32,7 +34,7 @@ namespace DeeSynk.Components
                                     GameWindowFlags.Default,
                                     DisplayDevice.Default,
                                     4,                          // OpenGL major version
-                                    0,                          // OpenGL minor version
+                                    6,                          // OpenGL minor version
                                     GraphicsContextFlags.ForwardCompatible)
         {
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
@@ -55,6 +57,8 @@ namespace DeeSynk.Components
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
+            _boss = new Managers.Boss();
+            _game = new Game();
             CursorVisible = true;
         }
 
