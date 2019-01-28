@@ -6,7 +6,6 @@ namespace DeeSynk.Components.Managers
     {
         public ShaderManager()
         {
-
         }
     }
 }

@@ -16,7 +16,7 @@ namespace DeeSynk.Components
     /// </summary>
     public sealed class MainWindow : GameWindow
     {
-
+        
         private KeyboardState keyState;    // holds current keyboard state, updated every frame
         private Color4 clearColor = Color4.White;     // the color that OpenGL uses to clear the color buffer on each frame
 
