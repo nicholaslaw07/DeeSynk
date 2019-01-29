@@ -16,7 +16,6 @@ namespace DeeSynk.Components
     /// </summary>
     public sealed class MainWindow : GameWindow
     {
-        private Managers.Boss _boss;
         private Game _game;
 
         private KeyboardState keyState;    // holds current keyboard state, updated every frame
@@ -57,8 +56,8 @@ namespace DeeSynk.Components
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
-            _boss = new Managers.Boss();
             _game = new Game();
+            _game.LoadAll();
             CursorVisible = true;
         }
 

@@ -51,7 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\Game.cs" />
-    <Compile Include="Components\Managers\Boss.cs" />
     <Compile Include="Components\MainWindow.cs" />
     <Compile Include="Components\Managers\ShaderManager.cs" />
     <Compile Include="Program.cs" />

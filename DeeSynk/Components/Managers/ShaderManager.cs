@@ -14,8 +14,7 @@ namespace DeeSynk.Components.Managers
     /// </summary>
     public class ShaderManager
     {
-        private static ShaderManager _shaderManager;
-        private static readonly object syncLock = new object();
+        private static ShaderManager _shaderManager;            //--DIF--//
 
         private string _vertPath = @"..\..\Resources\Shaders\Vertex";
         private string _fragPath = @"..\..\Resources\Shaders\Fragment";
@@ -25,7 +24,7 @@ namespace DeeSynk.Components.Managers
         /// <summary>
         /// Instantiates the program dictionary and begins the chain of events to create the programs and store them in said dictionary.
         /// </summary>
-        private ShaderManager()
+        private ShaderManager()     //--DIF--//
         {
             _programs = new Dictionary<string, int>();
         }
@@ -35,7 +34,7 @@ namespace DeeSynk.Components.Managers
             if(_shaderManager == null)
                 _shaderManager = new ShaderManager();
 
-            lock (syncLock) { return ref _shaderManager; }
+            return ref _shaderManager;
         }
 
         public void Load()  //This should be a generic method in the interface
@@ -102,7 +101,7 @@ namespace DeeSynk.Components.Managers
         /// </summary>
         /// <param name="name">shader/filename</param>
         /// <returns>program ID</returns>
-        public int GetProgram(string name)
+        public int GetProgram(string name)  //Add ability to get multiple shaders
         {
             int programOut = -1;  //if -1 is returned, querying method will handle error
             _programs.TryGetValue(name, out programOut);  //Add error console output?
