@@ -14,7 +14,7 @@ namespace DeeSynk.Components
         private readonly Managers.ShaderManager shaderManager;
         public Game()
         {
-
+            
         }
 
         public void LoadAll()
