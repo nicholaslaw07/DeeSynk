@@ -14,7 +14,6 @@ namespace DeeSynk.Components.Managers
     /// will ever exist, and it will be owned by itself. This will allow all other classes in the namespace to consistently
     /// reference the same class.
     /// </summary>
-
     public class ShaderManager : IManager
     {
         private static ShaderManager _shaderManager;            //--DIF--//
