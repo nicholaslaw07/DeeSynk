@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Components\Game.cs" />
     <Compile Include="Components\MainWindow.cs" />
+    <Compile Include="Components\Managers\IManager.cs" />
     <Compile Include="Components\Managers\ShaderManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

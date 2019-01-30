@@ -12,7 +12,7 @@ namespace DeeSynk.Components.Managers
     /// to each set of shaders. These are stored in a dictionary, whose keys are the filenames of the shaders, and whose 
     /// values are the GL generated integers for each program.
     /// </summary>
-    public class ShaderManager
+    public class ShaderManager : IManager
     {
         private static ShaderManager _shaderManager;            //--DIF--//
 
@@ -113,7 +113,7 @@ namespace DeeSynk.Components.Managers
         /// <summary>
         /// Used during the unloading phase of the program.  Runs through the list of programID's and deletes each one from the GL context.
         /// </summary>
-        public void Unload()  //This should be a generic method in the interface
+        public void UnLoad()  //This should be a generic method in the interface
         {
             foreach(string key in _programs.Keys)
             {
