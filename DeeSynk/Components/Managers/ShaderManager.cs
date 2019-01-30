@@ -10,8 +10,11 @@ namespace DeeSynk.Components.Managers
     /// <summary>
     /// Pulls the shaders from the resources folder, compiles them, and links them with a set of programs corresponding
     /// to each set of shaders. These are stored in a dictionary, whose keys are the filenames of the shaders, and whose 
-    /// values are the GL generated integers for each program.
+    /// values are the GL generated integers for each program. Uses a 'singleton' format; only one instance of the class
+    /// will ever exist, and it will be owned by itself. This will allow all other classes in the namespace to consistently
+    /// reference the same class.
     /// </summary>
+
     public class ShaderManager : IManager
     {
         private static ShaderManager _shaderManager;            //--DIF--//
@@ -29,6 +32,11 @@ namespace DeeSynk.Components.Managers
             _programs = new Dictionary<string, int>();
         }
 
+        /// <summary>
+        /// Returns the self-owned instance of this class. Since its static, it can be called without the class existing,
+        /// and if so it will return a newly created instance. Otherwise, it will return the instance that already exists.
+        /// </summary>
+        /// <returns></returns>
         public static ref ShaderManager GetInstance()
         {
             if(_shaderManager == null)
