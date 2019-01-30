@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,9 +16,28 @@ namespace DeeSynk.Components.Managers
     /// </summary>
     class TextureManager : IManager
     {
+        // _B stands for the variable representing the number of bytes for said variable (name before)
+
+        private const int B_INDEX = 0;
+        private const int M_INDEX = 1;
+
+        private const int PIXEL_ARRAY = 10;
+        private const int PIXEL_ARRAY_B = 4;
+
+        private const int IMAGE_WIDTH = 18;
+        private const int IMAGE_WIDTH_B = 4;
+
+        private const int IMAGE_HEIGHT = 22;
+        private const int IMAGE_HEIGHT_B = 4;
+
+        private const int COLOR_PLANES = 26;
+        private const int COLOR_PLANES_B = 2;
+
+        private const int BITS_PER_PIXEL = 28;
+        private const int BITS_PER_PIXEL_B = 2;
+
         private static TextureManager _textureManager;
 
-        private const string AlphaExtension = "_alpha";
         private Dictionary<string, int> loadedTextures;
 
         /// <summary>
@@ -60,8 +80,8 @@ namespace DeeSynk.Components.Managers
             int texture = GL.GenTexture();
 
             GL.BindTexture(TextureTarget.Texture2D, texture);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
-            GL.TextureSubImage2D(texture, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.Float, data);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
+            GL.TextureSubImage2D(texture, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.Float, data);
             GL.Enable(EnableCap.Texture2D);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear); // defines sampling behavior when scaling image down
@@ -71,7 +91,7 @@ namespace DeeSynk.Components.Managers
 
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
-            w = width;
+            w = width;  //not used currently, but may be used to store as object size if needed?
             h = height;
 
             loadedTextures.Add(fileName, texture);
@@ -84,31 +104,46 @@ namespace DeeSynk.Components.Managers
         /// </summary>
         private float[] LoadTexture(string folderPath, string fileName, string fileType, out int width, out int height)
         {
-            float[] values;
-            using (var image = (Bitmap)Image.FromFile(folderPath + fileName + fileType))
+            float[] values = new float[0];
+
+            using (var image = Image.FromFile(folderPath + fileName + fileType))
             {
-                using (var imageA = (Bitmap)Image.FromFile(folderPath + fileName + AlphaExtension + fileType))
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    width = image.Width;
-                    height = image.Height;
+                    image.Save(ms, image.RawFormat);
+                    var outArr = ms.ToArray();
 
-                    values = new float[width * height * 4];
-                    int k = 0;
-                    for (int j = height - 1; j >= 0; j--)
-                    {
-                        for (int i = 0; i < width; i++)
-                        {
-                            var pixel1 = image.GetPixel(i, j);
-                            var pixel2 = imageA.GetPixel(i, j);
+                    if (outArr[0] != (byte)67 && outArr[1] != (byte)77)                                                //ensuring the first two characters are 'B' and 'M'  (66 & 77, respectively)
+                        throw new Exception("Invalid file header format - 'B' and 'M' expected.");
 
-                            values[k++] = pixel1.R / 255f;
-                            values[k++] = pixel1.G / 255f;
-                            values[k++] = pixel1.B / 255f;
-                            values[k++] = 1;
-                        }
-                    }
+                    int pixelDataOffset = 0;                                                                                 
+                    width = 0;
+                    height = 0;
+                    int colorPlanes = 0;
+                    int bitsPerPixel = 0;
+                    int bytesPerPixel = 0;
+
+                    for (int i = 0; i <= PIXEL_ARRAY_B - 1; i++) { pixelDataOffset += outArr[i + PIXEL_ARRAY] << (i * 8); }      //gets the offset of where the pixel data of stored, consists of four bytes starting at index 10
+
+                    for (int i = 0; i <= IMAGE_WIDTH_B - 1; i++) { width += (int)(outArr[i + IMAGE_WIDTH] << (i * 8)); }         //retrieves width
+                    for (int i = 0; i <= IMAGE_HEIGHT_B - 1; i++) { height += (int)(outArr[i + IMAGE_HEIGHT] << (i * 8)); }      //retrieves height
+                                                                               
+                    for (int i = 0; i <= COLOR_PLANES_B - 1; i++) { colorPlanes += (int)(outArr[i + COLOR_PLANES] << (i * 8)); } //retrieves value for number of color planes and checks its value (should always be one)
+                    if (colorPlanes != 1)
+                        throw new Exception("Invalid number of colors planes in DIB - a value of 1 is expected.");
+
+                    for (int i = 0; i <= BITS_PER_PIXEL_B - 1; i++) { bitsPerPixel += (int)(outArr[i + BITS_PER_PIXEL] << (i * 8)); }  //retrieves the number of bits per pixel within the image
+                    bytesPerPixel = bitsPerPixel / 4;                                                                                  //takes bpp and converts it to bytes to determine the size of one pixel in the array
+
+                    int totalValues = width * height * bytesPerPixel;   //total number of bytes in the image data
+
+                    values = new float[totalValues];
+
+                    for (int i = 0; i < totalValues; i++)               //reads the array sequentially and outputs to the image array
+                        values[i] = outArr[i + pixelDataOffset] / 255f;
                 }
             }
+
             return values;
         }
         
