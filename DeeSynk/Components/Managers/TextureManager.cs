@@ -116,19 +116,20 @@ namespace DeeSynk.Components.Managers
                     if (outArr[0] != (byte)67 && outArr[1] != (byte)77)                                                //ensuring the first two characters are 'B' and 'M'  (66 & 77, respectively)
                         throw new Exception("Invalid file header format - 'B' and 'M' expected.");
 
-                    int pixelDataOffset = 0;                                                                                 
                     width = 0;
                     height = 0;
-                    int colorPlanes = 0;
-                    int bitsPerPixel = 0;
-                    int bytesPerPixel = 0;
 
-                    for (int i = 0; i <= PIXEL_ARRAY_B - 1; i++) { pixelDataOffset += outArr[i + PIXEL_ARRAY] << (i * 8); }      //gets the offset of where the pixel data of stored, consists of four bytes starting at index 10
+                    int pixelDataOffset = 0;
+                    int colorPlanes     = 0;
+                    int bitsPerPixel    = 0;
+                    int bytesPerPixel   = 0;
 
-                    for (int i = 0; i <= IMAGE_WIDTH_B - 1; i++) { width += (int)(outArr[i + IMAGE_WIDTH] << (i * 8)); }         //retrieves width
-                    for (int i = 0; i <= IMAGE_HEIGHT_B - 1; i++) { height += (int)(outArr[i + IMAGE_HEIGHT] << (i * 8)); }      //retrieves height
+                    for (int i = 0; i <= PIXEL_ARRAY_B - 1; i++)    { pixelDataOffset += outArr[i + PIXEL_ARRAY] << (i * 8); }      //gets the offset of where the pixel data of stored, consists of four bytes starting at index 10
+
+                    for (int i = 0; i <= IMAGE_WIDTH_B - 1; i++)    { width  += (int)(outArr[i + IMAGE_WIDTH]  << (i * 8)); }         //retrieves width
+                    for (int i = 0; i <= IMAGE_HEIGHT_B - 1; i++)   { height += (int)(outArr[i + IMAGE_HEIGHT] << (i * 8)); }      //retrieves height
                                                                                
-                    for (int i = 0; i <= COLOR_PLANES_B - 1; i++) { colorPlanes += (int)(outArr[i + COLOR_PLANES] << (i * 8)); } //retrieves value for number of color planes and checks its value (should always be one)
+                    for (int i = 0; i <= COLOR_PLANES_B - 1; i++)   { colorPlanes += (int)(outArr[i + COLOR_PLANES] << (i * 8)); } //retrieves value for number of color planes and checks its value (should always be one)
                     if (colorPlanes != 1)
                         throw new Exception("Invalid number of colors planes in DIB - a value of 1 is expected.");
 
