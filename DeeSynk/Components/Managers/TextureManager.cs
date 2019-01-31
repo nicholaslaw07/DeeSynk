@@ -66,7 +66,7 @@ namespace DeeSynk.Components.Managers
         /// </summary>
         public void Load()
         {
-
+            //Load textures here when actually have a reason to load any...
         }
 
         /// <summary>
