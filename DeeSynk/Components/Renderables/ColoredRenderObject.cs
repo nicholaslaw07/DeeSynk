@@ -26,14 +26,26 @@ namespace DeeSynk.Components.Renderables
         private int[] _indices;
         private int _indexCount;
 
-        public ColoredRenderObject(int renderID, int renderLayer) : base(renderID, renderLayer)
+        public ColoredRenderObject(int renderID, int renderLayer, ColoredVertex[] vertices, int[] indices) : base(renderID, renderLayer)
         {
             _initVAO = false;
+
+            _vertices = vertices;
+            _vertexCount = _vertices.Length;
+
+            _indices = indices;
+            _indexCount = _indices.Length;
         }
 
-        public ColoredRenderObject(int renderID, int renderLayer, Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale) : base(renderID, renderLayer, position, rotX, rotY, rotZ, scale)
+        public ColoredRenderObject(int renderID, int renderLayer, Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale, ColoredVertex[] vertices, int[] indices) : base(renderID, renderLayer, position, rotX, rotY, rotZ, scale)
         {
             _initVAO = false;
+
+            _vertices = vertices;
+            _vertexCount = _vertices.Length;
+
+            _indices = indices;
+            _indexCount = _indices.Length;
         }
     }
 }

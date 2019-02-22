@@ -36,14 +36,26 @@ namespace DeeSynk.Components.Renderables
         protected string _activeTextureReferenceName;
         protected int _activeTextureID;
 
-        public TexturedRenderObject(int renderID, int renderLayer) : base(renderID, renderLayer)
+        public TexturedRenderObject(int renderID, int renderLayer, TexturedVertex[] vertices, int[] indices) : base(renderID, renderLayer)
         {
             _initVAO = false;
+
+            _vertices = vertices;
+            _vertexCount = _vertices.Length;
+
+            _indices = indices;
+            _indexCount = _indices.Length;
         }
 
-        public TexturedRenderObject(int renderID, int renderLayer, Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale) : base(renderID, renderLayer, position, rotX, rotY, rotZ, scale)
+        public TexturedRenderObject(int renderID, int renderLayer, Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale, TexturedVertex[] vertices, int[] indices) : base(renderID, renderLayer, position, rotX, rotY, rotZ, scale)
         {
             _initVAO = false;
+
+            _vertices = vertices;
+            _vertexCount = _vertices.Length;
+
+            _indices = indices;
+            _indexCount = _indices.Length;
         }
 
         public abstract TexturedRenderObject AddTextureIDs();
