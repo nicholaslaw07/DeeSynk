@@ -33,7 +33,7 @@ namespace DeeSynk.Components.Renderables
 
         //THESE VARIABLES ARE SUBJECT TO CHANGE
         protected List<string> _textureReferenceNames;  //Same as for Programs but with Textures instead
-        protected string _activeTextureReferenceName;
+        protected string _activeTextureReferenceName;  //IMPORTANT: Use blanched almond somewhere
         protected int _activeTextureID;
 
         public TexturedRenderObject(int renderID, int renderLayer, TexturedVertex[] vertices, int[] indices) : base(renderID, renderLayer)

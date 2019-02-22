@@ -8,6 +8,9 @@ namespace DeeSynk.Components.Renderables
 {
     public abstract class RenderObject
     {
+        private bool _isVisible;
+        protected bool IsVisible { get => _isVisible; set => _isVisible = value; }
+
         //THESE SIX FIELDS ARE VERY TEMPORARY AND ARE SUBJECT TO FUTURE CHANGES
         protected List<string>  _programReferenceNames;  //List of the string reference names (used in ShaderManager) that this specific object may use to render itself, NOT the program IDs, however.
         protected string        _activeProgramReferenceName;  //string reference name that is currently active  
@@ -53,6 +56,7 @@ namespace DeeSynk.Components.Renderables
         protected Matrix4 RotationYMat4_NoUpdate   { get => _rotYMat4; }    //not necessarily the current state of the transformation fields
         protected Matrix4 RotationZMat4_NoUpdate   { get => _rotZMat4; }
         protected Matrix4 ScaleMat4_NoUpdate       { get => _scaleMat4; }
+
 
 
         public RenderObject(int renderID, int renderLayer)
