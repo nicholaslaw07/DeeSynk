@@ -55,6 +55,10 @@
     <Compile Include="Components\Managers\TextureManager.cs" />
     <Compile Include="Components\Managers\IManager.cs" />
     <Compile Include="Components\Managers\ShaderManager.cs" />
+    <Compile Include="Components\Renderables\ColoredRenderObject.cs" />
+    <Compile Include="Components\Renderables\RenderObject.cs" />
+    <Compile Include="Components\Renderables\TexturedRenderObject.cs" />
+    <Compile Include="Components\Renderables\VertexTypes.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
