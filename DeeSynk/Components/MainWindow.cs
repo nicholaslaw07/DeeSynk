@@ -59,7 +59,6 @@ namespace DeeSynk.Components
             _game = new Game();
             _game.LoadAll();
             CursorVisible = true;
-            Matrix4.CreateScale()
         }
 
         /// <summary>
