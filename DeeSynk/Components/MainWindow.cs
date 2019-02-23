@@ -19,15 +19,15 @@ namespace DeeSynk.Components
         private Game _game;
 
         private KeyboardState keyState;    // holds current keyboard state, updated every frame
-        private Color4 clearColor = Color4.Black;     // the color that OpenGL uses to clear the color buffer on each frame
+        private Color4 clearColor = Color4.White;     // the color that OpenGL uses to clear the color buffer on each frame
 
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be
         /// passed to the parent class constructor. The title of the window is then set with
         /// additional information, including the current OpenGL version.
         /// </summary>
-        public MainWindow() : base( 300,                        // initial width
-                                    100,                        // initial height
+        public MainWindow() : base( 700,                        // initial width
+                                    500,                        // initial height
                                     GraphicsMode.Default,
                                     "DeeSynk",                  // initial window title
                                     GameWindowFlags.Default,
@@ -81,11 +81,7 @@ namespace DeeSynk.Components
 
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            var r = new Random();
-            float rr = (float)r.NextDouble();
-            Matrix4 result = new Matrix4();
-            Matrix4.CreateOrthographic((float)Width, (float)Height, -1, 1f, out result);
-            _game.Render(result);
+            _game.Render(Matrix4.CreateOrthographic(1.0f, 1.0f, -1f, 1f));
 
             SwapBuffers();
         }

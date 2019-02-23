@@ -31,19 +31,25 @@ namespace DeeSynk.Components.Renderables
         private int              _vertexCount;
         protected IntPtr Vertices{
             get{
-                GCHandle handel;
-                if (isTextured){
-                    handel = GCHandle.Alloc(_verticesT);
-                    return (IntPtr) handel; }
-                handel = GCHandle.Alloc(_verticesT);
-                return (IntPtr)handel;}}
+                unsafe {
+                    IntPtr p;
+                    if (isTextured){
+                        fixed(TexturedVertex* ptr = _verticesT)
+                        { p = (IntPtr)ptr; }}
+                    else{
+                        fixed (ColoredVertex* ptr = _verticesC)
+                        { p = (IntPtr)ptr; }}
+                    return p;
+                }
+            }
+        }
 
         protected int   VertexCount { get => _vertexCount; }
 
-        private int[]   _indices;
-        private int     _indexCount;
-        protected int[] Indices      { get => _indices; }
-        protected int   IndexCount   { get => _indexCount; }
+        private uint[]    _indices;
+        private int       _indexCount;
+        protected uint[]  Indices      { get => _indices; }
+        protected int     IndexCount   { get => _indexCount; }
 
         private bool   _isTextured;
         protected bool isTextured { get => _isTextured; }
@@ -107,7 +113,7 @@ namespace DeeSynk.Components.Renderables
 
 
         public GameObject(int renderID, int renderLayer, 
-                            ColoredVertex[] vertices, int vertexCount, int[] indices, bool isTextured)
+                            ColoredVertex[] vertices, int vertexCount, uint[] indices, bool isTextured)
         {
             _visible = true;
             _initVAO = false;
@@ -138,7 +144,7 @@ namespace DeeSynk.Components.Renderables
         }
 
         public GameObject(int renderID, int renderLayer,
-                            TexturedVertex[] vertices, int vertexCount, int[] indices, bool isTextured)
+                            TexturedVertex[] vertices, int vertexCount, uint[] indices, bool isTextured)
         {
             _visible = true;
             _initVAO = false;
@@ -169,7 +175,7 @@ namespace DeeSynk.Components.Renderables
         }
 
         public GameObject(int renderID, int renderLayer,
-                    ColoredVertex[] vertices, int vertexCount, int[] indices, bool isTextured,
+                    ColoredVertex[] vertices, int vertexCount, uint[] indices, bool isTextured,
                     Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
         {
             _visible = true;
@@ -179,7 +185,7 @@ namespace DeeSynk.Components.Renderables
             _verticesC = vertices;
             _vertexCount = vertexCount;
 
-            indices.CopyTo(_indices, 0);
+            _indices = indices;
             _indexCount = _indices.Length;
 
             _isTextured = isTextured;
@@ -201,7 +207,7 @@ namespace DeeSynk.Components.Renderables
         }
 
         public GameObject(int renderID, int renderLayer,
-                            TexturedVertex[] vertices, int vertexCount, int[] indices, bool isTextured, 
+                            TexturedVertex[] vertices, int vertexCount, uint[] indices, bool isTextured, 
                             Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
         {
             _visible = true;
@@ -211,7 +217,7 @@ namespace DeeSynk.Components.Renderables
             _verticesT = vertices;
             _vertexCount = vertexCount;
 
-            indices.CopyTo(_indices, 0);
+            _indices = indices;
             _indexCount = _indices.Length;
 
             _isTextured = isTextured;
@@ -273,50 +279,6 @@ namespace DeeSynk.Components.Renderables
             return this;
         }
 
-        public GameObject InitializeVAO(ColoredVertex[] vertices)
-        {
-
-            GL.UseProgram(ActiveProgramID);
-            if (_vertexCount <= _indexCount)
-            {
-                //IF VERTEX EQUAL 0 OR INDEX EQUAL 0 THROW ERROR
-                int vertexSize = (isTextured) ? 24 : 32;
-                int displayDataSize = (isTextured) ? 2 : 4;
-
-                _VAO = GL.GenVertexArray();
-                _VBO = GL.GenBuffer();
-                _IBO = GL.GenBuffer();
-
-                GL.BindVertexArray(_VAO);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _VBO);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, _IBO);
-
-                GL.NamedBufferStorage(_VBO, vertexSize * _vertexCount, vertices, BufferStorageFlags.DynamicStorageBit);
-
-                GL.VertexArrayAttribBinding(_VAO, 0, 0);
-                GL.EnableVertexArrayAttrib(_VAO, 0);
-                GL.VertexArrayAttribFormat(_VAO, 0, 4, VertexAttribType.Float, false, 0);
-
-                GL.VertexArrayAttribBinding(_VAO, 1, 0);
-                GL.EnableVertexArrayAttrib(_VAO, 1);
-                GL.VertexArrayAttribFormat(_VAO, 1, displayDataSize, VertexAttribType.Float, false, 16);
-
-                GL.VertexArrayVertexBuffer(_VAO, 0, _VBO, IntPtr.Zero, vertexSize);
-                GL.NamedBufferStorage(_IBO, 4 * _indexCount, _indices, BufferStorageFlags.DynamicStorageBit);
-
-                //GL.BindVertexArray(0);
-                Console.WriteLine(GL.GetError().ToString());
-
-                InitVAO = true;
-            }
-            else
-            {
-                Visible = false;
-            }
-
-            return this;
-        }
-
         public GameObject AddProgramIDs(int[] programIDs)
         {
             if(programIDs.Length > 0)
@@ -338,16 +300,18 @@ namespace DeeSynk.Components.Renderables
 
         public virtual void Render(Matrix4 ortho)
         {
+            RotationZ += 0.05f;
+            var m = RotationZMat4;
+
             GL.UseProgram(ActiveProgramID);
             GL.BindVertexArray(_VAO);
-
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _IBO);
             GL.UniformMatrix4(2, false, ref ortho);
-
+            GL.UniformMatrix4(3, false, ref m);
             GL.DrawElements(BeginMode.Triangles, IndexCount, DrawElementsType.UnsignedInt, 0);
-            //GL.DrawArrays(PrimitiveType.Quads, 0, _vertexCount);
-
-            //GL.BindVertexArray(0);
-            //GL.UseProgram(0);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+            GL.BindVertexArray(0);
+            GL.UseProgram(0);
         }
     }
 }
