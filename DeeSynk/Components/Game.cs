@@ -19,12 +19,12 @@ namespace DeeSynk.Components
         {
             Load();
 
-            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(100f, 100f, 1.0f, 1.0f), Color4.Black),
-                                        new ColoredVertex(new Vector4(300f, 100f, 1.0f, 1.0f), Color4.Black),
-                                        new ColoredVertex(new Vector4(300f, 300f, 1.0f, 1.0f), Color4.Black),
-                                        new ColoredVertex(new Vector4(100f, 300f, 1.0f, 1.0f), Color4.Black)};
+            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(1000f, 1000f, 1.0f, 1.0f), Color4.BlanchedAlmond),
+                                        new ColoredVertex(new Vector4(3000f, 1000f, 1.0f, 1.0f), Color4.BlanchedAlmond),
+                                        new ColoredVertex(new Vector4(3000f, 3000f, 1.0f, 1.0f), Color4.BlanchedAlmond),
+                                        new ColoredVertex(new Vector4(1000f, 3000f, 1.0f, 1.0f), Color4.BlanchedAlmond)};
 
-            int[] indices = { 0, 1, 2, 2, 1, 3 };
+            int[] indices = { 0, 1, 2, 1, 2, 3 };
 
             int program = Managers.ShaderManager.GetInstance().GetProgram("defaultColored");
             int[] programs = { program };
