@@ -57,7 +57,6 @@ namespace DeeSynk.Components
         protected override void OnLoad(EventArgs e)
         {
             _game = new Game();
-            _game.LoadAll();
             CursorVisible = true;
         }
 
@@ -82,6 +81,7 @@ namespace DeeSynk.Components
 
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            _game.Render(Matrix4.CreateOrthographic((float)Width, (float)Height, -1f, 1f));
 
             SwapBuffers();
         }
