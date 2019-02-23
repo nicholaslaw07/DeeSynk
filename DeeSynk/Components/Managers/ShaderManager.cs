@@ -99,6 +99,7 @@ namespace DeeSynk.Components.Managers
                     GL.DeleteShader(shader);                                                    // create the program that you just linked
                 }
 
+                string s = GL.GetProgramInfoLog(Program);
                 _programs.Add(fileNames[i], Program);                                            // adds the program created to the shaders dictionary
             }
         }

@@ -1,6 +1,6 @@
 ﻿#version 450 core
 
-in color vertexColor;
+in vec4 vertexColor;
 out vec4 color;
 
 void main(void)

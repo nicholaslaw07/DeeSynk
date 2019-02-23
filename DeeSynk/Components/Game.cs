@@ -26,7 +26,7 @@ namespace DeeSynk.Components
 
             int[] indices = { 0, 1, 2, 2, 1, 3 };
 
-            int program = Managers.ShaderManager.GetInstance().GetProgram("defaultColor");
+            int program = Managers.ShaderManager.GetInstance().GetProgram("defaultColored");
             int[] programs = { program };
 
             go = new GameObject(1, 1, vertices, vertices.Length, indices, false)
