@@ -81,7 +81,7 @@ namespace DeeSynk.Components
 
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            _game.Render(Matrix4.CreateOrthographic(1.0f, 1.0f, -1f, 1f));
+            _game.Render(Matrix4.CreateOrthographic((float)Width, (float)Height, -1f, 1f));
 
             SwapBuffers();
         }

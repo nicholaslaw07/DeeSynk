@@ -300,7 +300,7 @@ namespace DeeSynk.Components.Renderables
 
         public virtual void Render(Matrix4 ortho)
         {
-            RotationZ += 0.05f;
+            RotationZ += 0.01f;
             var m = RotationZMat4;
 
             GL.UseProgram(ActiveProgramID);

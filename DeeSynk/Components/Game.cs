@@ -20,10 +20,10 @@ namespace DeeSynk.Components
         {
             Load();
 
-            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-1.5f, -1.5f, 1.0f, 1.0f), Color4.BlanchedAlmond),
-                                        new ColoredVertex(new Vector4(1.5f, -1.5f, 1.0f, 1.0f), Color4.Black),
-                                        new ColoredVertex(new Vector4(1.5f, 1.5f, 1.0f, 1.0f), Color4.BlanchedAlmond),
-                                        new ColoredVertex(new Vector4(-1.5f, 1.5f, 1.0f, 1.0f), Color4.BlanchedAlmond)};
+            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-100f, -100f, 1.0f, 1.0f), Color4.Red),
+                                        new ColoredVertex(new Vector4(100f, -100f, 1.0f, 1.0f), Color4.Green),
+                                        new ColoredVertex(new Vector4(100f, 100f, 1.0f, 1.0f), Color4.Blue),
+                                        new ColoredVertex(new Vector4(-100f, 100f, 1.0f, 1.0f), Color4.Yellow)};
 
             //ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-1f, -1f, 1.0f, 1.0f), Color4.Red),
                                        // new ColoredVertex(new Vector4(1f, -1f, 1.0f, 1.0f), Color4.Green),
