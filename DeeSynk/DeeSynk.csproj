@@ -55,9 +55,7 @@
     <Compile Include="Components\Managers\TextureManager.cs" />
     <Compile Include="Components\Managers\IManager.cs" />
     <Compile Include="Components\Managers\ShaderManager.cs" />
-    <Compile Include="Components\Renderables\ColoredRenderObject.cs" />
-    <Compile Include="Components\Renderables\RenderObject.cs" />
-    <Compile Include="Components\Renderables\TexturedRenderObject.cs" />
+    <Compile Include="Components\Renderables\GameObject.cs" />
     <Compile Include="Components\Renderables\VertexTypes.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -68,9 +66,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\Shaders\Fragment\" />
-    <Folder Include="Resources\Shaders\Vertex\" />
     <Folder Include="Resources\Textures\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\Shaders\Fragment\defaultColored.txt" />
+    <Content Include="Resources\Shaders\Fragment\defaultTextured.txt" />
+    <Content Include="Resources\Shaders\Vertex\defaultColored.txt" />
+    <Content Include="Resources\Shaders\Vertex\defaultTextured.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

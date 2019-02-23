@@ -1,0 +1,9 @@
+﻿#version 450 core
+
+in color vertexColor;
+out vec4 color;
+
+void main(void)
+{
+	color = vertexColor;
+}

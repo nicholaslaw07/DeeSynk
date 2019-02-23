@@ -1,0 +1,11 @@
+﻿#version 450 core
+
+layout (location = 0) in vec4 position;
+layout (location = 1) in color4 vertexColor;
+out color4 vs_vertexColor;
+
+void main(void)
+{
+ vs_vertexColor = vertexColor;
+ gl_Position =  position;
+}

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
 namespace DeeSynk.Components.Renderables
 {
-    public abstract class RenderObject
+    public class GameObject
     {
         private bool   _visible;
         protected bool Visible { get => _visible; set => _visible = value; }
@@ -24,6 +25,28 @@ namespace DeeSynk.Components.Renderables
         protected int VAO { get => _VAO; }
         protected int VBO { get => _VBO; }
         protected int IBO { get => _IBO; }
+
+        private ColoredVertex[]  _verticesC;
+        private TexturedVertex[] _verticesT;
+        private int              _vertexCount;
+        protected IntPtr Vertices{
+            get{
+                GCHandle handel;
+                if (isTextured){
+                    handel = GCHandle.Alloc(_verticesT);
+                    return (IntPtr) handel; }
+                handel = GCHandle.Alloc(_verticesT);
+                return (IntPtr)handel;}}
+
+        protected int   VertexCount { get => _vertexCount; }
+
+        private int[]   _indices;
+        private int     _indexCount;
+        protected int[] Indices      { get => _indices; }
+        protected int   IndexCount   { get => _indexCount; }
+
+        private bool   _isTextured;
+        protected bool isTextured { get => _isTextured; }
 
         //THESE SIX FIELDS ARE VERY TEMPORARY AND ARE SUBJECT TO FUTURE CHANGES
         //private List<string>  _programReferenceNames;  //List of the string reference names (used in ShaderManager) that this specific object may use to render itself, NOT the program IDs, however.
@@ -83,15 +106,20 @@ namespace DeeSynk.Components.Renderables
 
 
 
-        public RenderObject(int renderID, int renderLayer)
+        public GameObject(int renderID, int renderLayer, 
+                            ColoredVertex[] vertices, int vertexCount, int[] indices, bool isTextured)
         {
             _visible = true;
             _initVAO = false;
             _initPrograms = false;
 
-            _VAO = GL.GenVertexArray();
-            _VBO = GL.GenBuffer();
-            _IBO = GL.GenBuffer();
+            _verticesC = vertices;
+            _vertexCount = vertexCount;
+
+            _indices = indices;
+            _indexCount = _indices.Length;
+
+            _isTextured = isTextured;
 
             _renderID    = renderID;
             _renderLayer = renderLayer;
@@ -109,15 +137,84 @@ namespace DeeSynk.Components.Renderables
             _scaleMat4       = Matrix4.Identity;
         }
 
-        public RenderObject(int renderID, int renderLayer, Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
+        public GameObject(int renderID, int renderLayer,
+                            TexturedVertex[] vertices, int vertexCount, int[] indices, bool isTextured)
         {
             _visible = true;
             _initVAO = false;
             _initPrograms = false;
 
-            _VAO = GL.GenVertexArray();
-            _VBO = GL.GenBuffer();
-            _IBO = GL.GenBuffer();
+            _verticesT = vertices;
+            _vertexCount = vertexCount;
+
+            _indices = indices;
+            _indexCount = _indices.Length;
+
+            _isTextured = isTextured;
+
+            _renderID = renderID;
+            _renderLayer = renderLayer;
+
+            _position = new Vector3(0.0f, 0.0f, 0.0f);
+            _rotX = 0.0f;
+            _rotY = 0.0f;
+            _rotZ = 0.0f;
+            _scale = new Vector3(1.0f, 1.0f, 1.0f);
+
+            _translationMat4 = Matrix4.Identity;
+            _rotXMat4 = Matrix4.Identity;
+            _rotYMat4 = Matrix4.Identity;
+            _rotZMat4 = Matrix4.Identity;
+            _scaleMat4 = Matrix4.Identity;
+        }
+
+        public GameObject(int renderID, int renderLayer,
+                    ColoredVertex[] vertices, int vertexCount, int[] indices, bool isTextured,
+                    Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
+        {
+            _visible = true;
+            _initVAO = false;
+            _initPrograms = false;
+
+            _verticesC = vertices;
+            _vertexCount = vertexCount;
+
+            indices.CopyTo(_indices, 0);
+            _indexCount = _indices.Length;
+
+            _isTextured = isTextured;
+
+            _renderID = renderID;
+            _renderLayer = renderLayer;
+
+            _position = position;
+            _rotX = rotX;
+            _rotY = rotY;
+            _rotZ = rotZ;
+            _scale = scale;
+
+            _translationMat4 = Matrix4.Identity;
+            _rotXMat4 = Matrix4.Identity;
+            _rotYMat4 = Matrix4.Identity;
+            _rotZMat4 = Matrix4.Identity;
+            _scaleMat4 = Matrix4.Identity;
+        }
+
+        public GameObject(int renderID, int renderLayer,
+                            TexturedVertex[] vertices, int vertexCount, int[] indices, bool isTextured, 
+                            Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
+        {
+            _visible = true;
+            _initVAO = false;
+            _initPrograms = false;
+
+            _verticesT = vertices;
+            _vertexCount = vertexCount;
+
+            indices.CopyTo(_indices, 0);
+            _indexCount = _indices.Length;
+
+            _isTextured = isTextured;
 
             _renderID    = renderID;
             _renderLayer = renderLayer;
@@ -135,13 +232,53 @@ namespace DeeSynk.Components.Renderables
             _scaleMat4       = Matrix4.Identity;
         }
 
-        public abstract RenderObject InitializeVAO();
+        public GameObject InitializeVAO()
+        {
+            if (_vertexCount <= _indexCount)
+            {
+                //IF VERTEX EQUAL 0 OR INDEX EQUAL 0 THROW ERROR
+                int vertexSize = (isTextured) ? 24 : 32;
+                int displayDataSize = (isTextured) ? 2 : 4;
 
-        public RenderObject AddProgramIDs(int[] programIDs)
+                _VAO = GL.GenVertexArray();
+                _VBO = GL.GenBuffer();
+                _IBO = GL.GenBuffer();
+
+                GL.BindVertexArray(_VAO);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, _VBO);
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, _IBO);
+
+                GL.NamedBufferStorage(_VBO, vertexSize * _vertexCount, Vertices, BufferStorageFlags.MapWriteBit);
+
+                GL.VertexArrayAttribBinding(_VAO, 0, 0);
+                GL.EnableVertexArrayAttrib(_VAO, 0);
+                GL.VertexArrayAttribFormat(_VAO, 0, 4, VertexAttribType.Float, false, 0);
+
+                GL.VertexArrayAttribBinding(_VAO, 1, 0);
+                GL.EnableVertexArrayAttrib(_VAO, 1);
+                GL.VertexArrayAttribFormat(_VAO, 1, displayDataSize, VertexAttribType.Float, false, 16);
+
+                GL.VertexArrayVertexBuffer(_VAO, 0, _VBO, IntPtr.Zero, vertexSize);
+                GL.NamedBufferStorage(_IBO, 4 * _indexCount, _indices, BufferStorageFlags.MapWriteBit);
+
+                GL.BindVertexArray(0);
+
+                InitVAO = true;
+            }
+            else
+            {
+                Visible = false;
+            }
+
+            return this;
+        }
+
+        public GameObject AddProgramIDs(int[] programIDs)
         {
             if(programIDs.Length > 0)
             {
-                programIDs.CopyTo(_programIDs, 0);
+                _programIDs = programIDs;
+                _activeProgramID = _programIDs[0]; //temporary
                 _initPrograms = true;
             }
             else
@@ -151,14 +288,19 @@ namespace DeeSynk.Components.Renderables
             return this;
         }
 
-        public abstract void Update();
+        //public abstract TexturedRenderObject AddTextureIDs();
 
-        //public abstract void Bind();
+        //public abstract void Update();
 
-        public abstract void Render();
+        public virtual void Render()
+        {
+            GL.UseProgram(ActiveProgramID);
+            GL.BindVertexArray(_VAO);
 
-        //render layer increment
-        //render layer decrement
-            //will need error checking
+            GL.DrawElements(BeginMode.Triangles, IndexCount, DrawElementsType.UnsignedInt, 0);
+
+            GL.BindVertexArray(0);
+            GL.UseProgram(0);
+        }
     }
 }

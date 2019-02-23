@@ -1,8 +1,11 @@
-﻿using System;
+﻿using DeeSynk.Components.Renderables;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics;
 
 namespace DeeSynk.Components
 {
@@ -11,19 +14,34 @@ namespace DeeSynk.Components
     /// </summary>
     public class Game
     {
+        private GameObject go;
         public Game()
         {
-            
+            Load();
+
+            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-0.5f, -0.5f, 1.0f, 1.0f), Color4.BlanchedAlmond),
+                                        new ColoredVertex(new Vector4(0.5f, -0.5f, 1.0f, 1.0f), Color4.BlanchedAlmond),
+                                        new ColoredVertex(new Vector4(0.5f, 0.5f, 1.0f, 1.0f), Color4.BlanchedAlmond),
+                                        new ColoredVertex(new Vector4(-0.5f, 0.5f, 1.0f, 1.0f), Color4.BlanchedAlmond)};
+
+            int[] indices = { 0, 1, 2, 2, 1, 3 };
+
+            int program = Managers.ShaderManager.GetInstance().GetProgram("defaultColor");
+            int[] programs = { program };
+
+            go = new GameObject(1, 1, vertices, vertices.Length, indices, false)
+                                .AddProgramIDs(programs)
+                                .InitializeVAO();
         }
 
-        public void LoadAll()
+        public void Load()
         {
-
+            LoadShaders();
         }
 
         public void LoadShaders()
         {
-
+            Managers.ShaderManager.GetInstance().Load();
         }
 
         public void LoadTextures()
@@ -34,6 +52,12 @@ namespace DeeSynk.Components
         public void LoadGameData()
         {
 
+        }
+
+        //Test Method
+        public void Render()
+        {
+            go.Render();
         }
     }
 }
