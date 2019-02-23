@@ -19,10 +19,10 @@ namespace DeeSynk.Components
         {
             Load();
 
-            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-0.5f, -0.5f, 1.0f, 1.0f), Color4.BlanchedAlmond),
-                                        new ColoredVertex(new Vector4(0.5f, -0.5f, 1.0f, 1.0f), Color4.BlanchedAlmond),
-                                        new ColoredVertex(new Vector4(0.5f, 0.5f, 1.0f, 1.0f), Color4.BlanchedAlmond),
-                                        new ColoredVertex(new Vector4(-0.5f, 0.5f, 1.0f, 1.0f), Color4.BlanchedAlmond)};
+            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(100f, 100f, 1.0f, 1.0f), Color4.Black),
+                                        new ColoredVertex(new Vector4(300f, 100f, 1.0f, 1.0f), Color4.Black),
+                                        new ColoredVertex(new Vector4(300f, 300f, 1.0f, 1.0f), Color4.Black),
+                                        new ColoredVertex(new Vector4(100f, 300f, 1.0f, 1.0f), Color4.Black)};
 
             int[] indices = { 0, 1, 2, 2, 1, 3 };
 
@@ -31,7 +31,7 @@ namespace DeeSynk.Components
 
             go = new GameObject(1, 1, vertices, vertices.Length, indices, false)
                                 .AddProgramIDs(programs)
-                                .InitializeVAO();
+                                .InitializeVAO(vertices);
         }
 
         public void Load()
@@ -55,9 +55,9 @@ namespace DeeSynk.Components
         }
 
         //Test Method
-        public void Render()
+        public void Render(Matrix4 ortho)
         {
-            go.Render();
+            go.Render(ortho);
         }
     }
 }

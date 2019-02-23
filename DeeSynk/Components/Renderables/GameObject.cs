@@ -273,6 +273,50 @@ namespace DeeSynk.Components.Renderables
             return this;
         }
 
+        public GameObject InitializeVAO(ColoredVertex[] vertices)
+        {
+
+            GL.UseProgram(ActiveProgramID);
+            if (_vertexCount <= _indexCount)
+            {
+                //IF VERTEX EQUAL 0 OR INDEX EQUAL 0 THROW ERROR
+                int vertexSize = (isTextured) ? 24 : 32;
+                int displayDataSize = (isTextured) ? 2 : 4;
+
+                _VAO = GL.GenVertexArray();
+                _VBO = GL.GenBuffer();
+                _IBO = GL.GenBuffer();
+
+                GL.BindVertexArray(_VAO);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, _VBO);
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, _IBO);
+
+                GL.NamedBufferStorage(_VBO, vertexSize * _vertexCount, vertices, BufferStorageFlags.DynamicStorageBit);
+
+                GL.VertexArrayAttribBinding(_VAO, 0, 0);
+                GL.EnableVertexArrayAttrib(_VAO, 0);
+                GL.VertexArrayAttribFormat(_VAO, 0, 4, VertexAttribType.Float, false, 0);
+
+                GL.VertexArrayAttribBinding(_VAO, 1, 0);
+                GL.EnableVertexArrayAttrib(_VAO, 1);
+                GL.VertexArrayAttribFormat(_VAO, 1, displayDataSize, VertexAttribType.Float, false, 16);
+
+                GL.VertexArrayVertexBuffer(_VAO, 0, _VBO, IntPtr.Zero, vertexSize);
+                GL.NamedBufferStorage(_IBO, 4 * _indexCount, _indices, BufferStorageFlags.DynamicStorageBit);
+
+                //GL.BindVertexArray(0);
+                Console.WriteLine(GL.GetError().ToString());
+
+                InitVAO = true;
+            }
+            else
+            {
+                Visible = false;
+            }
+
+            return this;
+        }
+
         public GameObject AddProgramIDs(int[] programIDs)
         {
             if(programIDs.Length > 0)
@@ -292,15 +336,18 @@ namespace DeeSynk.Components.Renderables
 
         //public abstract void Update();
 
-        public virtual void Render()
+        public virtual void Render(Matrix4 ortho)
         {
             GL.UseProgram(ActiveProgramID);
             GL.BindVertexArray(_VAO);
 
-            GL.DrawElements(BeginMode.Triangles, IndexCount, DrawElementsType.UnsignedInt, 0);
+            GL.UniformMatrix4(2, false, ref ortho);
 
-            GL.BindVertexArray(0);
-            GL.UseProgram(0);
+            GL.DrawElements(BeginMode.Triangles, IndexCount, DrawElementsType.UnsignedInt, 0);
+            //GL.DrawArrays(PrimitiveType.Quads, 0, _vertexCount);
+
+            //GL.BindVertexArray(0);
+            //GL.UseProgram(0);
         }
     }
 }

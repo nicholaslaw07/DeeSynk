@@ -70,9 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Shaders\Fragment\defaultColored.txt" />
-    <Content Include="Resources\Shaders\Fragment\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultColored.txt" />
-    <Content Include="Resources\Shaders\Vertex\defaultTextured.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,11 +1,12 @@
 ﻿#version 450 core
 
 layout (location = 0) in vec4 position;
-layout (location = 1) in vec4 vertexColor;
-out vec4 vs_vertexColor;
+layout (location = 1) in vec4 color;
+layout (location = 2) in mat4 ortho;
+out vec4 vs_color;
 
 void main(void)
 {
- vs_vertexColor = vertexColor;
- gl_Position =  position;
+ vs_color = color;
+ gl_Position =  ortho * position;
 }
