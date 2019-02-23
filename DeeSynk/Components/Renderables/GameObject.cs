@@ -300,14 +300,20 @@ namespace DeeSynk.Components.Renderables
 
         public virtual void Render(Matrix4 ortho)
         {
+
+            //Console.WriteLine("Hello");
             RotationZ += 0.01f;
-            var m = RotationZMat4;
+            var r = RotationZMat4;
+            var t = TranslationMat4;
+            var s = ScaleMat4;
 
             GL.UseProgram(ActiveProgramID);
             GL.BindVertexArray(_VAO);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, _IBO);
             GL.UniformMatrix4(2, false, ref ortho);
-            GL.UniformMatrix4(3, false, ref m);
+            GL.UniformMatrix4(3, false, ref r);
+            GL.UniformMatrix4(4, false, ref t);
+            GL.UniformMatrix4(5, false, ref s);
             GL.DrawElements(BeginMode.Triangles, IndexCount, DrawElementsType.UnsignedInt, 0);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             GL.BindVertexArray(0);
@@ -315,3 +321,16 @@ namespace DeeSynk.Components.Renderables
         }
     }
 }
+
+//Add transformations to shaders and pass them via Render in this class
+//Figure out how to best pass or set ortho as the current orthographic matrix
+
+//Begin adding the capabilities to have components within GameObject 
+//Texturing will likely be a component
+
+//Determine the best ways to add tiling - Loop Render and modify transform matrix every time?
+    //Custom VAOs?
+
+//Optimize Optimize Optimize
+
+

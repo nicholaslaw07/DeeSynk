@@ -16,14 +16,19 @@ namespace DeeSynk.Components
     public class Game
     {
         private GameObject go;
+        private List<GameObject> goList;
+        Random r;
         public Game()
         {
+            r = new Random();
             Load();
 
-            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-100f, -100f, 1.0f, 1.0f), Color4.Red),
-                                        new ColoredVertex(new Vector4(100f, -100f, 1.0f, 1.0f), Color4.Green),
-                                        new ColoredVertex(new Vector4(100f, 100f, 1.0f, 1.0f), Color4.Blue),
-                                        new ColoredVertex(new Vector4(-100f, 100f, 1.0f, 1.0f), Color4.Yellow)};
+            goList = new List<GameObject>();
+
+            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-10f, -10f, 1.0f, 1.0f), Color4.Red),
+                                        new ColoredVertex(new Vector4(10f, -10f, 1.0f, 1.0f), Color4.Green),
+                                        new ColoredVertex(new Vector4(10f, 10f, 1.0f, 1.0f), Color4.Blue),
+                                        new ColoredVertex(new Vector4(-10f, 10f, 1.0f, 1.0f), Color4.Yellow)};
 
             //ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-1f, -1f, 1.0f, 1.0f), Color4.Red),
                                        // new ColoredVertex(new Vector4(1f, -1f, 1.0f, 1.0f), Color4.Green),
@@ -34,7 +39,15 @@ namespace DeeSynk.Components
             int program = Managers.ShaderManager.GetInstance().GetProgram("defaultColored");
             int[] programs = { program };
 
-            go = new GameObject(1, 1, vertices, vertices.Length, indices, false)
+            for (int i = 0;i<10000; i++)
+            {
+                goList.Add(new GameObject(1, 1, vertices, vertices.Length, indices, false,
+                                            new Vector3((float)(r.NextDouble() * 1400d - 700d), (float)(r.NextDouble() * 1000d - 500d), 0.0f), 0.0f, 0.0f ,0.0f, new Vector3((float)(r.NextDouble()) + 0.2f, (float)(r.NextDouble()) + 0.2f, 0.0f))
+                                .AddProgramIDs(programs)
+                                .InitializeVAO());
+            }
+
+                go = new GameObject(1, 1, vertices, vertices.Length, indices, false)
                                 .AddProgramIDs(programs)
                                 .InitializeVAO();
         }
@@ -62,7 +75,12 @@ namespace DeeSynk.Components
         //Test Method
         public void Render(Matrix4 ortho)
         {
-            go.Render(ortho);
+            //go.Render(ortho);
+
+            foreach(GameObject g in goList)
+            {
+                g.Render(ortho);
+            }
         }
     }
 }
