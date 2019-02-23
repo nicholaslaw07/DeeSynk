@@ -8,13 +8,37 @@ namespace DeeSynk.Components.Renderables
 {
     public abstract class RenderObject
     {
-        private bool _isVisible;
-        protected bool IsVisible { get => _isVisible; set => _isVisible = value; }
+        private bool   _visible;
+        protected bool Visible { get => _visible; set => _visible = value; }
+
+        private bool   _initVAO; // is the VAO initialized
+        protected bool InitVAO { get => _initVAO; set => _initVAO = value; }  //inside of the get, add a means of checking if the buffer references have been created
+
+        private bool   _initPrograms;
+        protected bool InitPrograms { get => _initPrograms; }
+
+        private int _VAO;  //Vertex Array Object ID number, aka an integer reference used to represent the objects location
+        private int _VBO;  //Vertex Buffer Object
+        private int _IBO;  //Index Buffer Object
+
+        protected int VAO { get => _VAO; }
+        protected int VBO { get => _VBO; }
+        protected int IBO { get => _IBO; }
 
         //THESE SIX FIELDS ARE VERY TEMPORARY AND ARE SUBJECT TO FUTURE CHANGES
-        protected List<string>  _programReferenceNames;  //List of the string reference names (used in ShaderManager) that this specific object may use to render itself, NOT the program IDs, however.
-        protected string        _activeProgramReferenceName;  //string reference name that is currently active  
-        protected int           _activeProgramID;        //**NOTE: It is conceivable that an object may need to use multiple ProgramIDs. We must account for this somehow...
+        //private List<string>  _programReferenceNames;  //List of the string reference names (used in ShaderManager) that this specific object may use to render itself, NOT the program IDs, however.
+        //private string        _activeProgramReferenceName;  //string reference name that is currently active  
+        //private int           _activeProgramID;        //**NOTE: It is conceivable that an object may need to use multiple ProgramIDs. We must account for this somehow...
+
+        //protected List<string> ProgramReferenceNames { get => _programReferenceNames; }
+        //protected string ActiveProgramReferenceName { get => _activeProgramReferenceName; }
+        //protected int ActiveProgramID { get => _activeProgramID; }
+
+        private int[] _programIDs;
+        private int _activeProgramID;
+
+        protected ref int[] ProgramIDs { get => ref _programIDs; }
+        protected int ActiveProgramID { get => _activeProgramID; }
 
         //Rendering Attributes
         private int _renderID;  //likely will be given from the render manager or similar class
@@ -61,6 +85,14 @@ namespace DeeSynk.Components.Renderables
 
         public RenderObject(int renderID, int renderLayer)
         {
+            _visible = true;
+            _initVAO = false;
+            _initPrograms = false;
+
+            _VAO = GL.GenVertexArray();
+            _VBO = GL.GenBuffer();
+            _IBO = GL.GenBuffer();
+
             _renderID    = renderID;
             _renderLayer = renderLayer;
 
@@ -79,6 +111,14 @@ namespace DeeSynk.Components.Renderables
 
         public RenderObject(int renderID, int renderLayer, Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
         {
+            _visible = true;
+            _initVAO = false;
+            _initPrograms = false;
+
+            _VAO = GL.GenVertexArray();
+            _VBO = GL.GenBuffer();
+            _IBO = GL.GenBuffer();
+
             _renderID    = renderID;
             _renderLayer = renderLayer;
 
@@ -96,22 +136,29 @@ namespace DeeSynk.Components.Renderables
         }
 
         public abstract RenderObject InitializeVAO();
-        public abstract RenderObject AddProgramIDs();
+
+        public RenderObject AddProgramIDs(int[] programIDs)
+        {
+            if(programIDs.Length > 0)
+            {
+                programIDs.CopyTo(_programIDs, 0);
+                _initPrograms = true;
+            }
+            else
+            {
+                Visible = false;
+            }
+            return this;
+        }
 
         public abstract void Update();
 
-        public abstract void Bind();
+        //public abstract void Bind();
 
         public abstract void Render();
 
         //render layer increment
         //render layer decrement
             //will need error checking
-    }
-
-    public enum RenderingTypes
-    {
-        TexuredVertices = 0,
-        ColoredVertices = 1
     }
 }
