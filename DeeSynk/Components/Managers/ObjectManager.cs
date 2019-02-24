@@ -134,6 +134,9 @@ namespace DeeSynk.Components.Managers
             }
         }
 
+        /// <summary>
+        /// Iterates through all existing game objects, and calls their render method.
+        /// </summary>
         public void Render(Matrix4 ortho)
         {
             for (int i = 0; i < MaxObjectCount; i++)
