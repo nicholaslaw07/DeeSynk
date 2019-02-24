@@ -15,13 +15,9 @@ namespace DeeSynk.Components
     /// </summary>
     public class Game
     {
-        private GameObject go;
-        private List<GameObject> goList;
-        Random r;
         public Game()
         {
             Load();
-
 
             int program = Managers.ShaderManager.GetInstance().GetProgram("defaultColored");
             int[] programs = { program };
@@ -38,17 +34,9 @@ namespace DeeSynk.Components
 
         public void Load()
         {
-            LoadShaders();
-        }
-
-        public void LoadShaders()
-        {
             Managers.ShaderManager.GetInstance().Load();
-        }
-
-        public void LoadTextures()
-        {
-
+            Managers.ObjectManager.GetInstance().Load();
+            Managers.TextureManager.GetInstance().Load();
         }
 
         public void LoadGameData()

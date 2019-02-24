@@ -9,6 +9,8 @@ namespace DeeSynk.Components.Renderables
 {
     public class GameObject
     {
+        public int ObjectID;
+
         private bool   _visible;
         protected bool Visible { get => _visible; set => _visible = value; }
 
@@ -112,8 +114,10 @@ namespace DeeSynk.Components.Renderables
 
 
 
-        public GameObject(int renderID, int renderLayer, ColoredVertex[] vertices, uint[] indices)
+        public GameObject(int objectID, int renderID, int renderLayer, ColoredVertex[] vertices, uint[] indices)
         {
+            ObjectID = objectID;
+
             _visible = true;
             _initVAO = false;
             _initPrograms = false;
@@ -142,8 +146,10 @@ namespace DeeSynk.Components.Renderables
             _scaleMat4       = Matrix4.Identity;
         }
 
-        public GameObject(int renderID, int renderLayer, TexturedVertex[] vertices, uint[] indices)
+        public GameObject(int objectID, int renderID, int renderLayer, TexturedVertex[] vertices, uint[] indices)
         {
+            ObjectID = objectID;
+
             _visible = true;
             _initVAO = false;
             _initPrograms = false;
@@ -172,10 +178,12 @@ namespace DeeSynk.Components.Renderables
             _scaleMat4 = Matrix4.Identity;
         }
 
-        public GameObject(int renderID, int renderLayer,
+        public GameObject(int objectID, int renderID, int renderLayer,
                     ColoredVertex[] vertices, uint[] indices,
                     Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
         {
+            ObjectID = objectID;
+
             _visible = true;
             _initVAO = false;
             _initPrograms = false;
@@ -204,10 +212,12 @@ namespace DeeSynk.Components.Renderables
             _scaleMat4 = Matrix4.Identity;
         }
 
-        public GameObject(int renderID, int renderLayer,
+        public GameObject(int objectID, int renderID, int renderLayer,
                             TexturedVertex[] vertices, uint[] indices, 
                             Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
         {
+            ObjectID = objectID;
+
             _visible = true;
             _initVAO = false;
             _initPrograms = false;

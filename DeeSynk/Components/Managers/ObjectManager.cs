@@ -18,10 +18,11 @@ namespace DeeSynk.Components.Managers
         private bool[] _existingGameObjects; // holds whether or not the object at corresponding index in _gameObjects has been deleted or not
         private int MaxObjectCount;          // number of objects as if none have been deleted
 
+        /// <summary>
+        /// Constructor private to maintain singleton structure
+        /// </summary>
         private ObjectManager()
         {
-            _gameObjects = new GameObject[OBJECT_MEMORY];
-            _existingGameObjects = new bool[OBJECT_MEMORY];
             MaxObjectCount = 0;
         }
 
@@ -38,6 +39,12 @@ namespace DeeSynk.Components.Managers
             return ref _objectManager;
         }
 
+        /// <summary>
+        /// Decides where in the allocated memory a new GameObject can be created.
+        /// This should only be used if the returned index is DEFINITELY used to 
+        /// instantiate a new GameObject.
+        /// </summary>
+        /// <returns>Index of free space in _gameObjects</returns>
         private int GetNewGameObjectID()
         {
             if (MaxObjectCount == OBJECT_MEMORY)
@@ -59,7 +66,12 @@ namespace DeeSynk.Components.Managers
             }
         }
 
-        public GameObject CreateRectangle(int layer, int width, int height, int x, int y, Color4 color)
+        /// <summary>
+        /// Creates a rectangular GameObject. The origin (0,0) is at the center of the GameWindow, and x and y
+        /// use an origin at the center of the rectangle as well.
+        /// </summary>
+        /// <returns>The created GameObject, stored in the ObjectManager</returns>
+        public ref GameObject CreateRectangle(int layer, int width, int height, int x, int y, Color4 color)
         {
             float xdist = width / 2;
             float ydist = height / 2;
@@ -75,6 +87,7 @@ namespace DeeSynk.Components.Managers
             int idx = GetNewGameObjectID();
 
             _gameObjects[idx] = new GameObject(
+                idx,
                 1,          // renderID
                 layer, 
                 vertices,
@@ -85,12 +98,13 @@ namespace DeeSynk.Components.Managers
                 rotZ,
                 scale);
            
-            // get renderID, renderLayer, ColoredVertex vertices, uint indices
-
-
-            return _gameObjects[idx];
+            return ref _gameObjects[idx];
         }
-
+        
+        /// <summary>
+        /// Doesn't delete the GameObject immediately, but sets the corresponding _existingGameObjects flag to false,
+        /// such that the memory is made available when necessary.
+        /// </summary>
         public void DeleteGameObject(int idx)
         {
             _existingGameObjects[idx] = false;
@@ -98,18 +112,25 @@ namespace DeeSynk.Components.Managers
 
         public void Load()
         {
-
+            _gameObjects = new GameObject[OBJECT_MEMORY];
+            _existingGameObjects = new bool[OBJECT_MEMORY];
         }
 
-        public GameObject GetGameObject(int idx)
+        /// <summary>
+        /// Given an index, returns the GameObject stored at that index. I'm not sure when this would be used,
+        /// since the only object that stores the index is the GameObject itself. Perhaps render groups would 
+        /// want to store the ID's as a list of integers?
+        /// </summary>
+        /// <returns>GameObject reference at specified index</returns>
+        public ref GameObject GetGameObject(int idx)
         {
             if (_existingGameObjects[idx]) 
             {
-                return _gameObjects[idx]; //will return null if space is not yet occupied
+                return ref _gameObjects[idx]; //will return null if space is not yet occupied
             }
             else
             {
-                return null;
+                throw new InvalidOperationException("Non-existent GameObject requested.");
             }
         }
 
