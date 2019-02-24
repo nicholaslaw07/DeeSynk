@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
@@ -85,8 +86,19 @@ namespace DeeSynk.Components.Managers
             {
                 var Program = GL.CreateProgram();                                               // creates a new program id in the GL context
                 var Shaders = new List<int>();
-                Shaders.Add(CompileShader(ShaderType.VertexShader, vertexShaders[i]));
-                Shaders.Add(CompileShader(ShaderType.FragmentShader, fragmentShaders[i]));
+
+                var fileStreamV = new FileStream(vertexShaders[i], FileMode.Open, FileAccess.Read);
+                var fileStreamF = new FileStream(fragmentShaders[i], FileMode.Open, FileAccess.Read);
+
+                using (var StreamReader = new StreamReader(fileStreamV, Encoding.UTF8))
+                {
+                    Shaders.Add(CompileShader(ShaderType.VertexShader, StreamReader.ReadToEnd()));
+                }
+
+                using (var StreamReader = new StreamReader(fileStreamF, Encoding.UTF8))
+                {
+                    Shaders.Add(CompileShader(ShaderType.FragmentShader, StreamReader.ReadToEnd()));
+                }
 
                 foreach (var shader in Shaders)
                     GL.AttachShader(Program, shader);                                           // attaches each type of shader to the generated program
@@ -99,6 +111,7 @@ namespace DeeSynk.Components.Managers
                     GL.DeleteShader(shader);                                                    // create the program that you just linked
                 }
 
+                Console.WriteLine(GL.GetProgramInfoLog(Program));
                 _programs.Add(fileNames[i], Program);                                            // adds the program created to the shaders dictionary
             }
         }
