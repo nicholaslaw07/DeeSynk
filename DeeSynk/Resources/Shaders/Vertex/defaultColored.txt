@@ -11,5 +11,5 @@ out vec4 vs_color;
 void main(void)
 {
  vs_color = color;
- gl_Position = ortho * tra * rot * sca * position;
+ gl_Position = ortho * tra * sca * position;
 }
