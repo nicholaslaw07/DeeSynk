@@ -309,7 +309,6 @@ namespace DeeSynk.Components.Renderables
         public virtual void Render(Matrix4 ortho)
         {
 
-            //Console.WriteLine("Hello");
             RotationZ += 0.01f;
             var r = RotationZMat4;
             var t = TranslationMat4;

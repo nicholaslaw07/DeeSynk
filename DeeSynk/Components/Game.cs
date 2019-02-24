@@ -19,6 +19,10 @@ namespace DeeSynk.Components
         {
             Load();
 
+            /* TESTING */
+
+            // not sure how to handle these programs yet, I suspect a component based approach for
+            // renderability is the answer.
             int program = Managers.ShaderManager.GetInstance().GetProgram("defaultColored");
             int[] programs = { program };
 
@@ -29,6 +33,7 @@ namespace DeeSynk.Components
             om.CreateRectangle(1, 100, 100, 55, 55, Color4.Green).AddProgramIDs(programs).InitializeVAO();
             om.CreateRectangle(1, 100, 100, 55, -55, Color4.Blue).AddProgramIDs(programs).InitializeVAO();
             
+            /* END TESTING */
 
         }
 
@@ -42,12 +47,6 @@ namespace DeeSynk.Components
         public void LoadGameData()
         {
 
-        }
-
-        //Test Method
-        public void Render(Matrix4 ortho)
-        {
-            Managers.ObjectManager.GetInstance().Render(ortho);
         }
     }
 }
