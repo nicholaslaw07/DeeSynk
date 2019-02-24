@@ -20,36 +20,20 @@ namespace DeeSynk.Components
         Random r;
         public Game()
         {
-            r = new Random();
             Load();
 
-            goList = new List<GameObject>();
-
-            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-10f, -10f, 1.0f, 1.0f), Color4.Red),
-                                        new ColoredVertex(new Vector4(10f, -10f, 1.0f, 1.0f), Color4.Green),
-                                        new ColoredVertex(new Vector4(10f, 10f, 1.0f, 1.0f), Color4.Blue),
-                                        new ColoredVertex(new Vector4(-10f, 10f, 1.0f, 1.0f), Color4.Yellow)};
-
-            //ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-1f, -1f, 1.0f, 1.0f), Color4.Red),
-                                       // new ColoredVertex(new Vector4(1f, -1f, 1.0f, 1.0f), Color4.Green),
-                                       // new ColoredVertex(new Vector4(1f, 1f, 1.0f, 1.0f), Color4.Blue)};
-
-            uint[] indices = { 0, 1, 2, 0, 2, 3};
 
             int program = Managers.ShaderManager.GetInstance().GetProgram("defaultColored");
             int[] programs = { program };
 
-            for (int i = 0;i<10000; i++)
-            {
-                goList.Add(new GameObject(1, 1, vertices, indices,
-                                            new Vector3((float)(r.NextDouble() * 1400d - 700d), (float)(r.NextDouble() * 1000d - 500d), 0.0f), 0.0f, 0.0f ,0.0f, new Vector3((float)(r.NextDouble()) + 0.2f, (float)(r.NextDouble()) + 0.2f, 0.0f))
-                                .AddProgramIDs(programs)
-                                .InitializeVAO());
-            }
+            Managers.ObjectManager om = Managers.ObjectManager.GetInstance();
 
-                go = new GameObject(1, 1, vertices, indices)
-                                .AddProgramIDs(programs)
-                                .InitializeVAO();
+            om.CreateRectangle(1, 100, 100, -55, 55, Color4.Red).AddProgramIDs(programs).InitializeVAO();
+            om.CreateRectangle(1, 100, 100, -55, -55, Color4.Yellow).AddProgramIDs(programs).InitializeVAO();
+            om.CreateRectangle(1, 100, 100, 55, 55, Color4.Green).AddProgramIDs(programs).InitializeVAO();
+            om.CreateRectangle(1, 100, 100, 55, -55, Color4.Blue).AddProgramIDs(programs).InitializeVAO();
+            
+
         }
 
         public void Load()
@@ -75,12 +59,7 @@ namespace DeeSynk.Components
         //Test Method
         public void Render(Matrix4 ortho)
         {
-            //go.Render(ortho);
-
-            foreach(GameObject g in goList)
-            {
-                g.Render(ortho);
-            }
+            Managers.ObjectManager.GetInstance().Render(ortho);
         }
     }
 }
