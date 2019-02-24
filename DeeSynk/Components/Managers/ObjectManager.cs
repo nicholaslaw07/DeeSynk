@@ -16,7 +16,10 @@ namespace DeeSynk.Components.Managers
         private const uint OBJECT_MEMORY = 10000;
         private GameObject[] _gameObjects;   // holds actual game objects
         private bool[] _existingGameObjects; // holds whether or not the object at corresponding index in _gameObjects has been deleted or not
+        private int[] _gameObjectLayers;     // holds the layer that the corresponding GameObject is on, might be useful for a collision detector
         private int MaxObjectCount;          // number of objects as if none have been deleted
+
+        private const float PI = (float)Math.PI;
 
         /// <summary>
         /// Constructor private to maintain singleton structure
@@ -97,6 +100,63 @@ namespace DeeSynk.Components.Managers
                 rotY,
                 rotZ,
                 scale);
+
+            _gameObjectLayers[idx] = layer;
+           
+            return ref _gameObjects[idx];
+        }
+
+        /// <summary>
+        /// Creates a circular GameObject. The origin (0,0) is at the center of the GameWindow, and x and y
+        /// use an origin at the center of the circle as well.
+        /// </summary>
+        /// <returns>The created GameObject, stored in the ObjectManager</returns>
+        public ref GameObject CreateCircle(int layer, int x, int y, int radius, Color4 color)
+        {
+            int triangleCount = 100;
+            ColoredVertex[] vertices = new ColoredVertex[triangleCount + 1];
+            uint[] indices = new uint[triangleCount * 3];
+
+            vertices[0] = new ColoredVertex(new Vector4((float)x, (float)y, 1.0f, 1.0f), color);
+            for (int i = 1; i <= triangleCount; i++)
+            {
+                float fx = (float)x + ((float)radius * (float)Math.Cos((double)i * 2d * Math.PI / (double)triangleCount));
+                float fy = (float)y + ((float)radius * (float)Math.Sin((double)i * 2d * Math.PI / (double)triangleCount));
+
+                vertices[i] = new ColoredVertex(new Vector4(fx, fy, 1.0f, 1.0f), color);
+            }
+            for (uint i=0; i < triangleCount; i++)
+            {
+                indices[i*3] = 0;
+                indices[i*3 + 1] = i+1;
+                if (i == triangleCount-1)
+                {
+                    indices[i * 3 + 2] = 1;
+                }
+                else
+                {
+                    indices[i * 3 + 2] = i + 2;
+                }
+            }
+            Vector3 position = new Vector3((float)x, (float)y, 0f);
+            float rotX = 0f, rotY = 0f, rotZ = 0f;
+            Vector3 scale = new Vector3(0.2f, 0.2f, 0.0f);
+
+            int idx = GetNewGameObjectID();
+            
+            _gameObjects[idx] = new GameObject(
+                idx,
+                1,          // renderID
+                layer, 
+                vertices,
+                indices,
+                position,
+                rotX,
+                rotY,
+                rotZ,
+                scale);
+
+            _gameObjectLayers[idx] = layer;
            
             return ref _gameObjects[idx];
         }
@@ -114,6 +174,7 @@ namespace DeeSynk.Components.Managers
         {
             _gameObjects = new GameObject[OBJECT_MEMORY];
             _existingGameObjects = new bool[OBJECT_MEMORY];
+            _gameObjectLayers = new int[OBJECT_MEMORY]; // could run into an issue is 0 is a possible render layer
         }
 
         /// <summary>

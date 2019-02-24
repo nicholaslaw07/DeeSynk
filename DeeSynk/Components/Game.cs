@@ -28,10 +28,13 @@ namespace DeeSynk.Components
 
             Managers.ObjectManager om = Managers.ObjectManager.GetInstance();
 
+            om.CreateCircle(1, 0, 0, 160, Color4.Black).AddProgramIDs(programs).InitializeVAO();
+
             om.CreateRectangle(1, 100, 100, -55, 55, Color4.Red).AddProgramIDs(programs).InitializeVAO();
             om.CreateRectangle(1, 100, 100, -55, -55, Color4.Yellow).AddProgramIDs(programs).InitializeVAO();
             om.CreateRectangle(1, 100, 100, 55, 55, Color4.Green).AddProgramIDs(programs).InitializeVAO();
             om.CreateRectangle(1, 100, 100, 55, -55, Color4.Blue).AddProgramIDs(programs).InitializeVAO();
+
             
             /* END TESTING */
 
