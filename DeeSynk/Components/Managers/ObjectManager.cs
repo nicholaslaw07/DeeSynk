@@ -10,6 +10,7 @@ namespace DeeSynk.Components.Managers
 {
     using GameObject = Renderables.GameObject;
     using ColoredVertex = Renderables.ColoredVertex;
+    using TexturedVertex = Renderables.TexturedVertex;
     class ObjectManager : IManager
     {
         private static ObjectManager _objectManager;
@@ -107,6 +108,43 @@ namespace DeeSynk.Components.Managers
         }
 
         /// <summary>
+        /// Creates a rectangular GameObject. The origin (0,0) is at the center of the GameWindow, and x and y
+        /// use an origin at the center of the rectangle as well.
+        /// </summary>
+        /// <returns>The created GameObject, stored in the ObjectManager</returns>
+        public ref GameObject CreateTexturedRectangle(int layer, int width, int height, int x, int y)
+        {
+            float xdist = width / 2;
+            float ydist = height / 2;
+            TexturedVertex[] vertices = {new TexturedVertex(new Vector4(-xdist, -ydist, 1.0f, 1.0f), new Vector2(0f, 0f)), // idk what textureCoord is, so maybe they shouldn't be 0f idk
+                                        new TexturedVertex(new Vector4(xdist, -ydist, 1.0f, 1.0f), new Vector2(0f, 0f)),
+                                        new TexturedVertex(new Vector4(xdist, ydist, 1.0f, 1.0f), new Vector2(0f, 0f)),
+                                        new TexturedVertex(new Vector4(-xdist, ydist, 1.0f, 1.0f), new Vector2(0f, 0f))};
+            uint[] indices = { 0, 1, 2, 0, 2, 3 };
+            Vector3 position = new Vector3((float)x, (float)y, 0f);
+            float rotX = 0f, rotY = 0f, rotZ = 0f;
+            Vector3 scale = new Vector3(0.2f, 0.2f, 0.0f);
+
+            int idx = GetNewGameObjectID();
+
+            _gameObjects[idx] = new GameObject(
+                idx,
+                1,          // renderID
+                layer, 
+                vertices,
+                indices,
+                position,
+                rotX,
+                rotY,
+                rotZ,
+                scale);
+
+            _gameObjectLayers[idx] = layer;
+           
+            return ref _gameObjects[idx];
+        }
+
+        /// <summary>
         /// Creates a circular GameObject. The origin (0,0) is at the center of the GameWindow, and x and y
         /// use an origin at the center of the circle as well.
         /// </summary>
@@ -122,19 +160,15 @@ namespace DeeSynk.Components.Managers
             {
                 float fx = (float)x + ((float)radius * (float)Math.Cos((double)i * 2d * Math.PI / (double)triangleCount));
                 float fy = (float)y + ((float)radius * (float)Math.Sin((double)i * 2d * Math.PI / (double)triangleCount));
-
                 vertices[i] = new ColoredVertex(new Vector4(fx, fy, 1.0f, 1.0f), color);
             }
             for (uint i=0; i < triangleCount; i++)
             {
                 indices[i*3] = 0;
                 indices[i*3 + 1] = i+1;
-                if (i == triangleCount-1)
-                {
+                if (i == triangleCount-1){
                     indices[i * 3 + 2] = 1;
-                }
-                else
-                {
+                }else{
                     indices[i * 3 + 2] = i + 2;
                 }
             }
