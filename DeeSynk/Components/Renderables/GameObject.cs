@@ -9,7 +9,8 @@ namespace DeeSynk.Components.Renderables
 {
     public class GameObject
     {
-        public int ObjectID;
+        private int _objectID;
+        public int ObjectID { get => _objectID; }
 
         private bool   _visible;
         protected bool Visible { get => _visible; set => _visible = value; }
@@ -116,7 +117,7 @@ namespace DeeSynk.Components.Renderables
 
         public GameObject(int objectID, int renderID, int renderLayer, ColoredVertex[] vertices, uint[] indices)
         {
-            ObjectID = objectID;
+            _objectID = objectID;
 
             _visible = true;
             _initVAO = false;
@@ -148,7 +149,7 @@ namespace DeeSynk.Components.Renderables
 
         public GameObject(int objectID, int renderID, int renderLayer, TexturedVertex[] vertices, uint[] indices)
         {
-            ObjectID = objectID;
+            _objectID = objectID;
 
             _visible = true;
             _initVAO = false;
@@ -182,7 +183,7 @@ namespace DeeSynk.Components.Renderables
                     ColoredVertex[] vertices, uint[] indices,
                     Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
         {
-            ObjectID = objectID;
+            _objectID = objectID;
 
             _visible = true;
             _initVAO = false;
@@ -216,7 +217,7 @@ namespace DeeSynk.Components.Renderables
                             TexturedVertex[] vertices, uint[] indices, 
                             Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
         {
-            ObjectID = objectID;
+            _objectID = objectID;
 
             _visible = true;
             _initVAO = false;
