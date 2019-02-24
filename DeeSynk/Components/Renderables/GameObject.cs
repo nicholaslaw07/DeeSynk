@@ -112,20 +112,19 @@ namespace DeeSynk.Components.Renderables
 
 
 
-        public GameObject(int renderID, int renderLayer, 
-                            ColoredVertex[] vertices, int vertexCount, uint[] indices, bool isTextured)
+        public GameObject(int renderID, int renderLayer, ColoredVertex[] vertices, uint[] indices)
         {
             _visible = true;
             _initVAO = false;
             _initPrograms = false;
 
             _verticesC = vertices;
-            _vertexCount = vertexCount;
+            _vertexCount = vertices.Length;
 
             _indices = indices;
             _indexCount = _indices.Length;
 
-            _isTextured = isTextured;
+            _isTextured = false;
 
             _renderID    = renderID;
             _renderLayer = renderLayer;
@@ -143,20 +142,19 @@ namespace DeeSynk.Components.Renderables
             _scaleMat4       = Matrix4.Identity;
         }
 
-        public GameObject(int renderID, int renderLayer,
-                            TexturedVertex[] vertices, int vertexCount, uint[] indices, bool isTextured)
+        public GameObject(int renderID, int renderLayer, TexturedVertex[] vertices, uint[] indices)
         {
             _visible = true;
             _initVAO = false;
             _initPrograms = false;
 
             _verticesT = vertices;
-            _vertexCount = vertexCount;
+            _vertexCount = vertices.Length;
 
             _indices = indices;
             _indexCount = _indices.Length;
 
-            _isTextured = isTextured;
+            _isTextured = true;
 
             _renderID = renderID;
             _renderLayer = renderLayer;
@@ -175,7 +173,7 @@ namespace DeeSynk.Components.Renderables
         }
 
         public GameObject(int renderID, int renderLayer,
-                    ColoredVertex[] vertices, int vertexCount, uint[] indices, bool isTextured,
+                    ColoredVertex[] vertices, uint[] indices,
                     Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
         {
             _visible = true;
@@ -183,12 +181,12 @@ namespace DeeSynk.Components.Renderables
             _initPrograms = false;
 
             _verticesC = vertices;
-            _vertexCount = vertexCount;
+            _vertexCount = vertices.Length;
 
             _indices = indices;
             _indexCount = _indices.Length;
 
-            _isTextured = isTextured;
+            _isTextured = false;
 
             _renderID = renderID;
             _renderLayer = renderLayer;
@@ -207,7 +205,7 @@ namespace DeeSynk.Components.Renderables
         }
 
         public GameObject(int renderID, int renderLayer,
-                            TexturedVertex[] vertices, int vertexCount, uint[] indices, bool isTextured, 
+                            TexturedVertex[] vertices, uint[] indices, 
                             Vector3 position, float rotX, float rotY, float rotZ, Vector3 scale)
         {
             _visible = true;
@@ -215,12 +213,12 @@ namespace DeeSynk.Components.Renderables
             _initPrograms = false;
 
             _verticesT = vertices;
-            _vertexCount = vertexCount;
+            _vertexCount = vertices.Length;
 
             _indices = indices;
             _indexCount = _indices.Length;
 
-            _isTextured = isTextured;
+            _isTextured = true;
 
             _renderID    = renderID;
             _renderLayer = renderLayer;

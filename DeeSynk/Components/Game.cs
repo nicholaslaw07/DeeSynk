@@ -41,13 +41,13 @@ namespace DeeSynk.Components
 
             for (int i = 0;i<10000; i++)
             {
-                goList.Add(new GameObject(1, 1, vertices, vertices.Length, indices, false,
+                goList.Add(new GameObject(1, 1, vertices, indices,
                                             new Vector3((float)(r.NextDouble() * 1400d - 700d), (float)(r.NextDouble() * 1000d - 500d), 0.0f), 0.0f, 0.0f ,0.0f, new Vector3((float)(r.NextDouble()) + 0.2f, (float)(r.NextDouble()) + 0.2f, 0.0f))
                                 .AddProgramIDs(programs)
                                 .InitializeVAO());
             }
 
-                go = new GameObject(1, 1, vertices, vertices.Length, indices, false)
+                go = new GameObject(1, 1, vertices, indices)
                                 .AddProgramIDs(programs)
                                 .InitializeVAO();
         }
