@@ -21,6 +21,8 @@ namespace DeeSynk.Components
         private KeyboardState keyState;    // holds current keyboard state, updated every frame
         private Color4 clearColor = Color4.White;     // the color that OpenGL uses to clear the color buffer on each frame
 
+        public static Matrix4 ORTHO_MATRIX = Matrix4.Identity;
+
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be
         /// passed to the parent class constructor. The title of the window is then set with
@@ -47,6 +49,7 @@ namespace DeeSynk.Components
         protected override void OnResize(EventArgs e)
         {
             GL.Viewport(0, 0, Width, Height);
+            Matrix4.CreateOrthographic((float)Width, (float)Height, -1f, 1f, out ORTHO_MATRIX);
         }
 
         /// <summary>
@@ -57,7 +60,10 @@ namespace DeeSynk.Components
         protected override void OnLoad(EventArgs e)
         {
             _game = new Game();
+            Matrix4.CreateOrthographic((float)Width, (float)Height, -1f, 1f, out ORTHO_MATRIX);
             CursorVisible = true;
+
+            Console.WriteLine(GL.GetString(StringName.Renderer));
         }
 
         /// <summary>
@@ -82,8 +88,7 @@ namespace DeeSynk.Components
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Matrix4 ortho = Matrix4.CreateOrthographic((float)Width, (float)Height, -1f, 1f);
-            Managers.ObjectManager.GetInstance().Render(ortho);
+            Managers.ObjectManager.GetInstance().Render();
 
             SwapBuffers();
         }

@@ -174,7 +174,7 @@ namespace DeeSynk.Components.Managers
             }
             Vector3 position = new Vector3((float)x, (float)y, 0f);
             float rotX = 0f, rotY = 0f, rotZ = 0f;
-            Vector3 scale = new Vector3(0.2f, 0.2f, 0.0f);
+            Vector3 scale = new Vector3(1.0f, 1.0f, 0.0f);
 
             int idx = GetNewGameObjectID();
             
@@ -232,13 +232,13 @@ namespace DeeSynk.Components.Managers
         /// <summary>
         /// Iterates through all existing game objects, and calls their render method.
         /// </summary>
-        public void Render(Matrix4 ortho)
+        public void Render()
         {
             for (int i = 0; i < MaxObjectCount; i++)
             {
                 if (_existingGameObjects[i])
                 {
-                    _gameObjects[i].Render(ortho);
+                    _gameObjects[i].Render();
                 }
             }
         }
