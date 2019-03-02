@@ -7,12 +7,22 @@ using System.Threading.Tasks;
 namespace DeeSynk.Core
 {
     using GameObject = Components.GameObject;
+    
     public class World
     {
         private const uint OBJECT_MEMORY = 10000;
         private GameObject[] _gameObjects;
         private bool[] _existingGameObjects;
         private int MaxObjectCount;
+
+        private Components.ComponentLocation[] componentLocations;
+        private Components.ComponentTransform[] componentTransforms;
+        private Components.ComponentVelocity[] componentVelocities;
+        private Components.ComponentGravity[] componentGravities;
+        private Components.ComponentRotation_X[] componentRotation_Xs;
+        private Components.ComponentRotation_Y[] componentRotation_Ys;
+        private Components.ComponentRotation_Z[] componentRotation_Zs;
+        private Components.ComponentScale[] componentScales;
 
         public World()
         {
@@ -53,7 +63,7 @@ namespace DeeSynk.Core
         public ref GameObject CreateGameObject(int componentMask)
         {
             int id = GetNewGameObjectID();
-            _gameObjects[id] = new GameObject(id, componentMask):
+            _gameObjects[id] = new GameObject(id, componentMask);
             return ref _gameObjects[id];
         }
         
