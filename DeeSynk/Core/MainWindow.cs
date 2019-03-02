@@ -8,7 +8,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 
-namespace DeeSynk.Components
+namespace DeeSynk.Core
 {
     /// <summary>
     /// The MainWindow class contains all the highest level operations going on in the game. All updates,

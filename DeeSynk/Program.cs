@@ -1,4 +1,4 @@
-﻿using DeeSynk.Components;
+﻿using DeeSynk.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;

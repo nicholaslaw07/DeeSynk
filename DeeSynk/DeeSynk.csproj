@@ -51,14 +51,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Components\Game.cs" />
-    <Compile Include="Components\MainWindow.cs" />
-    <Compile Include="Components\Managers\ObjectManager.cs" />
-    <Compile Include="Components\Managers\TextureManager.cs" />
-    <Compile Include="Components\Managers\IManager.cs" />
-    <Compile Include="Components\Managers\ShaderManager.cs" />
-    <Compile Include="Components\Renderables\GameObject.cs" />
-    <Compile Include="Components\Renderables\VertexTypes.cs" />
+    <Compile Include="Core\Game.cs" />
+    <Compile Include="Core\MainWindow.cs" />
+    <Compile Include="Core\Managers\ObjectManager.cs" />
+    <Compile Include="Core\Managers\TextureManager.cs" />
+    <Compile Include="Core\Managers\IManager.cs" />
+    <Compile Include="Core\Managers\ShaderManager.cs" />
+    <Compile Include="Core\Renderables\GameObject.cs" />
+    <Compile Include="Core\Renderables\VertexTypes.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

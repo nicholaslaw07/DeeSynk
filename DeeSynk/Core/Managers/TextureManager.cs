@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
-namespace DeeSynk.Components.Managers
+namespace DeeSynk.Core.Managers
 {
     /// <summary>
     /// Manages all texture resources. Is responsible for loading at the start of the game and unloading at
