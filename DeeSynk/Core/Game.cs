@@ -1,4 +1,4 @@
-﻿using DeeSynk.Components.Renderables;
+﻿using DeeSynk.Core.Renderables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace DeeSynk.Components
+namespace DeeSynk.Core
 {
     /// <summary>
     /// All objects and mechanic modeling should be housed here.

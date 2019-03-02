@@ -6,7 +6,7 @@ using System.Text;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
-namespace DeeSynk.Components.Managers
+namespace DeeSynk.Core.Managers
 {
     /// <summary>
     /// Pulls the shaders from the resources folder, compiles them, and links them with a set of programs corresponding

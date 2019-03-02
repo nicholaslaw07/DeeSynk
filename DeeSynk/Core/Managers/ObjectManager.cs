@@ -6,7 +6,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using System.Threading.Tasks;
 
-namespace DeeSynk.Components.Managers
+namespace DeeSynk.Core.Managers
 {
     using GameObject = Renderables.GameObject;
     using ColoredVertex = Renderables.ColoredVertex;

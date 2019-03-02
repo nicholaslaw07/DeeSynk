@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeeSynk.Components.Managers
+namespace DeeSynk.Core.Managers
 {
     /// <summary>
     /// Should be applied to all managers controlled by Game. Will ensure (to some degree) that all

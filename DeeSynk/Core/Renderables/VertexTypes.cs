@@ -3,7 +3,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
-namespace DeeSynk.Components.Renderables
+namespace DeeSynk.Core.Renderables
 {
     public struct TexturedVertex
     {
