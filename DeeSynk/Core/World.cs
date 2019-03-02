@@ -2,61 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OpenTK;
-using OpenTK.Graphics;
 using System.Threading.Tasks;
 
-namespace DeeSynk.Core.Managers
+namespace DeeSynk.Core
 {
-
-    using GameObject = Renderables.GameObject;
-    using ColoredVertex = Renderables.ColoredVertex;
-    using TexturedVertex = Renderables.TexturedVertex;
-    class ObjectManager : IManager
+    using GameObject = Components.GameObject;
+    public class World
     {
-        private static ObjectManager _objectManager;
         private const uint OBJECT_MEMORY = 10000;
-        private GameObject[] _gameObjects;   // holds actual game objects
-        private bool[] _existingGameObjects; // holds whether or not the object at corresponding index in _gameObjects has been deleted or not
-        private int MaxObjectCount;          // number of objects as if none have been deleted
+        private GameObject[] _gameObjects;
+        private bool[] _existingGameObjects;
+        private int MaxObjectCount;
 
-
-        private const float PI = (float)Math.PI;
-
-        /// <summary>
-        /// Constructor private to maintain singleton structure
-        /// </summary>
-        private ObjectManager()
+        public World()
         {
             MaxObjectCount = 0;
-        }
+            _gameObjects = new GameObject[OBJECT_MEMORY];
+            _existingGameObjects = new bool[OBJECT_MEMORY];
 
-        /// <summary>
-        /// Singleton implementation means this is the only way to get a reference to the
-        /// ObjectManager class.
-        /// </summary>
-        /// <returns>Sole instance of ObjectManager</returns>
-        public static ref ObjectManager GetInstance()
-        {
-            if (_objectManager == null)
-                _objectManager = new ObjectManager();
-
-            return ref _objectManager;
-        }
-
-        public ref GameObject CreateGameObject()
-        {
-            int id = GetNewGameObjectID();
-            int components = GetComponentsInt();
-            _gameObjects[id] = new GameObject(id, components);
-            return ref _gameObjects[id];
-        }
-
-        public int GetComponentsInt()
-        {
-            int components = 0;
-
-            return components;
+            // load data provided by Game
         }
 
         /// <summary>
@@ -86,6 +50,13 @@ namespace DeeSynk.Core.Managers
             }
         }
 
+        public ref GameObject CreateGameObject(int componentMask)
+        {
+            int id = GetNewGameObjectID();
+            _gameObjects[id] = new GameObject(id, componentMask):
+            return ref _gameObjects[id];
+        }
+        
         /// <summary>
         /// Doesn't delete the GameObject immediately, but sets the corresponding _existingGameObjects flag to false,
         /// such that the memory is made available when necessary.
@@ -95,12 +66,7 @@ namespace DeeSynk.Core.Managers
             _existingGameObjects[idx] = false;
         }
 
-        public void Load()
-        {
-            _gameObjects = new GameObject[OBJECT_MEMORY];
-            _existingGameObjects = new bool[OBJECT_MEMORY];
-        }
-
+        
         /// <summary>
         /// Given an index, returns the GameObject stored at that index. I'm not sure when this would be used,
         /// since the only object that stores the index is the GameObject itself. Perhaps render groups would 
@@ -117,18 +83,6 @@ namespace DeeSynk.Core.Managers
             {
                 throw new InvalidOperationException("Non-existent GameObject requested.");
             }
-        }
-
-        /// <summary>
-        /// Iterates through all existing game objects, and calls their render method.
-        /// </summary>
-        public void Render()
-        {
-        }
-
-        public void UnLoad()
-        {
-            
         }
     }
 }

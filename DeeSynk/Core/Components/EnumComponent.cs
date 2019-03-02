@@ -8,6 +8,7 @@ namespace DeeSynk.Core.Components
 {
     enum Component : int
     {
+        NONE        = 0,
         LOCATION    = 1,
         TRANSFORM   = 1 << 1,
         VELOCITY    = 1 << 2,

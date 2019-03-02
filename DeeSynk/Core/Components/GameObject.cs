@@ -5,7 +5,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
-namespace DeeSynk.Core.Renderables
+namespace DeeSynk.Core.Components
 {
 
     public struct GameObject

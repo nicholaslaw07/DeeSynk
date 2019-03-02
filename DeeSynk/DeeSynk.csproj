@@ -51,15 +51,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Components\ComponentLocation.cs" />
     <Compile Include="Core\Components\EnumComponent.cs" />
     <Compile Include="Core\Game.cs" />
     <Compile Include="Core\MainWindow.cs" />
-    <Compile Include="Core\Managers\ObjectManager.cs" />
     <Compile Include="Core\Managers\TextureManager.cs" />
     <Compile Include="Core\Managers\IManager.cs" />
     <Compile Include="Core\Managers\ShaderManager.cs" />
-    <Compile Include="Core\Renderables\GameObject.cs" />
-    <Compile Include="Core\Renderables\VertexTypes.cs" />
+    <Compile Include="Core\Components\GameObject.cs" />
+    <Compile Include="Core\World.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
