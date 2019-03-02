@@ -15,14 +15,14 @@ namespace DeeSynk.Core
         private bool[] _existingGameObjects;
         private int MaxObjectCount;
 
-        private Components.ComponentLocation[] componentLocations;
-        private Components.ComponentTransform[] componentTransforms;
-        private Components.ComponentVelocity[] componentVelocities;
-        private Components.ComponentGravity[] componentGravities;
-        private Components.ComponentRotation_X[] componentRotation_Xs;
-        private Components.ComponentRotation_Y[] componentRotation_Ys;
-        private Components.ComponentRotation_Z[] componentRotation_Zs;
-        private Components.ComponentScale[] componentScales;
+        //private Components.ComponentLocation[] componentLocations;
+        //private Components.ComponentTransform[] componentTransforms;
+        //private Components.ComponentVelocity[] componentVelocities;
+        //private Components.ComponentGravity[] componentGravities;
+        //private Components.ComponentRotation_X[] componentRotation_Xs;
+        //private Components.ComponentRotation_Y[] componentRotation_Ys;
+        //private Components.ComponentRotation_Z[] componentRotation_Zs;
+        //private Components.ComponentScale[] componentScales;
 
         public World()
         {
