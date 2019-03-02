@@ -88,8 +88,6 @@ namespace DeeSynk.Core
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Managers.ObjectManager.GetInstance().Render();
-
             SwapBuffers();
         }
         

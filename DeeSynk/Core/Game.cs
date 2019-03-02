@@ -1,5 +1,4 @@
-﻿using DeeSynk.Core.Renderables;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,7 +22,6 @@ namespace DeeSynk.Core
         public void Load()
         {
             Managers.ShaderManager.GetInstance().Load();
-            Managers.ObjectManager.GetInstance().Load();
             Managers.TextureManager.GetInstance().Load();
         }
 
