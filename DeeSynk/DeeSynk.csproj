@@ -51,15 +51,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Components\ComponentRotation_X.cs" />
-    <Compile Include="Core\Components\ComponentRotation_Y.cs" />
-    <Compile Include="Core\Components\ComponentRotation_Z.cs" />
-    <Compile Include="Core\Components\ComponentScale.cs" />
-    <Compile Include="Core\Components\ComponentGravity.cs" />
-    <Compile Include="Core\Components\ComponentLocation.cs" />
-    <Compile Include="Core\Components\ComponentTransform.cs" />
-    <Compile Include="Core\Components\ComponentVelocity.cs" />
+    <Compile Include="Core\Components\Types\ComponentRotation_X.cs" />
+    <Compile Include="Core\Components\Types\ComponentRotation_Y.cs" />
+    <Compile Include="Core\Components\Types\ComponentRotation_Z.cs" />
+    <Compile Include="Core\Components\Types\ComponentScale.cs" />
+    <Compile Include="Core\Components\Types\ComponentGravity.cs" />
+    <Compile Include="Core\Components\Types\ComponentLocation.cs" />
+    <Compile Include="Core\Components\Types\ComponentTransform.cs" />
+    <Compile Include="Core\Components\Types\ComponentVelocity.cs" />
     <Compile Include="Core\Components\EnumComponent.cs" />
+    <Compile Include="Core\Components\Groups\DataGroup.cs" />
+    <Compile Include="Core\Components\Types\IComponent.cs" />
     <Compile Include="Core\Game.cs" />
     <Compile Include="Core\MainWindow.cs" />
     <Compile Include="Core\Managers\TextureManager.cs" />

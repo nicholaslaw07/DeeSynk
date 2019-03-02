@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeeSynk.Core.Components
+namespace DeeSynk.Core.Components.Types
 {
-    public class ComponentScale
+    public interface IComponent
     {
+        Component BitMaskID { get; }
     }
 }

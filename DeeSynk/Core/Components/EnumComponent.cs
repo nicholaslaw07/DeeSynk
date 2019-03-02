@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Components
 {
-    enum Component : int
+    public enum Component : int
     {
         NONE        = 0,
         LOCATION    = 1,
