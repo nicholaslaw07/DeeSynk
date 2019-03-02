@@ -25,7 +25,6 @@ namespace DeeSynk.Core
             Managers.ShaderManager.GetInstance().Load();
             Managers.ObjectManager.GetInstance().Load();
             Managers.TextureManager.GetInstance().Load();
-            Console.WriteLine(GL.GetString(StringName.Renderer));
         }
 
         public void LoadGameData()

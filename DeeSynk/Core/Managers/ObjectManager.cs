@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Managers
 {
+
     using GameObject = Renderables.GameObject;
     using ColoredVertex = Renderables.ColoredVertex;
     using TexturedVertex = Renderables.TexturedVertex;
@@ -17,8 +18,8 @@ namespace DeeSynk.Core.Managers
         private const uint OBJECT_MEMORY = 10000;
         private GameObject[] _gameObjects;   // holds actual game objects
         private bool[] _existingGameObjects; // holds whether or not the object at corresponding index in _gameObjects has been deleted or not
-        private int[] _gameObjectLayers;     // holds the layer that the corresponding GameObject is on, might be useful for a collision detector
         private int MaxObjectCount;          // number of objects as if none have been deleted
+
 
         private const float PI = (float)Math.PI;
 
@@ -41,6 +42,21 @@ namespace DeeSynk.Core.Managers
                 _objectManager = new ObjectManager();
 
             return ref _objectManager;
+        }
+
+        public ref GameObject CreateGameObject()
+        {
+            int id = GetNewGameObjectID();
+            int components = GetComponentsInt();
+            _gameObjects[id] = new GameObject(id, components);
+            return ref _gameObjects[id];
+        }
+
+        public int GetComponentsInt()
+        {
+            int components = 0;
+
+            return components;
         }
 
         /// <summary>
@@ -71,131 +87,6 @@ namespace DeeSynk.Core.Managers
         }
 
         /// <summary>
-        /// Creates a rectangular GameObject. The origin (0,0) is at the center of the GameWindow, and x and y
-        /// use an origin at the center of the rectangle as well.
-        /// </summary>
-        /// <returns>The created GameObject, stored in the ObjectManager</returns>
-        public ref GameObject CreateRectangle(int layer, int width, int height, int x, int y, Color4 color)
-        {
-            float xdist = width / 2;
-            float ydist = height / 2;
-            ColoredVertex[] vertices = {new ColoredVertex(new Vector4(-xdist, -ydist, 1.0f, 1.0f), color),
-                                        new ColoredVertex(new Vector4(xdist, -ydist, 1.0f, 1.0f), color),
-                                        new ColoredVertex(new Vector4(xdist, ydist, 1.0f, 1.0f), color),
-                                        new ColoredVertex(new Vector4(-xdist, ydist, 1.0f, 1.0f), color)};
-            uint[] indices = { 0, 1, 2, 0, 2, 3 };
-            Vector3 position = new Vector3((float)x, (float)y, 0f);
-            float rotX = 0f, rotY = 0f, rotZ = 0f;
-            Vector3 scale = new Vector3(0.2f, 0.2f, 0.0f);
-
-            int idx = GetNewGameObjectID();
-
-            _gameObjects[idx] = new GameObject(
-                idx,
-                1,          // renderID
-                layer, 
-                vertices,
-                indices,
-                position,
-                rotX,
-                rotY,
-                rotZ,
-                scale);
-
-            _gameObjectLayers[idx] = layer;
-           
-            return ref _gameObjects[idx];
-        }
-
-        /// <summary>
-        /// Creates a rectangular GameObject. The origin (0,0) is at the center of the GameWindow, and x and y
-        /// use an origin at the center of the rectangle as well.
-        /// </summary>
-        /// <returns>The created GameObject, stored in the ObjectManager</returns>
-        public ref GameObject CreateTexturedRectangle(int layer, int width, int height, int x, int y)
-        {
-            float xdist = width / 2;
-            float ydist = height / 2;
-            TexturedVertex[] vertices = {new TexturedVertex(new Vector4(-xdist, -ydist, 1.0f, 1.0f), new Vector2(0f, 0f)), // idk what textureCoord is, so maybe they shouldn't be 0f idk
-                                        new TexturedVertex(new Vector4(xdist, -ydist, 1.0f, 1.0f), new Vector2(0f, 0f)),
-                                        new TexturedVertex(new Vector4(xdist, ydist, 1.0f, 1.0f), new Vector2(0f, 0f)),
-                                        new TexturedVertex(new Vector4(-xdist, ydist, 1.0f, 1.0f), new Vector2(0f, 0f))};
-            uint[] indices = { 0, 1, 2, 0, 2, 3 };
-            Vector3 position = new Vector3((float)x, (float)y, 0f);
-            float rotX = 0f, rotY = 0f, rotZ = 0f;
-            Vector3 scale = new Vector3(0.2f, 0.2f, 0.0f);
-
-            int idx = GetNewGameObjectID();
-
-            _gameObjects[idx] = new GameObject(
-                idx,
-                1,          // renderID
-                layer, 
-                vertices,
-                indices,
-                position,
-                rotX,
-                rotY,
-                rotZ,
-                scale);
-
-            _gameObjectLayers[idx] = layer;
-           
-            return ref _gameObjects[idx];
-        }
-
-        /// <summary>
-        /// Creates a circular GameObject. The origin (0,0) is at the center of the GameWindow, and x and y
-        /// use an origin at the center of the circle as well.
-        /// </summary>
-        /// <returns>The created GameObject, stored in the ObjectManager</returns>
-        public ref GameObject CreateCircle(int layer, int x, int y, int radius, Color4 color)
-        {
-            int triangleCount = 100;
-            ColoredVertex[] vertices = new ColoredVertex[triangleCount + 1];
-            uint[] indices = new uint[triangleCount * 3];
-
-            vertices[0] = new ColoredVertex(new Vector4((float)x, (float)y, 1.0f, 1.0f), color);
-            for (int i = 1; i <= triangleCount; i++)
-            {
-                float fx = (float)x + ((float)radius * (float)Math.Cos((double)i * 2d * Math.PI / (double)triangleCount));
-                float fy = (float)y + ((float)radius * (float)Math.Sin((double)i * 2d * Math.PI / (double)triangleCount));
-                vertices[i] = new ColoredVertex(new Vector4(fx, fy, 1.0f, 1.0f), color);
-            }
-            for (uint i=0; i < triangleCount; i++)
-            {
-                indices[i*3] = 0;
-                indices[i*3 + 1] = i+1;
-                if (i == triangleCount-1){
-                    indices[i * 3 + 2] = 1;
-                }else{
-                    indices[i * 3 + 2] = i + 2;
-                }
-            }
-            Vector3 position = new Vector3((float)x, (float)y, 0f);
-            float rotX = 0f, rotY = 0f, rotZ = 0f;
-            Vector3 scale = new Vector3(1.0f, 1.0f, 0.0f);
-
-            int idx = GetNewGameObjectID();
-            
-            _gameObjects[idx] = new GameObject(
-                idx,
-                1,          // renderID
-                layer, 
-                vertices,
-                indices,
-                position,
-                rotX,
-                rotY,
-                rotZ,
-                scale);
-
-            _gameObjectLayers[idx] = layer;
-           
-            return ref _gameObjects[idx];
-        }
-        
-        /// <summary>
         /// Doesn't delete the GameObject immediately, but sets the corresponding _existingGameObjects flag to false,
         /// such that the memory is made available when necessary.
         /// </summary>
@@ -208,7 +99,6 @@ namespace DeeSynk.Core.Managers
         {
             _gameObjects = new GameObject[OBJECT_MEMORY];
             _existingGameObjects = new bool[OBJECT_MEMORY];
-            _gameObjectLayers = new int[OBJECT_MEMORY]; // could run into an issue is 0 is a possible render layer
         }
 
         /// <summary>
@@ -234,13 +124,6 @@ namespace DeeSynk.Core.Managers
         /// </summary>
         public void Render()
         {
-            for (int i = 0; i < MaxObjectCount; i++)
-            {
-                if (_existingGameObjects[i])
-                {
-                    _gameObjects[i].Render();
-                }
-            }
         }
 
         public void UnLoad()
