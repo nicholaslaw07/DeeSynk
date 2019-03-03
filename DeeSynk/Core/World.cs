@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace DeeSynk.Core
 {
     using GameObject = Components.GameObject;
+    using Component = Components.Component;
     
     public class World
     {
@@ -15,40 +16,9 @@ namespace DeeSynk.Core
         private bool[] _existingGameObjects;
         private int MaxObjectCount;
 
-        //private Components.ComponentLocation[] componentLocations;
-        //private Components.ComponentTransform[] componentTransforms;
-        //private Components.ComponentVelocity[] componentVelocities;
-        //private Components.ComponentGravity[] componentGravities;
-        //private Components.ComponentRotation_X[] componentRotation_Xs;
-        //private Components.ComponentRotation_Y[] componentRotation_Ys;
-        //private Components.ComponentRotation_Z[] componentRotation_Zs;
-        //private Components.ComponentScale[] componentScales;
-
         public World()
         {
-            MaxObjectCount = 0;
-            _gameObjects = new GameObject[OBJECT_MEMORY];
-            _existingGameObjects = new bool[OBJECT_MEMORY];
-
-            // load data provided by Game
         }
-
-        //........................................._¸„„„„_
-        //………..................................„--~*'¯…….'\
-        //……………............................. („-~~--„¸_….,/ì'Ì
-        //……………....…......................¸„-^"¯:::::¸-¯"¯/'
-        //………...…....……............¸.„„-^"¯:::::::'\¸„„,-"
-        //....**¯¯¯'^^~-„„„----~^*'"¯::::::::::¸-"
-        //......:.:.:.:.„-^":::::::::::::::::„-"
-        //:.:.:.:.:.:.:.:.:.:.:::::::::: ¸„-^¯
-        //.::.:.:.:.:.:.:.:.:::::::¸„„-^¯
-        //....:.'::'\:::::::;¸„„-~"
-        //:.:.:: :"-„""***/*'ì¸'¯
-        //...:.':::::"-„:::"\
-        //.....:.:.:::::"::::\,
-        //....:.::::::::::::'Ì
-        //....:::::::,::::::/
-        //"-„_::::_„-*__„„~"
 
         /// <summary>
         /// Decides where in the allocated memory a new GameObject can be created.
