@@ -23,6 +23,7 @@ namespace DeeSynk.Core
         {
             Managers.ShaderManager.GetInstance().Load();
             Managers.TextureManager.GetInstance().Load();
+            var w = new World();
         }
 
         public void LoadGameData()

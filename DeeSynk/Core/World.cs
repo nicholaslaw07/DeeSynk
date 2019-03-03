@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeeSynk.Core.Components.Groups;
+using DeeSynk.Core.Components.Types;
 
 namespace DeeSynk.Core
 {
@@ -16,8 +19,37 @@ namespace DeeSynk.Core
         private bool[] _existingGameObjects;
         private int MaxObjectCount;
 
+        private ComponentLocation[]     _locationComps;
+        private ComponentVelocity[]     _velocityComps;
+        private ComponentGravity[]      _gravityComps;
+        private ComponentRotation_X[]   _rotXComps;
+        private ComponentRotation_Y[]   _rotYComps;
+        private ComponentRotation_Z[]   _rotZComps;
+        private ComponentScale[]        _scaleComps;
+        private ComponentTransform[]    _transformComps;
+
         public World()
         {
+            _existingGameObjects = new bool[OBJECT_MEMORY];
+            _gameObjects    = new GameObject[OBJECT_MEMORY];
+
+            _locationComps  = new ComponentLocation[OBJECT_MEMORY];
+            _velocityComps  = new ComponentVelocity[OBJECT_MEMORY];
+            _gravityComps   = new ComponentGravity[OBJECT_MEMORY];
+            _rotXComps      = new ComponentRotation_X[OBJECT_MEMORY];
+            _rotYComps      = new ComponentRotation_Y[OBJECT_MEMORY];
+            _rotZComps      = new ComponentRotation_Z[OBJECT_MEMORY];
+            _scaleComps     = new ComponentScale[OBJECT_MEMORY];
+            _transformComps = new ComponentTransform[OBJECT_MEMORY];
+            
+            _locationComps.Initialize();
+            _velocityComps.Initialize();
+            _gravityComps.Initialize();
+            _rotXComps.Initialize();
+            _rotYComps.Initialize();
+            _rotZComps.Initialize();
+            _scaleComps.Initialize();
+            _transformComps.Initialize();
         }
 
         /// <summary>
