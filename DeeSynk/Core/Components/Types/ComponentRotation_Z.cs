@@ -88,7 +88,7 @@ namespace DeeSynk.Core.Components.Types
         }
 
         /// <summary>
-        /// Used to tell an object to move a specified amount of radians from the current rotation angle in the Y direction over a specified time in seconds.  Cancels ConstantRotationRate if non-zero values are provided.
+        /// Used to tell an object to move a specified amount of radians from the current rotation angle on the Z axis over a specified time in seconds.  Cancels ConstantRotationRate if non-zero values are provided.
         /// </summary>
         /// <param name="interpolationRot">Total change in radians for the interpolation.</param>
         /// <param name="interpolationTime">Time over which the interpolation occurs in seconds.</param>
@@ -117,7 +117,7 @@ namespace DeeSynk.Core.Components.Types
         }
 
         /// <summary>
-        /// Stops the interpolation process.
+        /// Stops the interpolation process for rotation on the Z axis.
         /// </summary>
         /// <param name="skipToEnd">Determines whether or not to skip the rotation to the end of the interpolation.</param>
         public void StopInterpolation(bool skipToEnd)
@@ -133,7 +133,7 @@ namespace DeeSynk.Core.Components.Types
         }
 
         /// <summary>
-        /// Used to set the rotation rate of the object. If the object is interpolating and an appropriate value is sent in, then the object will stop interpolating with no skip to the end.
+        /// Used to set the rotation rate of the object along the Z axis. If the object is interpolating and an appropriate value is sent in, then the object will stop interpolating with no skip to the end.
         /// </summary>
         /// <param name="rotationRate">Rotation rate in radians per second.</param>
         public void SetConstantRotation(float rotationRate)
@@ -156,7 +156,7 @@ namespace DeeSynk.Core.Components.Types
         }
 
         /// <summary>
-        /// Updates the status and angle for either interpolation or a constant rotation rate.
+        /// Updates the status and angle along the Z axis for either interpolation or a constant rotation rate.
         /// </summary>
         /// <param name="time">Time that the last frame took to complete.</param>
         public void Update(float time)  //if time is too small (which should never happen) then the interpolation will never update as long as the time value stays equally small (<10E-7)
