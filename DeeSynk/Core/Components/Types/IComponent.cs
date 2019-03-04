@@ -9,5 +9,6 @@ namespace DeeSynk.Core.Components.Types
     public interface IComponent
     {
         Component BitMaskID { get; }
+        void Update(float time);
     }
 }

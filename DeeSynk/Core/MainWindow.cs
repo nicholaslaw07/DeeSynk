@@ -62,8 +62,10 @@ namespace DeeSynk.Core
             _game = new Game();
             Matrix4.CreateOrthographic((float)Width, (float)Height, -1f, 1f, out ORTHO_MATRIX);
             CursorVisible = true;
+            VSync = VSyncMode.Off;
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
+            _game.LoadGameData();
         }
 
         /// <summary>
@@ -73,6 +75,7 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
+            _game.Update((float)(e.Time));
             HandleKeyboard();
         }
 

@@ -9,5 +9,10 @@ namespace DeeSynk.Core.Components.Types
     public class ComponentTransform : IComponent
     {
         public Component BitMaskID => Component.TRANSFORM;
+
+        public void Update(float time)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -11,6 +11,8 @@ namespace DeeSynk.Core.Components.Types
     {
         public Component BitMaskID => Component.VELOCITY;
 
+        //ADD VALUE UPDATED BOOL
+
         private Vector4 _velocity;
         public Vector4 Velocity { get => _velocity; set => _velocity = value; }
 
@@ -45,5 +47,9 @@ namespace DeeSynk.Core.Components.Types
             _velocity = new Vector4(v.X, v.Y, 0.0f, 0.0f);
         }
 
+        public void Update(float time)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

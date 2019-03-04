@@ -5,6 +5,8 @@ namespace DeeSynk.Core.Components.Types
     public class ComponentLocation : IComponent
     {
         public Component BitMaskID => Component.LOCATION;
+        
+        //ADD VALUE UPDATED BOOL
 
         private Vector4 _location;
         public Vector4 Location { get => _location; set => _location = value; }
@@ -38,6 +40,11 @@ namespace DeeSynk.Core.Components.Types
         public ComponentLocation(ref Vector2 l)
         {
             _location = new Vector4(l.X, l.Y, 1.0f, 1.0f);
+        }
+
+        public void Update(float time)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

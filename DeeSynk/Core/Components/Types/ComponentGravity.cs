@@ -22,6 +22,9 @@ namespace DeeSynk.Core.Components.Types
             _gravityScalar = WORLD_GRAVITY;
         }
 
-
+        public void Update(float time)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
