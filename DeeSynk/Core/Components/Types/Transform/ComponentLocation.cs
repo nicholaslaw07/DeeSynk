@@ -13,8 +13,8 @@ namespace DeeSynk.Core.Components.Types.Transform
 
         public bool SetValueUpdateComplete { set => _valueUpdated = false; }
 
-        private Vector4 _location;
-        public Vector4 Location
+        private Vector3 _location;
+        public Vector3 Location
         {
             get => _location;
             set
@@ -28,44 +28,39 @@ namespace DeeSynk.Core.Components.Types.Transform
         public ComponentLocation()
         {
             _valueUpdated = false;
-            _location = new Vector4();
+            _location = new Vector3();
         }
 
-        public ComponentLocation(float X, float Y, float Z, float W)
-        {
-            _valueUpdated = true;
-            _location = new Vector4(X, Y, Z, W);
-        }
         public ComponentLocation(float X, float Y, float Z)
         {
             _valueUpdated = true;
-            _location = new Vector4(X, Y, Z, 1.0f);
+            _location = new Vector3(X, Y, Z);
         }
         public ComponentLocation(float X, float Y)
         {
             _valueUpdated = true;
-            _location = new Vector4(X, Y, 1.0f, 1.0f);
+            _location = new Vector3(X, Y, 1.0f);
         }
 
-        public ComponentLocation(ref Vector4 l)
-        {
-            _valueUpdated = true;
-            _location = new Vector4(l.X, l.Y, l.Z, l.W);
-        }
         public ComponentLocation(ref Vector3 l)
         {
             _valueUpdated = true;
-            _location = new Vector4(l.X, l.Y, l.Z, 1.0f);
+            _location = new Vector3(l.X, l.Y, l.Z);
         }
         public ComponentLocation(ref Vector2 l)
         {
             _valueUpdated = true;
-            _location = new Vector4(l.X, l.Y, 1.0f, 1.0f);
+            _location = new Vector3(l.X, l.Y, 1.0f);
+        }
+
+        public ref Vector3 GetLocationByRef()
+        {
+            return ref _location;
         }
 
         public void Update(float time)
         {
-            throw new System.NotImplementedException();
+            _valueUpdated = false;
         }
     }
 }

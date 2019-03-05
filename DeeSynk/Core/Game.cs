@@ -51,6 +51,7 @@ namespace DeeSynk.Core
             //sw.Stop();
             //Console.WriteLine(sw.ElapsedMilliseconds);
             //TestEnd
+            _world.Update(time);
         }
 
         public void Render()

@@ -31,6 +31,7 @@ namespace DeeSynk.Core.Systems
         private ComponentRotation_Y[]   _rotYComps;
         private ComponentRotation_Z[]   _rotZComps;
         private ComponentScale[]        _scaleComps;
+        private ComponentTransform[]    _transComps;
 
         int ISystem.MonitoredComponents => throw new NotImplementedException();
 
@@ -47,6 +48,7 @@ namespace DeeSynk.Core.Systems
             _rotYComps = _world.RotYComps;
             _rotZComps = _world.RotZComps;
             _scaleComps = _world.ScaleComps;
+            _transComps = _world.TransComps;
 
             UpdateMonitoredGameObjects();
         }
@@ -68,21 +70,107 @@ namespace DeeSynk.Core.Systems
 
         public void Update(float time)
         {
+            for(int i=0; i< _world.ObjectMemory; i++)
+            {
+                bool recomputeProduct = false;
+
+                int tm = _transComps[i].TransformComponentsMask;
+                var tc = _transComps[i];
+
+                if ((tm & (int)Component.LOCATION) != 0)
+                {
+                    if (_locationComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        _locationComps[i].Update(time);
+                        tc.PushLocation(ref _locationComps[i].GetLocationByRef());
+                    }
+                }
+                if ((tm & (int)Component.VELOCITY) != 0)
+                {
+                    if (_velocityComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        _velocityComps[i].Update(time);
+                        //similar, push location
+                    }
+                }
+                if ((tm & (int)Component.GRAVITY)  != 0)
+                {
+                //    if (_gravityComps[i].ValueUpdated)
+                //    {
+                //        recomputeProduct = true;
+                //        _gravityComps[i].Update(time);
+                //        also a push location thingy
+                //    }
+                }
+                if ((tm & (int)Component.ROTATION_X) != 0)
+                {
+                    if (_rotXComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        _rotXComps[i].Update(time);
+                        tc.PushRotationX(_rotXComps[i].Rotation);
+                    }
+                }
+                if ((tm & (int)Component.ROTATION_Y) != 0)
+                {
+                    if (_rotYComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        _rotYComps[i].Update(time);
+                        tc.PushRotationY(_rotYComps[i].Rotation);
+                    }
+                }
+                if ((tm & (int)Component.ROTATION_Z) != 0)
+                {
+                    if (_rotZComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        _rotZComps[i].Update(time);
+                        tc.PushRotationZ(_rotZComps[i].Rotation);
+                    }
+                }
+                if ((tm & (int)Component.SCALE) != 0)
+                {
+                    if (_scaleComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        _scaleComps[i].Update(time);
+                        tc.PushScale(ref _scaleComps[i].GetScaleByRef());
+                    }
+                }
+
+                if (recomputeProduct)
+                    tc.ComputeModeViewProduct();
+            }
         }
 
         public void InitLocation()
         {
-            for(int i=0; i < _locationComps.Length; i++)
+            Random r = new Random();
+            for(int i=0; i < _transComps.Length; i++)
             {
-                _locationComps[i] = new ComponentLocation();
+                _transComps[i] = new ComponentTransform((int)(Component.LOCATION | Component.ROTATION_X | Component.ROTATION_Y | Component.ROTATION_Z | Component.SCALE));
+
+                _locationComps[i] = new ComponentLocation(r.Next(-500, 500), r.Next(-500, 500), r.Next(-500, 500));
+
+                _rotXComps[i] = new ComponentRotation_X((float)(6.28 * r.NextDouble()));
+                _rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
+
+                _rotYComps[i] = new ComponentRotation_Y((float)(6.28 * r.NextDouble()));
+                _rotYComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
+
+                _rotZComps[i] = new ComponentRotation_Z((float)(6.28 * r.NextDouble()));
+                _rotZComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
+
+                _scaleComps[i] = new ComponentScale((float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f);
             }
         }
 
         public void PushMatrixData(int index)
         {
-            var v = _locationComps[index].Location.Xyz;
-            Matrix4 m4 = Matrix4.Identity;
-            Matrix4.CreateTranslation(ref v, out m4);
+            Matrix4 m4 = _transComps[index].GetModelView;
             m4 *= Matrix4.CreateOrthographic(700, 500, -1, 1);
             GL.UniformMatrix4(2, false, ref m4);
         }

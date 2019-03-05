@@ -37,6 +37,8 @@ namespace DeeSynk.Core
         public ComponentRotation_Z[] RotZComps { get => _rotZComps; }
         private ComponentScale[]        _scaleComps;
         public ComponentScale[] ScaleComps { get => _scaleComps; }
+        private ComponentTransform[]        _transComps;
+        public ComponentTransform[] TransComps { get => _transComps; }
 
         private ComponentRender[]       _renderComps;
         public ComponentRender[] RenderComps { get => _renderComps; }
@@ -62,6 +64,7 @@ namespace DeeSynk.Core
             _rotYComps      = new ComponentRotation_Y[OBJECT_MEMORY];
             _rotZComps      = new ComponentRotation_Z[OBJECT_MEMORY];
             _scaleComps     = new ComponentScale[OBJECT_MEMORY];
+            _transComps     = new ComponentTransform[OBJECT_MEMORY];
 
             _renderComps = new ComponentRender[OBJECT_MEMORY];
             _modelComps = new ComponentModel[OBJECT_MEMORY];
@@ -75,6 +78,7 @@ namespace DeeSynk.Core
             _rotYComps.Initialize();
             _rotZComps.Initialize();
             _scaleComps.Initialize();
+            _transComps.Initialize();
 
             _renderComps.Initialize();
             _modelComps.Initialize();
@@ -151,7 +155,7 @@ namespace DeeSynk.Core
             }
         }
 
-        public void InitializeComponents(ref GameObject obj, Vector4 location, Vector4 velocity, float rotX, float rotY, float rotZ, Vector3 scale)
+        public void InitializeComponents(ref GameObject obj, Vector3 location, Vector4 velocity, float rotX, float rotY, float rotZ, Vector3 scale)
         {
             //Not permanent
             int id = obj.ID;
@@ -185,6 +189,7 @@ namespace DeeSynk.Core
 
         public void Update(float time)
         {
+            _systemTransform.Update(time);
         }
 
         public void Render()

@@ -14,8 +14,6 @@ namespace DeeSynk.Core.Components.Types.Transform
         private bool _valueUpdated;
         public bool ValueUpdated { get => _valueUpdated; }
 
-        public bool SetValueUpdateComplete { set => _valueUpdated = false; }
-
         private Vector3 _scale;
         public Vector3 Scale { get => _scale; set => _scale = value; }
 
@@ -58,9 +56,14 @@ namespace DeeSynk.Core.Components.Types.Transform
             _scale = new Vector3(scaleX, scaleY, scaleZ);
         }
 
+        public ref Vector3 GetScaleByRef()
+        {
+            return ref _scale;
+        }
+
         public void Update(float time)
         {
-            throw new NotImplementedException();
+            _valueUpdated = false;
         }
     }
 }

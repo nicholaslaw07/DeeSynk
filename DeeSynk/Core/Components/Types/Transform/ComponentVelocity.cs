@@ -11,10 +11,22 @@ namespace DeeSynk.Core.Components.Types.Transform
     {
         public int BitMaskID => (int)Component.VELOCITY;
 
-        //ADD VALUE UPDATED BOOL
+        private bool _valueUpdated;
+        public bool ValueUpdated { get => _valueUpdated; }
+
+        public bool SetValueUpdateComplete { set => _valueUpdated = false; }
 
         private Vector4 _velocity;
-        public Vector4 Velocity { get => _velocity; set => _velocity = value; }
+        public Vector4 Velocity
+        {
+            get => _velocity;
+            set
+            {
+                _velocity = value;
+                if (!_valueUpdated)
+                    _valueUpdated = true;
+            }
+        }
 
         public ComponentVelocity()  //default constructor
         {
@@ -49,7 +61,7 @@ namespace DeeSynk.Core.Components.Types.Transform
 
         public void Update(float time)
         {
-            throw new NotImplementedException();
+            _valueUpdated = false;
         }
     }
 }
