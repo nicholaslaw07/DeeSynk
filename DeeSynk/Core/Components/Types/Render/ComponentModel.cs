@@ -46,7 +46,9 @@ namespace DeeSynk.Core.Components.Types.Render
             _hasModelData = true;
 
             _vertices = vertices;
+            _vertexCount = _vertices.Length;
             _indices = new uint[0];
+            _indexCount = 0;
 
             _isDrawnUsingIndices = false;
         }
@@ -56,7 +58,9 @@ namespace DeeSynk.Core.Components.Types.Render
             _hasModelData = true;
 
             _vertices = vertices;
+            _vertexCount = _vertices.Length;
             _indices = indices;
+            _indexCount = _indices.Length;
 
             _isDrawnUsingIndices = true;
         }
@@ -74,8 +78,12 @@ namespace DeeSynk.Core.Components.Types.Render
             _vertices[2] = new Vector4(width, height, 0.0f, 1.0f);
             _vertices[3] = new Vector4(-width, height, 0.0f, 1.0f);
 
+            _vertexCount = _vertices.Length;
+
             _indices = new uint[6];
             _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 2; _indices[4] = 3; _indices[5] = 0;
+
+            _indexCount = _indices.Length;
         }
 
         /// <summary>
@@ -93,8 +101,12 @@ namespace DeeSynk.Core.Components.Types.Render
             _vertices[2] = new Vector4(offsetX + width, offsetY + height, 0.0f, 1.0f);
             _vertices[3] = new Vector4(offsetX - width, offsetY + height, 0.0f, 1.0f);
 
+            _vertexCount = _vertices.Length;
+
             _indices = new uint[6];
             _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 2; _indices[4] = 3; _indices[5] = 0;
+
+            _indexCount = _indices.Length;
         }
 
         /// <summary>

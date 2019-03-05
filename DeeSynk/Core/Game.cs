@@ -47,11 +47,14 @@ namespace DeeSynk.Core
             //TestStart
             //Stopwatch sw = new Stopwatch();
             //sw.Start();
-            _world.Update(time);
+            //_world.Update(time);
             //sw.Stop();
             //Console.WriteLine(sw.ElapsedMilliseconds);
             //TestEnd
+        }
 
+        public void Render()
+        {
             _world.Render();
         }
     }

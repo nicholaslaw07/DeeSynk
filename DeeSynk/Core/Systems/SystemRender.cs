@@ -65,8 +65,9 @@ namespace DeeSynk.Core.Systems
 
         public void InitVAO()
         {
-            int shaderID = 0;
-            for(int i=0; i< 10000; i++)
+            int shaderID = 1;
+            GL.UseProgram(1);
+            for (int i=0; i< 10000; i++)
             {
                 int vao = GL.GenVertexArray();
                 GL.BindVertexArray(vao);
@@ -101,19 +102,20 @@ namespace DeeSynk.Core.Systems
         public void Bind(int i)
         {
             GL.BindVertexArray(_renderComps[i].VAO_ID);
-            GL.UseProgram(_renderComps[i].SHADER_ID);
-            //GL.BindBuffer(BufferTarget.ElementArrayBuffer, _renderComps[i].IBO_ID);
+            GL.UseProgram(1);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _renderComps[i].IBO_ID);
         }
 
         public void Render()
         {
-            GL.DrawArrays(PrimitiveType.Quads, 0, 1);
+            GL.DrawArrays(PrimitiveType.Quads, 0, 4);
+            //GL.DrawElements(BeginMode.Triangles, 6, DrawElementsType.UnsignedInt, 0);
         }
 
         public void UnBind()
         {
-            GL.UseProgram(0);
-            GL.BindVertexArray(0);
+            //GL.UseProgram(0);
+            //GL.BindVertexArray(0);
         }
     }
 }

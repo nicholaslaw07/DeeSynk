@@ -62,7 +62,7 @@ namespace DeeSynk.Core
             _game = new Game();
             Matrix4.CreateOrthographic((float)Width, (float)Height, -1f, 1f, out ORTHO_MATRIX);
             CursorVisible = true;
-            VSync = VSyncMode.Off;
+            //VSync = VSyncMode.Off;
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();
@@ -91,6 +91,8 @@ namespace DeeSynk.Core
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+            _game.Render();
+
             SwapBuffers();
         }
         
@@ -101,7 +103,7 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnUnload(EventArgs e)
         {
-            Console.WriteLine("Goodbye!");
+            Console.WriteLine("I listen to you sleep...");
         }
 
         /// <summary>

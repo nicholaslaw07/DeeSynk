@@ -200,12 +200,12 @@ namespace DeeSynk.Core
 
         public void Render()
         {
-            for(int i=0; i<OBJECT_MEMORY; i++)
+            for(int i=0; i<1; i++)
             {
                 _systemRender.Bind(i);
                 _systemTransform.SendMatrixData(i);
                 _systemRender.Render();
-                _systemRender.UnBind();
+                //_systemRender.UnBind();
             }
         }
     }
