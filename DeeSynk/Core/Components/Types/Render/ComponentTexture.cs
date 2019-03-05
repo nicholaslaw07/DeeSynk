@@ -8,7 +8,7 @@ namespace DeeSynk.Core.Components.Types.Render
 {
     public class ComponentTexture : IComponent
     {
-        public int BitMaskID => throw new NotImplementedException();
+        public int BitMaskID => (int)Component.TEXTURE;
 
         public void Update(float time)
         {

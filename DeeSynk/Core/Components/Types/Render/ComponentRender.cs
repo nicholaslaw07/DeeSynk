@@ -8,7 +8,7 @@ namespace DeeSynk.Core.Components.Types.Render
 {
     public class ComponentRender : IComponent
     {
-        public int BitMaskID => throw new NotImplementedException();
+        public int BitMaskID => (int)Component.RENDER;
 
         private int _vaoID;
         /// <summary>
@@ -22,11 +22,15 @@ namespace DeeSynk.Core.Components.Types.Render
         /// </summary>
         public int SHADER_ID { get => _shaderID; }
 
-
+        //Render Layer
+        //Render method (2D or 3D)
+        //Is simple sprite?  Idk
+        //Has unique VAO
+        //Position in vao if not unique
 
         public void Update(float time)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }
