@@ -158,6 +158,8 @@ namespace DeeSynk.Core.Systems
         //    Store a reference to SystemTransform (which is currently in World) inside of System render to avoid having to send SystemTransform for every render call
         //
         //    Make a VAO management subsystem, probably will be a class called SystemVAO or SystemRenderData
+        //
+        //    Add a way for a window resize to update the orthographic matrix inside of SystemTransform, ideally this shouldn't happen often as it is expensive.
 
         public void RenderAll(ref SystemTransform systemTransform)
         {
