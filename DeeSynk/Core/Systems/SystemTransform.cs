@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.Types.Transform;
+using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 
 namespace DeeSynk.Core.Systems
 {
@@ -66,6 +68,23 @@ namespace DeeSynk.Core.Systems
 
         public void Update(float time)
         {
+        }
+
+        public void InitLocation()
+        {
+            for(int i=0; i < _locationComps.Length; i++)
+            {
+                _locationComps[i] = new ComponentLocation();
+            }
+        }
+
+        public void SendMatrixData(int index)
+        {
+            var v = _locationComps[index].Location.Xyz;
+            Matrix4 m4 = Matrix4.Identity;
+            Matrix4.CreateTranslation(ref v, out m4);
+            m4 *= Matrix4.CreateOrthographic(700, 500, -1, 1);
+            GL.UniformMatrix4(2, false, ref m4);
         }
     }
 }

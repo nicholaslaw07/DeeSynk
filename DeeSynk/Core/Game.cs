@@ -51,6 +51,8 @@ namespace DeeSynk.Core
             //sw.Stop();
             //Console.WriteLine(sw.ElapsedMilliseconds);
             //TestEnd
+
+            _world.Render();
         }
     }
 }

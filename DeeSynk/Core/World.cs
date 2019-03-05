@@ -8,6 +8,7 @@ namespace DeeSynk.Core
     using GameObject = Components.GameObject;
     using Component = Components.Component;
     using SystemRender = Systems.SystemRender;
+    using SystemTransform = Systems.SystemTransform;
 
     public class World
     {
@@ -20,6 +21,7 @@ namespace DeeSynk.Core
         private int MaxObjectCount;
 
         private SystemRender _systemRender;
+        private SystemTransform _systemTransform;
 
         private ComponentLocation[]     _locationComps;
         public ComponentLocation[] LocationComps { get => _locationComps; }
@@ -47,8 +49,6 @@ namespace DeeSynk.Core
 
         public World()
         {
-            _systemRender = new SystemRender(this);
-
             _existingGameObjects = new bool[OBJECT_MEMORY];
             _gameObjects    = new GameObject[OBJECT_MEMORY];
 
@@ -77,6 +77,13 @@ namespace DeeSynk.Core
             _modelComps.Initialize();
             _textureComps.Initialize();
             _colorComps.Initialize();
+
+            _systemRender = new SystemRender(this);
+
+            _systemTransform = new SystemTransform(this);
+            _systemTransform.InitLocation();
+            _systemRender.InitModels();
+            _systemRender.InitVAO();
         }
 
         /// <summary>
@@ -181,11 +188,22 @@ namespace DeeSynk.Core
             //TestStart
             for(int i=0; i<OBJECT_MEMORY; i++)
             {
-                _rotXComps[i].Update(time);
-                _rotYComps[i].Update(time);
-                _rotZComps[i].Update(time);
+                //_rotXComps[i].Update(time);
+                //_rotYComps[i].Update(time);
+                //_rotZComps[i].Update(time);
             }
             //TestEnd
+        }
+
+        public void Render()
+        {
+            for(int i=0; i<OBJECT_MEMORY; i++)
+            {
+                _systemRender.Bind(i);
+                _systemTransform.SendMatrixData(i);
+                _systemRender.Render();
+                _systemRender.UnBind();
+            }
         }
     }
 }

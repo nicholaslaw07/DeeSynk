@@ -38,7 +38,7 @@ namespace DeeSynk.Core.Systems
             _textureComps = _world.TextureComps;
             _colorComps = _world.ColorComps;
 
-            UpdateMonitoredGameObjects();
+            //UpdateMonitoredGameObjects();
         }
 
         public void UpdateMonitoredGameObjects()
@@ -57,7 +57,7 @@ namespace DeeSynk.Core.Systems
 
         public void InitModels()
         {
-            for(int i=0; i<_renderComps.Length; i++)
+            for(int i=0; i< 10000; i++)
             {
                 _modelComps[i] = new ComponentModel(100f, 100f);
             }
@@ -66,7 +66,7 @@ namespace DeeSynk.Core.Systems
         public void InitVAO()
         {
             int shaderID = 0;
-            for(int i=0; i<_renderComps.Length; i++)
+            for(int i=0; i< 10000; i++)
             {
                 int vao = GL.GenVertexArray();
                 GL.BindVertexArray(vao);
@@ -98,15 +98,22 @@ namespace DeeSynk.Core.Systems
         {
         }
 
+        public void Bind(int i)
+        {
+            GL.BindVertexArray(_renderComps[i].VAO_ID);
+            GL.UseProgram(_renderComps[i].SHADER_ID);
+            //GL.BindBuffer(BufferTarget.ElementArrayBuffer, _renderComps[i].IBO_ID);
+        }
+
         public void Render()
         {
-            for(int i=0; i<_renderComps.Length; i++)
-            {
-                GL.BindVertexArray(_renderComps[i].VAO_ID);
-                GL.UseProgram(_renderComps[i].SHADER_ID);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, _renderComps[i].IBO_ID);
-                GL.DrawArrays(PrimitiveType.Quads, 0, 1);
-            }
+            GL.DrawArrays(PrimitiveType.Quads, 0, 1);
+        }
+
+        public void UnBind()
+        {
+            GL.UseProgram(0);
+            GL.BindVertexArray(0);
         }
     }
 }
