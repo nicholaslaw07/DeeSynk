@@ -1,29 +1,54 @@
 ﻿using System;
 using DeeSynk.Core.Components.Types.Transform;
+using DeeSynk.Core.Components.Types.Render;
 using OpenTK;
 
 namespace DeeSynk.Core
 {
     using GameObject = Components.GameObject;
     using Component = Components.Component;
+    using SystemRender = Systems.SystemRender;
 
     public class World
     {
         private const uint OBJECT_MEMORY = 10000;
+        public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
+        public GameObject[] GameObjects { get => _gameObjects; }
         private bool[] _existingGameObjects;
+        public bool[] ExistingGameObjects { get => _existingGameObjects; }
         private int MaxObjectCount;
 
+        private SystemRender _systemRender;
+
         private ComponentLocation[]     _locationComps;
+        public ComponentLocation[] LocationComps { get => _locationComps; }
         private ComponentVelocity[]     _velocityComps;
+        public ComponentVelocity[] VelocityComps { get => _velocityComps; }
         private ComponentGravity[]      _gravityComps;
+        public ComponentGravity[] GravityComps { get => _gravityComps; }
         private ComponentRotation_X[]   _rotXComps;
+        public ComponentRotation_X[] RotXComps { get => _rotXComps; }
         private ComponentRotation_Y[]   _rotYComps;
+        public ComponentRotation_Y[] RotYComps { get => _rotYComps; }
         private ComponentRotation_Z[]   _rotZComps;
+        public ComponentRotation_Z[] RotZComps { get => _rotZComps; }
         private ComponentScale[]        _scaleComps;
+        public ComponentScale[] ScaleComps { get => _scaleComps; }
+
+        private ComponentRender[]       _renderComps;
+        public ComponentRender[] RenderComps { get => _renderComps; }
+        private ComponentModel[]        _modelComps;
+        public ComponentModel[] ModelComps { get => _modelComps; }
+        private ComponentTexture[]      _textureComps;
+        public ComponentTexture[] TextureComps { get => _textureComps; }
+        private ComponentColor[]        _colorComps;
+        public ComponentColor[] ColorComps { get => _colorComps; }
 
         public World()
         {
+            _systemRender = new SystemRender(this);
+
             _existingGameObjects = new bool[OBJECT_MEMORY];
             _gameObjects    = new GameObject[OBJECT_MEMORY];
 
@@ -34,15 +59,24 @@ namespace DeeSynk.Core
             _rotYComps      = new ComponentRotation_Y[OBJECT_MEMORY];
             _rotZComps      = new ComponentRotation_Z[OBJECT_MEMORY];
             _scaleComps     = new ComponentScale[OBJECT_MEMORY];
-            
-            //_locationComps.Initialize();
-            //_velocityComps.Initialize();
-            //_gravityComps.Initialize();
-            //_rotXComps.Initialize();
-            //_rotYComps.Initialize();
-            //_rotZComps.Initialize();
-            //_scaleComps.Initialize();
-            //_transformComps.Initialize();
+
+            _renderComps = new ComponentRender[OBJECT_MEMORY];
+            _modelComps = new ComponentModel[OBJECT_MEMORY];
+            _textureComps = new ComponentTexture[OBJECT_MEMORY];
+            _colorComps = new ComponentColor[OBJECT_MEMORY];
+
+            _locationComps.Initialize();
+            _velocityComps.Initialize();
+            _gravityComps.Initialize();
+            _rotXComps.Initialize();
+            _rotYComps.Initialize();
+            _rotZComps.Initialize();
+            _scaleComps.Initialize();
+
+            _renderComps.Initialize();
+            _modelComps.Initialize();
+            _textureComps.Initialize();
+            _colorComps.Initialize();
         }
 
         /// <summary>
