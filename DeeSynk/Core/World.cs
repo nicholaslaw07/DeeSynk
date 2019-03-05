@@ -52,6 +52,9 @@ namespace DeeSynk.Core
             _existingGameObjects = new bool[OBJECT_MEMORY];
             _gameObjects    = new GameObject[OBJECT_MEMORY];
 
+            _systemRender = new SystemRender(this);
+            _systemTransform = new SystemTransform(this);
+
             _locationComps  = new ComponentLocation[OBJECT_MEMORY];
             _velocityComps  = new ComponentVelocity[OBJECT_MEMORY];
             _gravityComps   = new ComponentGravity[OBJECT_MEMORY];
