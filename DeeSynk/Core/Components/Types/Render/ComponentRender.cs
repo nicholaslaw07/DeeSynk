@@ -6,9 +6,23 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Components.Types.Render
 {
-    class ComponentRender : IComponent
+    public class ComponentRender : IComponent
     {
-        public Component BitMaskID => throw new NotImplementedException();
+        public int BitMaskID => throw new NotImplementedException();
+
+        private int _vaoID;
+        /// <summary>
+        /// The ID of the VAO that this object should be rendered with.
+        /// </summary>
+        public int VAO_ID { get => _vaoID; }
+
+        private int _shaderID;
+        /// <summary>
+        /// The ID of the shader that this object should be rendered with.
+        /// </summary>
+        public int SHADER_ID { get => _shaderID; }
+
+
 
         public void Update(float time)
         {

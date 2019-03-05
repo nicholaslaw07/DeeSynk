@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeeSynk.Core.Components.Types.Render
+namespace DeeSynk.Core.Systems
 {
-    public class ComponentTexture : IComponent
+    class SystemRender : ISystem
     {
-        public int BitMaskID => throw new NotImplementedException();
+        public int MonitoredComponents => throw new NotImplementedException();
 
         public void Update(float time)
         {

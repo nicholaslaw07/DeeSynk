@@ -8,7 +8,7 @@ namespace DeeSynk.Core.Components.Types.Transform
 {
     public class ComponentRotation_X : IComponent
     {
-        public Component BitMaskID => Component.ROTATION_X;
+        public int BitMaskID => (int)Component.ROTATION_X;
 
         private bool _valueUpdated;
         public bool ValueUpdated { get => _valueUpdated; }

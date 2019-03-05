@@ -9,7 +9,7 @@ namespace DeeSynk.Core.Components.Types.Transform
 {
     public class ComponentScale : IComponent
     {
-        public Component BitMaskID => Component.SCALE;
+        public int BitMaskID => (int)Component.SCALE;
 
         private Vector3 _scale;
         public Vector3 Scale { get => _scale; set => _scale = value; }

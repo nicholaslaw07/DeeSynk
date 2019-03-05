@@ -1,5 +1,5 @@
 ﻿using System;
-using DeeSynk.Core.Components.Types;
+using DeeSynk.Core.Components.Types.Transform;
 using OpenTK;
 
 namespace DeeSynk.Core

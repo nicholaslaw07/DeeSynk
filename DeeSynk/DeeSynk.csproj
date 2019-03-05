@@ -71,6 +71,8 @@
     <Compile Include="Core\Managers\IManager.cs" />
     <Compile Include="Core\Managers\ShaderManager.cs" />
     <Compile Include="Core\Components\GameObject.cs" />
+    <Compile Include="Core\Systems\ISystem.cs" />
+    <Compile Include="Core\Systems\SystemRender.cs" />
     <Compile Include="Core\World.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

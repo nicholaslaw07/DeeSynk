@@ -9,7 +9,7 @@ namespace DeeSynk.Core.Components.Types.Transform
 {
     public class ComponentVelocity : IComponent
     {
-        public Component BitMaskID => Component.VELOCITY;
+        public int BitMaskID => (int)Component.VELOCITY;
 
         //ADD VALUE UPDATED BOOL
 

@@ -4,7 +4,7 @@ namespace DeeSynk.Core.Components.Types.Transform
 {
     public class ComponentLocation : IComponent
     {
-        public Component BitMaskID => Component.LOCATION;
+        public int BitMaskID => (int)Component.LOCATION;
         
         //ADD VALUE UPDATED BOOL
 

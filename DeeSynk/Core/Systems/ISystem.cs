@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeeSynk.Core.Components.Types
+namespace DeeSynk.Core.Systems
 {
-    public interface IComponent
+    interface ISystem
     {
-        int BitMaskID { get; }
+        int MonitoredComponents { get; }
         void Update(float time);
     }
 }

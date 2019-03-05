@@ -8,7 +8,7 @@ namespace DeeSynk.Core.Components.Types.Transform
 {
     public class ComponentGravity : IComponent
     {
-        public Component BitMaskID => Component.GRAVITY;
+        public int BitMaskID => (int)Component.GRAVITY;
 
         public float WORLD_GRAVITY => 9.8f;
 

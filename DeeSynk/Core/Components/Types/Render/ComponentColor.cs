@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Components.Types.Render
 {
-    class ComponentColor : IComponent
+    public class ComponentColor : IComponent
     {
-        public Component BitMaskID => throw new NotImplementedException();
+        public int BitMaskID => throw new NotImplementedException();
 
         public void Update(float time)
         {
