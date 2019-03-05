@@ -11,11 +11,52 @@ namespace DeeSynk.Core.Components.Types.Transform
     {
         public int BitMaskID => (int)Component.SCALE;
 
+        private bool _valueUpdated;
+        public bool ValueUpdated { get => _valueUpdated; }
+
+        public bool SetValueUpdateComplete { set => _valueUpdated = false; }
+
         private Vector3 _scale;
         public Vector3 Scale { get => _scale; set => _scale = value; }
 
         //DEFAULT CONSTRUCTOR
-        
+        public ComponentScale()
+        {
+            _valueUpdated = false;
+            _scale = new Vector3(1.0f, 1.0f, 1.0f);
+        }
+
+        public ComponentScale(ref Vector3 scale)
+        {
+            _valueUpdated = true;
+            _scale = scale;
+        }
+
+        public ComponentScale(float scale, bool scaleOnZAxis)
+        {
+            if (scaleOnZAxis)
+            {
+                _valueUpdated = true;
+                _scale = new Vector3(scale, scale, scale);
+            }
+            else
+            {
+                _valueUpdated = true;
+                _scale = new Vector3(scale, scale, 1.0f);
+            }
+        }
+
+        public ComponentScale(float scaleX, float scaleY)
+        {
+            _valueUpdated = true;
+            _scale = new Vector3(scaleX, scaleY, 1.0f);
+        }
+
+        public ComponentScale(float scaleX, float scaleY, float scaleZ)
+        {
+            _valueUpdated = true;
+            _scale = new Vector3(scaleX, scaleY, scaleZ);
+        }
 
         public void Update(float time)
         {

@@ -13,6 +13,8 @@ namespace DeeSynk.Core.Components.Types.Transform
         private bool _valueUpdated;
         public bool ValueUpdated { get => _valueUpdated; }
 
+        public bool SetValueUpdateComplete { set => _valueUpdated = false; }
+
         private float _rotZ;
         public float Rotation
         {
