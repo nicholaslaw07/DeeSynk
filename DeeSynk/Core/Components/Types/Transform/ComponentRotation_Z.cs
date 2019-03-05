@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeeSynk.Core.Components.Types
+namespace DeeSynk.Core.Components.Types.Transform
 {
     public class ComponentRotation_Z : IComponent
     {

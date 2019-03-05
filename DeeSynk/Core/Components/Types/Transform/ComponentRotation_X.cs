@@ -4,37 +4,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeeSynk.Core.Components.Types
+namespace DeeSynk.Core.Components.Types.Transform
 {
-    public class ComponentRotation_Y : IComponent
+    public class ComponentRotation_X : IComponent
     {
-        public Component BitMaskID => Component.ROTATION_Y;
+        public Component BitMaskID => Component.ROTATION_X;
 
         private bool _valueUpdated;
         public bool ValueUpdated { get => _valueUpdated; }
 
-        private float _rotY;
+        private float _rotX;
         public float Rotation
         {
-            get => _rotY;
+            get => _rotX;
             set
             {
                 if (IsRotationAllowed)
                 {
-                    _rotY = value;
+                    _rotX = value;
                     if (!_valueUpdated)
                         _valueUpdated = true;
                 }
             }
         }
 
-        private bool _isInterpolating;
-        public bool IsInterpolating { get => _isInterpolating; }  //instead, maybe check for certain values in the fields (return if values are not zero)
+        private bool  _isInterpolating;
+        public  bool  IsInterpolating { get => _isInterpolating; }  //instead, maybe check for certain values in the fields (return if values are not zero)
         private float _interpolationRot;  //total number of radians to traverse over the specified time period;
         private float _interpolationTime; //time over which the interpolation will take place in seconds;
 
-        private bool _hasConstantRotationRate;
-        public bool HasConstantRotationRate { get => _hasConstantRotationRate; }  //instead, maybe update these to simply check for certain values in the fields
+        private bool  _hasConstantRotationRate;
+        public  bool  HasConstantRotationRate { get => _hasConstantRotationRate; }  //instead, maybe update these to simply check for certain values in the fields
         private float _rotationRate;  //radians to traverse in one second
 
         private bool _isRotationAllowed;
@@ -57,9 +57,9 @@ namespace DeeSynk.Core.Components.Types
         }
 
 
-        public ComponentRotation_Y()
+        public ComponentRotation_X()
         {
-            _rotY = 0.0f;
+            _rotX = 0.0f;
             _valueUpdated = true;
 
             _isInterpolating = false;
@@ -72,9 +72,9 @@ namespace DeeSynk.Core.Components.Types
             _isRotationAllowed = true;
         }
 
-        public ComponentRotation_Y(float rotY)
+        public ComponentRotation_X(float rotX)
         {
-            _rotY = rotY;
+            _rotX = rotX;
             _valueUpdated = true;
 
             _isInterpolating = false;
@@ -88,7 +88,7 @@ namespace DeeSynk.Core.Components.Types
         }
 
         /// <summary>
-        /// Used to tell an object to move a specified amount of radians from the current rotation angle on the Y axis over a specified time in seconds.  Cancels ConstantRotationRate if non-zero values are provided.
+        /// Used to tell an object to move a specified amount of radians from the current rotation angle on the X axis over a specified time in seconds.  Cancels ConstantRotationRate if non-zero values are provided.
         /// </summary>
         /// <param name="interpolationRot">Total change in radians for the interpolation.</param>
         /// <param name="interpolationTime">Time over which the interpolation occurs in seconds.</param>
@@ -117,7 +117,7 @@ namespace DeeSynk.Core.Components.Types
         }
 
         /// <summary>
-        /// Stops the interpolation process for rotation on the Y axis.
+        /// Stops the interpolation process for rotation on the X axis.
         /// </summary>
         /// <param name="skipToEnd">Determines whether or not to skip the rotation to the end of the interpolation.</param>
         public void StopInterpolation(bool skipToEnd)
@@ -133,7 +133,7 @@ namespace DeeSynk.Core.Components.Types
         }
 
         /// <summary>
-        /// Used to set the rotation rate of the object along the Y axis. If the object is interpolating and an appropriate value is sent in, then the object will stop interpolating with no skip to the end.
+        /// Used to set the rotation rate of the object along the X axis. If the object is interpolating and an appropriate value is sent in, then the object will stop interpolating with no skip to the end.
         /// </summary>
         /// <param name="rotationRate">Rotation rate in radians per second.</param>
         public void SetConstantRotation(float rotationRate)
@@ -156,7 +156,7 @@ namespace DeeSynk.Core.Components.Types
         }
 
         /// <summary>
-        /// Updates the status and angle along the Y axis for either interpolation or a constant rotation rate.
+        /// Updates the status and angle along the X axis for either interpolation or a constant rotation rate.
         /// </summary>
         /// <param name="time">Time that the last frame took to complete.</param>
         public void Update(float time)  //if time is too small (which should never happen) then the interpolation will never update as long as the time value stays equally small (<10E-7)
@@ -170,7 +170,7 @@ namespace DeeSynk.Core.Components.Types
                     _interpolationTime -= time;
                     _interpolationRot -= deltaRot;
                 }
-                else if (time >= _interpolationTime)
+                else if(time >= _interpolationTime)
                 {
                     Rotation += _interpolationRot;
                     _interpolationRot = 0.0f;
@@ -178,7 +178,7 @@ namespace DeeSynk.Core.Components.Types
                     _isInterpolating = false;
                 }
             }
-            else if (_hasConstantRotationRate)
+            else if(_hasConstantRotationRate)
             {
                 Rotation += _rotationRate * time;
             }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
 
-namespace DeeSynk.Core.Components.Types
+namespace DeeSynk.Core.Components.Types.Transform
 {
     public class ComponentVelocity : IComponent
     {

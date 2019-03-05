@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeeSynk.Core.Components.Types
+namespace DeeSynk.Core.Components.Types.Render
 {
-    public class ComponentTransform : IComponent
+    class ComponentRender : IComponent
     {
-        public Component BitMaskID => Component.TRANSFORM;
+        public Component BitMaskID => throw new NotImplementedException();
 
         public void Update(float time)
         {

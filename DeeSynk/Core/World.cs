@@ -1,19 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DeeSynk.Core.Components.Groups;
 using DeeSynk.Core.Components.Types;
 using OpenTK;
-
 
 namespace DeeSynk.Core
 {
     using GameObject = Components.GameObject;
     using Component = Components.Component;
-    
+
     public class World
     {
         private const uint OBJECT_MEMORY = 10000;
@@ -28,7 +21,6 @@ namespace DeeSynk.Core
         private ComponentRotation_Y[]   _rotYComps;
         private ComponentRotation_Z[]   _rotZComps;
         private ComponentScale[]        _scaleComps;
-        private ComponentTransform[]    _transformComps;
 
         public World()
         {
@@ -42,7 +34,6 @@ namespace DeeSynk.Core
             _rotYComps      = new ComponentRotation_Y[OBJECT_MEMORY];
             _rotZComps      = new ComponentRotation_Z[OBJECT_MEMORY];
             _scaleComps     = new ComponentScale[OBJECT_MEMORY];
-            _transformComps = new ComponentTransform[OBJECT_MEMORY];
             
             //_locationComps.Initialize();
             //_velocityComps.Initialize();
