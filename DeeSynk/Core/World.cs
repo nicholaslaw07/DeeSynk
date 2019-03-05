@@ -64,14 +64,19 @@ namespace DeeSynk.Core
             _modelComps = new ComponentModel[OBJECT_MEMORY];
             _textureComps = new ComponentTexture[OBJECT_MEMORY];
             _colorComps = new ComponentColor[OBJECT_MEMORY];
-            //_locationComps.Initialize();
-            //_velocityComps.Initialize();
-            //_gravityComps.Initialize();
-            //_rotXComps.Initialize();
-            //_rotYComps.Initialize();
-            //_rotZComps.Initialize();
-            //_scaleComps.Initialize();
-            //_transformComps.Initialize();
+
+            _locationComps.Initialize();
+            _velocityComps.Initialize();
+            _gravityComps.Initialize();
+            _rotXComps.Initialize();
+            _rotYComps.Initialize();
+            _rotZComps.Initialize();
+            _scaleComps.Initialize();
+
+            _renderComps.Initialize();
+            _modelComps.Initialize();
+            _textureComps.Initialize();
+            _colorComps.Initialize();
         }
 
         /// <summary>

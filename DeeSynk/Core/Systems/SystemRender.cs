@@ -16,6 +16,8 @@ namespace DeeSynk.Core.Systems
                                          (int)Component.COLOR;
 
         private World _world;
+
+        private bool[] _monitoredGameObjects;
         
         private ComponentRender[]       _renderComps;
         private ComponentModel[]        _modelComps;
@@ -26,11 +28,33 @@ namespace DeeSynk.Core.Systems
         {
             _world = world;
 
+            _monitoredGameObjects = new bool[_world.ObjectMemory];
+
+            _renderComps = _world.RenderComps;
+            _modelComps = _world.ModelComps;
+            _textureComps = _world.TextureComps;
+            _colorComps = _world.ColorComps;
+
+            UpdateMonitoredGameObjects();
+        }
+
+        public void UpdateMonitoredGameObjects()
+        {
+            for (int i=0; i < _world.ObjectMemory; i++)
+            {
+                if (_world.ExistingGameObjects[i])
+                {
+                    if ((_world.GameObjects[i].Components | MonitoredComponents) == MonitoredComponents)
+                    {
+                        _monitoredGameObjects[i] = true;
+                    }
+                }
+            }
+
         }
 
         public void Update(float time)
         {
-            throw new NotImplementedException();
         }
     }
 }
