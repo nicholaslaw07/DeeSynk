@@ -8,6 +8,7 @@ namespace DeeSynk.Core
     using GameObject = Components.GameObject;
     using Component = Components.Component;
     using SystemRender = Systems.SystemRender;
+    using SystemTransform = Systems.SystemTransform;
 
     public class World
     {
@@ -20,6 +21,7 @@ namespace DeeSynk.Core
         private int MaxObjectCount;
 
         private SystemRender _systemRender;
+        private SystemTransform _systemTransform;
 
         private ComponentLocation[]     _locationComps;
         public ComponentLocation[] LocationComps { get => _locationComps; }
@@ -47,10 +49,11 @@ namespace DeeSynk.Core
 
         public World()
         {
-            _systemRender = new SystemRender(this);
-
             _existingGameObjects = new bool[OBJECT_MEMORY];
             _gameObjects    = new GameObject[OBJECT_MEMORY];
+
+            _systemRender = new SystemRender(this);
+            _systemTransform = new SystemTransform(this);
 
             _locationComps  = new ComponentLocation[OBJECT_MEMORY];
             _velocityComps  = new ComponentVelocity[OBJECT_MEMORY];
