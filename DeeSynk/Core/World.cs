@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeeSynk.Core.Components.Groups;
+using DeeSynk.Core.Components.Types;
+using OpenTK;
+
 
 namespace DeeSynk.Core
 {
     using GameObject = Components.GameObject;
+    using Component = Components.Component;
     
     public class World
     {
@@ -15,22 +21,37 @@ namespace DeeSynk.Core
         private bool[] _existingGameObjects;
         private int MaxObjectCount;
 
-        //private Components.ComponentLocation[] componentLocations;
-        //private Components.ComponentTransform[] componentTransforms;
-        //private Components.ComponentVelocity[] componentVelocities;
-        //private Components.ComponentGravity[] componentGravities;
-        //private Components.ComponentRotation_X[] componentRotation_Xs;
-        //private Components.ComponentRotation_Y[] componentRotation_Ys;
-        //private Components.ComponentRotation_Z[] componentRotation_Zs;
-        //private Components.ComponentScale[] componentScales;
+        private ComponentLocation[]     _locationComps;
+        private ComponentVelocity[]     _velocityComps;
+        private ComponentGravity[]      _gravityComps;
+        private ComponentRotation_X[]   _rotXComps;
+        private ComponentRotation_Y[]   _rotYComps;
+        private ComponentRotation_Z[]   _rotZComps;
+        private ComponentScale[]        _scaleComps;
+        private ComponentTransform[]    _transformComps;
 
         public World()
         {
-            MaxObjectCount = 0;
-            _gameObjects = new GameObject[OBJECT_MEMORY];
             _existingGameObjects = new bool[OBJECT_MEMORY];
+            _gameObjects    = new GameObject[OBJECT_MEMORY];
 
-            // load data provided by Game
+            _locationComps  = new ComponentLocation[OBJECT_MEMORY];
+            _velocityComps  = new ComponentVelocity[OBJECT_MEMORY];
+            _gravityComps   = new ComponentGravity[OBJECT_MEMORY];
+            _rotXComps      = new ComponentRotation_X[OBJECT_MEMORY];
+            _rotYComps      = new ComponentRotation_Y[OBJECT_MEMORY];
+            _rotZComps      = new ComponentRotation_Z[OBJECT_MEMORY];
+            _scaleComps     = new ComponentScale[OBJECT_MEMORY];
+            _transformComps = new ComponentTransform[OBJECT_MEMORY];
+            
+            //_locationComps.Initialize();
+            //_velocityComps.Initialize();
+            //_gravityComps.Initialize();
+            //_rotXComps.Initialize();
+            //_rotYComps.Initialize();
+            //_rotZComps.Initialize();
+            //_scaleComps.Initialize();
+            //_transformComps.Initialize();
         }
 
         /// <summary>
@@ -93,6 +114,53 @@ namespace DeeSynk.Core
             {
                 throw new InvalidOperationException("Non-existent GameObject requested.");
             }
+        }
+
+        public void InitializeComponents(ref GameObject obj, Vector4 location, Vector4 velocity, float rotX, float rotY, float rotZ, Vector3 scale)
+        {
+            //Not permanent
+            int id = obj.ID;
+            int bitMask = obj.Components;
+            if ((bitMask & (int)Component.LOCATION) == ((int)Component.LOCATION))
+                _locationComps[id] = new ComponentLocation(ref location);
+
+            if ((bitMask & (int)Component.VELOCITY) == ((int)Component.VELOCITY))
+                _velocityComps[id] = new ComponentVelocity(ref velocity);
+
+            if ((bitMask & (int)Component.ROTATION_X) == ((int)Component.ROTATION_X))
+                _rotXComps[id] = new ComponentRotation_X(rotX);
+
+            if ((bitMask & (int)Component.ROTATION_Y) == ((int)Component.ROTATION_Y))
+                _rotYComps[id] = new ComponentRotation_Y(rotY);
+
+            if ((bitMask & (int)Component.ROTATION_Z) == ((int)Component.ROTATION_Z))
+                _rotZComps[id] = new ComponentRotation_Z(rotZ);
+
+            //if ((bitMask & (int)Component.SCALE) == ((int)Component.SCALE))
+            //    _scaleComps[id] = new ComponentScale(ref scale);
+
+            //if ((bitMask & (int)Component.GRAVITY) == ((int)Component.GRAVITY))
+            //    _gravityComps[id] = new ComponentGravity(ref location);
+
+            //if ((bitMask & (int)Component.TRANSFORM) == ((int)Component.TRANSFORM))
+            //    _transformComps[id] = new ComponentTransform(ref location);
+
+            _rotXComps[id].SetConstantRotation(2.0f);
+            _rotYComps[id].SetConstantRotation(2.0f);
+            _rotZComps[id].SetConstantRotation(2.0f);
+
+        }
+
+        public void Update(float time)
+        {
+            //TestStart
+            for(int i=0; i<OBJECT_MEMORY; i++)
+            {
+                _rotXComps[i].Update(time);
+                _rotYComps[i].Update(time);
+                _rotZComps[i].Update(time);
+            }
+            //TestEnd
         }
     }
 }

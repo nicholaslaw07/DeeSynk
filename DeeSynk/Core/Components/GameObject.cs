@@ -18,6 +18,25 @@ namespace DeeSynk.Core.Components
             ID = id;
             Components = comps;
         }
+
+        public bool HasComponent(Component c)
+        {
+            if ((ID & (int)c) == (int)c)
+                return true;
+            return false;
+        }
+
+        public bool HasComponent(int c)
+        {
+            if ((ID & c) == c)
+                return true;
+            return false;
+        }
+
+        public bool HasComponents(int cs)
+        {
+            return HasComponent(cs);
+        }
     }
 
 }
