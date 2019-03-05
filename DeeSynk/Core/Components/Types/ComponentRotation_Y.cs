@@ -19,7 +19,7 @@ namespace DeeSynk.Core.Components.Types
             get => _rotY;
             set
             {
-                if (IsRotaitonAllowed)
+                if (IsRotationAllowed)
                 {
                     _rotY = value;
                     if (!_valueUpdated)
@@ -38,7 +38,7 @@ namespace DeeSynk.Core.Components.Types
         private float _rotationRate;  //radians to traverse in one second
 
         private bool _isRotationAllowed;
-        public bool IsRotaitonAllowed    //freezes all updates to the angle of rotation, for purposes of effects or whatever
+        public bool IsRotationAllowed    //freezes all updates to the angle of rotation, for purposes of effects or whatever
         {
             get => _isRotationAllowed;
             set
