@@ -31,14 +31,14 @@ namespace DeeSynk.Core
         public void LoadGameData()
         {
             //TestStart
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            for(int i=0; i<10000; i++)
-            {
-                _world.InitializeComponents(ref _world.CreateGameObject(255), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, 1.0f, 1.0f, new Vector3(1.0f, 1.0f, 1.0f));
-            }
-            sw.Stop();
-            Console.WriteLine(sw.ElapsedMilliseconds);
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
+            //for(int i=0; i<10000; i++)
+            //{
+            //    _world.InitializeComponents(ref _world.CreateGameObject(255), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, 1.0f, 1.0f, new Vector3(1.0f, 1.0f, 1.0f));
+            //}
+            //sw.Stop();
+            //Console.WriteLine(sw.ElapsedMilliseconds);
             //TestEnd
         }
 

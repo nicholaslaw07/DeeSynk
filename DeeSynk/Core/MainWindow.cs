@@ -39,6 +39,7 @@ namespace DeeSynk.Core
                                     GraphicsContextFlags.ForwardCompatible)
         {
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
+            VSync = VSyncMode.Off;
         }
         
         /// <summary>
@@ -62,7 +63,6 @@ namespace DeeSynk.Core
             _game = new Game();
             Matrix4.CreateOrthographic((float)Width, (float)Height, -1f, 1f, out ORTHO_MATRIX);
             CursorVisible = true;
-            //VSync = VSyncMode.Off;
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();

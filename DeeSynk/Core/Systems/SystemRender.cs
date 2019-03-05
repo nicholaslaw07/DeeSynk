@@ -5,12 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.Types.Render;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
 namespace DeeSynk.Core.Systems
 {
     class SystemRender : ISystem
     {
+        public const int RECANGLE_INDEX_COUNT = 6;
+
         public int MonitoredComponents = (int)Component.RENDER |
                                          (int)Component.MODEL |
                                          (int)Component.TEXTURE |
@@ -57,9 +60,16 @@ namespace DeeSynk.Core.Systems
 
         public void InitModels()
         {
-            for(int i=0; i< 10000; i++)
+            var color4Arr = new Color4[4];
+            color4Arr[0] = Color4.Red;
+            color4Arr[1] = Color4.Green;
+            color4Arr[2] = Color4.Blue;
+            color4Arr[3] = Color4.Yellow;
+
+            for (int i=0; i< 10000; i++)
             {
                 _modelComps[i] = new ComponentModel(100f, 100f);
+                _colorComps[i] = new ComponentColor(color4Arr);
             }
         }
 
@@ -67,6 +77,11 @@ namespace DeeSynk.Core.Systems
         {
             int shaderID = 1;
             GL.UseProgram(1);
+
+            int vertexSize = 16;
+            int colorSize = 16;
+            int uintSize = 4;
+
             for (int i=0; i< 10000; i++)
             {
                 int vao = GL.GenVertexArray();
@@ -76,18 +91,33 @@ namespace DeeSynk.Core.Systems
                 int cbo = GL.GenBuffer();
                 int ibo = GL.GenBuffer();
 
+
+                int vertexCount = _modelComps[i].VertexCount;
+
                 GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+                GL.NamedBufferStorage(vbo, vertexSize * vertexCount, _modelComps[i].GetVertices, BufferStorageFlags.MapReadBit);
+
+                GL.BindVertexBuffer(0, vbo, IntPtr.Zero, vertexSize);
+                GL.EnableVertexAttribArray(0);
+                GL.VertexAttribFormat(0, vertexSize * vertexCount, VertexAttribType.Float, false, 0);
+                GL.VertexAttribBinding(0, 0);
+
+
+                int colorCount = _colorComps[i].ColorCount;
+
                 GL.BindBuffer(BufferTarget.ArrayBuffer, cbo);
+                GL.NamedBufferStorage(cbo, colorSize * colorCount, _colorComps[i].Colors, BufferStorageFlags.MapReadBit);
+
+                GL.BindVertexBuffer(1, cbo, IntPtr.Zero, colorSize);
+                GL.EnableVertexAttribArray(1);
+                GL.VertexAttribFormat(1, colorSize * colorCount, VertexAttribType.Float, false, 0);
+                GL.VertexAttribBinding(1, 1);
+
+
+                int indexCount = _modelComps[i].IndexCount;
+
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, ibo);
-
-                GL.NamedBufferStorage(vbo, 4 * _modelComps[i].VertexCount, _modelComps[i].GetVertices, BufferStorageFlags.MapWriteBit);
-
-                GL.VertexArrayAttribBinding(vao, 0, 0);
-                GL.EnableVertexArrayAttrib(vao, 0);
-                GL.VertexArrayAttribFormat(vao, 0, 4, VertexAttribType.Float, false, 0);
-
-                GL.VertexArrayVertexBuffer(vao, 0, vbo, IntPtr.Zero, 4);
-                GL.NamedBufferStorage(ibo, 4 * _modelComps[i].IndexCount, _modelComps[i].GetIndices, BufferStorageFlags.MapWriteBit);
+                GL.NamedBufferStorage(ibo, uintSize * indexCount, _modelComps[i].GetIndices, BufferStorageFlags.MapReadBit);
 
                 GL.BindVertexArray(0);
 
@@ -99,23 +129,37 @@ namespace DeeSynk.Core.Systems
         {
         }
 
-        public void Bind(int i)
+        public void Bind(int idx)
         {
-            GL.BindVertexArray(_renderComps[i].VAO_ID);
-            GL.UseProgram(1);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _renderComps[i].IBO_ID);
+            _renderComps[idx].BindData();
         }
 
-        public void Render()
+        public void Render(int idx)
         {
-            GL.DrawArrays(PrimitiveType.Quads, 0, 4);
-            //GL.DrawElements(BeginMode.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+            GL.DrawElements(BeginMode.Triangles, _modelComps[idx].IndexCount, DrawElementsType.UnsignedInt, 0);
         }
 
         public void UnBind()
         {
-            //GL.UseProgram(0);
-            //GL.BindVertexArray(0);
+            GL.UseProgram(0);
+            GL.BindVertexArray(0);
+        }
+
+        //Notes on ways to optimize for the future
+        //    Store multiple objects inside of the same vertex array to eliminate calls that bind the VAO as they are expensive
+        //    In addition to the previous point, objects that are not independent of one another (say terrain data) can be drawn by instancing with little or no updates to the buffer data
+        //    Use VAO's as a way of organizing objects into render layers and groups instead of a client side render group class
+        //    Store all texture locations within an atlas as a long buffer within the vao?  Then to update the animation position on sprite sheets simply call a different range on draw elements or something like that.
+        //    Store transformation matrices in a buffer and update only when necessary
+
+        public void RenderAll(ref SystemTransform systemTransform)
+        {
+            for(int idx=0; idx<_renderComps.Length; idx++)
+            {
+                Bind(idx);
+                systemTransform.PushMatrixData(idx);
+                Render(idx);
+            }
         }
     }
 }

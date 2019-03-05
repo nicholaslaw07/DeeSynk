@@ -18,14 +18,19 @@ namespace DeeSynk.Core.Components.Types.Render
         public Color4[] Colors { get => _colors; }
         public ref Color4[] ColorsByRef { get => ref _colors; }
 
+        private int _colorCount;
+        public int ColorCount { get => _colorCount; }
+
         public ComponentColor()
         {
             _hasColorData = false;
+            _colorCount = 0;
         }
 
         public ComponentColor(Color4[] colors)
         {
             _colors = colors;
+            _colorCount = _colors.Length;
         }
 
         public void Update(float time)

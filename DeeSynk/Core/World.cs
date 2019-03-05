@@ -177,9 +177,6 @@ namespace DeeSynk.Core
             //if ((bitMask & (int)Component.GRAVITY) == ((int)Component.GRAVITY))
             //    _gravityComps[id] = new ComponentGravity(ref location);
 
-            //if ((bitMask & (int)Component.TRANSFORM) == ((int)Component.TRANSFORM))
-            //    _transformComps[id] = new ComponentTransform(ref location);
-
             _rotXComps[id].SetConstantRotation(2.0f);
             _rotYComps[id].SetConstantRotation(2.0f);
             _rotZComps[id].SetConstantRotation(2.0f);
@@ -188,25 +185,11 @@ namespace DeeSynk.Core
 
         public void Update(float time)
         {
-            //TestStart
-            for(int i=0; i<OBJECT_MEMORY; i++)
-            {
-                //_rotXComps[i].Update(time);
-                //_rotYComps[i].Update(time);
-                //_rotZComps[i].Update(time);
-            }
-            //TestEnd
         }
 
         public void Render()
         {
-            for(int i=0; i<1; i++)
-            {
-                _systemRender.Bind(i);
-                _systemTransform.SendMatrixData(i);
-                _systemRender.Render();
-                //_systemRender.UnBind();
-            }
+            _systemRender.RenderAll(ref _systemTransform);
         }
     }
 }

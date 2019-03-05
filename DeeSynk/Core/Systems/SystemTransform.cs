@@ -78,7 +78,7 @@ namespace DeeSynk.Core.Systems
             }
         }
 
-        public void SendMatrixData(int index)
+        public void PushMatrixData(int index)
         {
             var v = _locationComps[index].Location.Xyz;
             Matrix4 m4 = Matrix4.Identity;
