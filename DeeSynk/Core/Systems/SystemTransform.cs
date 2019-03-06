@@ -35,6 +35,8 @@ namespace DeeSynk.Core.Systems
 
         int ISystem.MonitoredComponents => throw new NotImplementedException();
 
+        private Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(1.2f, 1.777778f, 0.1f, 1200f);
+
         public SystemTransform(World world)
         {
             _world = world;
@@ -153,7 +155,7 @@ namespace DeeSynk.Core.Systems
             {
                 _transComps[i] = new ComponentTransform((int)(Component.LOCATION | Component.ROTATION_X | Component.ROTATION_Y | Component.ROTATION_Z | Component.SCALE));
 
-                _locationComps[i] = new ComponentLocation(r.Next(-500, 500), r.Next(-500, 500), r.Next(-500, 500));
+                _locationComps[i] = new ComponentLocation(r.Next(-500, 500), r.Next(-500, 500), r.Next( -1000, -300));
 
                 _rotXComps[i] = new ComponentRotation_X((float)(6.28 * r.NextDouble()));
                 _rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
@@ -168,11 +170,12 @@ namespace DeeSynk.Core.Systems
             }
         }
 
-        public void PushMatrixData(int index)
+        public void PushMatrixData(int index, ref Matrix4 mat4)
         {
             Matrix4 m4 = _transComps[index].GetModelView;
-            m4 *= Matrix4.CreateOrthographic(700, 500, -1, 1);
-            GL.UniformMatrix4(2, false, ref m4);
+            //m4 *= mat4;
+            var m4a = m4 * mat4 * projection;
+            GL.UniformMatrix4(2, false, ref m4a);
         }
     }
 }

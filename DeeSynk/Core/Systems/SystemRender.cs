@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.Types.Render;
+using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
@@ -66,9 +67,9 @@ namespace DeeSynk.Core.Systems
             color4Arr[2] = Color4.Blue;
             color4Arr[3] = Color4.Yellow;
 
-            for (int i=0; i< 10000; i++)
+            for (int i=0; i< _world.ObjectMemory; i++)
             {
-                _modelComps[i] = new ComponentModel(100f, 100f);
+                _modelComps[i] = new ComponentModel(10f, 10f);
                 _colorComps[i] = new ComponentColor(color4Arr);
             }
         }
@@ -82,7 +83,7 @@ namespace DeeSynk.Core.Systems
             int colorSize = 16;
             int uintSize = 4;
 
-            for (int i=0; i< 10000; i++)
+            for (int i=0; i< _world.ObjectMemory; i++)
             {
                 int vao = GL.GenVertexArray();
                 GL.BindVertexArray(vao);
@@ -161,12 +162,13 @@ namespace DeeSynk.Core.Systems
         //
         //    Add a way for a window resize to update the orthographic matrix inside of SystemTransform, ideally this shouldn't happen often as it is expensive.
 
-        public void RenderAll(ref SystemTransform systemTransform)
+        public void RenderAll(ref SystemTransform systemTransform, ref Matrix4 mat4)
         {
+            GL.Enable(EnableCap.DepthTest);
             for(int idx=0; idx<_renderComps.Length; idx++)
             {
                 Bind(idx);
-                systemTransform.PushMatrixData(idx);
+                systemTransform.PushMatrixData(idx, ref mat4);
                 Render(idx);
             }
         }

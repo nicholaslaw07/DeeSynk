@@ -20,6 +20,14 @@ namespace DeeSynk.Core
 
         private KeyboardState keyState;    // holds current keyboard state, updated every frame
         private Color4 clearColor = Color4.White;     // the color that OpenGL uses to clear the color buffer on each frame
+        private Matrix4 viewmat4;
+        private Matrix4 viewmat4_o;
+        private Vector3 offsetLocation;
+        private Vector3 offsetLocationN;
+        private Matrix4 lam4;
+
+        private float rotY;
+        private Matrix4 rotYMat4;
 
         public static Matrix4 ORTHO_MATRIX = Matrix4.Identity;
 
@@ -66,6 +74,13 @@ namespace DeeSynk.Core
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();
+
+            lam4 = Matrix4.LookAt(offsetLocation, new Vector3(0.0f, 0.0f, -1.0f), new Vector3(0.0f, 1.0f, 0.0f));
+
+            rotYMat4 = Matrix4.Identity;
+
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
 
         /// <summary>
@@ -76,7 +91,23 @@ namespace DeeSynk.Core
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             _game.Update((float)(e.Time));
-            HandleKeyboard();
+            HandleKeyboard((float)e.Time);
+            offsetLocationN = offsetLocation * -1f;
+            Vector4 val = new Vector4(offsetLocation);
+            val = rotYMat4 * val;
+            var val2 = val.Xyz;
+            var val3 = val2 * -1f;
+            
+            //Matrix4.LookAt()
+            Matrix4.CreateTranslation(ref val2, out viewmat4);
+            Matrix4.CreateTranslation(ref val3, out viewmat4_o);
+            Matrix4.CreateRotationY(rotY, out rotYMat4);
+
+            var la = new Vector4(0.0f, 0.0f, -1.0f, 1.0f);
+            la = rotYMat4 * la;
+            var la2 = la.Xyz;
+
+            lam4 = Matrix4.LookAt(offsetLocation, la2 + offsetLocation, new Vector3(0.0f, 1.0f, 0.0f));
         }
 
         /// <summary>
@@ -90,8 +121,7 @@ namespace DeeSynk.Core
 
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            _game.Render();
+            _game.Render(ref lam4);
 
             SwapBuffers();
         }
@@ -110,12 +140,30 @@ namespace DeeSynk.Core
         /// The HandleKeyboard method listens for any keyboard inputs from the user. Anything dealing
         /// with keybindings should go here.
         /// </summary>
-        private void HandleKeyboard()
+        private void HandleKeyboard(float time)
         {
             keyState = Keyboard.GetState();
 
             if (keyState.IsKeyDown(Key.Escape))
                 Exit();
+            if (keyState.IsKeyDown(Key.W))
+                offsetLocation += (rotYMat4 * new Vector4(0.0f, 0.0f, -time * 100f, 1.0f)).Xyz;
+            if (keyState.IsKeyDown(Key.S))
+                offsetLocation += (rotYMat4 * new Vector4(0.0f, 0.0f, time * 100f, 1.0f)).Xyz;
+            if (keyState.IsKeyDown(Key.A))
+                offsetLocation += (rotYMat4 * new Vector4(-time * 100f, 0.0f, 0.0f, 1.0f)).Xyz;
+            if (keyState.IsKeyDown(Key.D))
+                offsetLocation += (rotYMat4 * new Vector4(time * 100f, 0.0f, 0.0f, 1.0f)).Xyz;
+            if (keyState.IsKeyDown(Key.Space))
+                offsetLocation += new Vector3(0.0f, -time * 100f, 0.0f);
+            if (keyState.IsKeyDown(Key.ShiftLeft))
+                offsetLocation += new Vector3(0.0f, time * 100f, 0.0f);
+            if (keyState.IsKeyDown(Key.Q))
+                rotY -= time * 0.5f;
+            if (keyState.IsKeyDown(Key.E))
+                rotY += time * 0.5f;
+
+
         }
     }
 }

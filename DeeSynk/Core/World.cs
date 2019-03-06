@@ -12,7 +12,7 @@ namespace DeeSynk.Core
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 10000;
+        private const uint OBJECT_MEMORY = 5000;
         public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
         public GameObject[] GameObjects { get => _gameObjects; }
@@ -192,9 +192,9 @@ namespace DeeSynk.Core
             _systemTransform.Update(time);
         }
 
-        public void Render()
+        public void Render(ref Matrix4 mat4)
         {
-            _systemRender.RenderAll(ref _systemTransform);
+            _systemRender.RenderAll(ref _systemTransform, ref mat4);
         }
     }
 }

@@ -54,9 +54,9 @@ namespace DeeSynk.Core
             _world.Update(time);
         }
 
-        public void Render()
+        public void Render(ref Matrix4 mat4)
         {
-            _world.Render();
+            _world.Render(ref mat4);
         }
     }
 }
