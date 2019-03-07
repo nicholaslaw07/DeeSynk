@@ -85,12 +85,15 @@
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Resources\Textures\" />
-  </ItemGroup>
-  <ItemGroup>
+    <Content Include="Resources\Shaders\Fragment\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultColored.txt" />
+    <Content Include="Resources\Shaders\Vertex\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultColored.txt" />
+    <Content Include="Resources\Textures\Ball - Copy.bmp" />
+    <Content Include="Resources\Textures\Ball.bmp" />
+    <Content Include="Resources\Textures\Ball2.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

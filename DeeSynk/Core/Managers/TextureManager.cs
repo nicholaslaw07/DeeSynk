@@ -17,6 +17,8 @@ namespace DeeSynk.Core.Managers
     class TextureManager : IManager
     {
         // _B stands for the variable representing the number of bytes for said variable (name before)
+        private const string TEXTURE_PATH = @"..\..\Resources\Textures\";
+        private const string FILE_TYPE = ".bmp";
 
         private const int B_INDEX = 0;
         private const int M_INDEX = 1;
@@ -66,14 +68,21 @@ namespace DeeSynk.Core.Managers
         /// </summary>
         public void Load()
         {
-            //Load textures here when actually have a reason to load any...
+            string[] vertexShaders = Directory.GetFiles(TEXTURE_PATH);
+            string[] fileNames = Directory.GetFiles(TEXTURE_PATH)
+                         .Select(Path.GetFileNameWithoutExtension)
+                         .ToArray();
+            foreach(string fileName in fileNames)
+            {
+                InitTexture(TEXTURE_PATH, fileName, FILE_TYPE);
+            }
         }
 
         /// <summary>
         /// Loads a texture from a file, binds it to the current GL context, specifies some GL parameters,
-        /// generates a mipmap, and adds the generated texture's id to the loadedTextures dictionary.
+        /// generates a mipmap, and adds the generated texture's id to the loadedTextures dictionary.  Outputs the width and height of the image.
         /// </summary>
-        public void InitTexture(string folderPath, string fileName, string fileType, out int w, out int h)
+        private void InitTexture(string folderPath, string fileName, string fileType, out int w, out int h)
         {
             int width, height;
             var data = LoadTexture(folderPath, fileName, fileType, out width, out height);
@@ -95,7 +104,31 @@ namespace DeeSynk.Core.Managers
             h = height;
 
             loadedTextures.Add(fileName, texture);
+        }
 
+        /// <summary>
+        /// Loads a texture from a file, binds it to the current GL context, specifies some GL parameters,
+        /// generates a mipmap, and adds the generated texture's id to the loadedTextures dictionary.  Does not output the width and height of the image.
+        /// </summary>
+        private void InitTexture(string folderPath, string fileName, string fileType)
+        {
+            int width, height;
+            var data = LoadTexture(folderPath, fileName, fileType, out width, out height);
+            int texture = GL.GenTexture();
+
+            GL.BindTexture(TextureTarget.Texture2D, texture);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
+            GL.TextureSubImage2D(texture, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.Float, data);
+            GL.Enable(EnableCap.Texture2D);
+
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear); // defines sampling behavior when scaling image down
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear); // defines sampling behavior when scaling image up
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the x directions
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the y directions
+
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+
+            loadedTextures.Add(fileName, texture);
         }
 
         /// <summary>
@@ -134,7 +167,7 @@ namespace DeeSynk.Core.Managers
                         throw new Exception("Invalid number of colors planes in DIB - a value of 1 is expected.");
 
                     for (int i = 0; i <= BITS_PER_PIXEL_B - 1; i++) { bitsPerPixel += (int)(outArr[i + BITS_PER_PIXEL] << (i * 8)); }  //retrieves the number of bits per pixel within the image
-                    bytesPerPixel = bitsPerPixel / 4;                                                                                  //takes bpp and converts it to bytes to determine the size of one pixel in the array
+                    bytesPerPixel = bitsPerPixel / 8;                                                                                  //takes bpp and converts it to bytes to determine the size of one pixel in the array
 
                     int totalValues = width * height * bytesPerPixel;   //total number of bytes in the image data
 
@@ -146,6 +179,15 @@ namespace DeeSynk.Core.Managers
             }
 
             return values;
+        }
+
+        public int GetTexture(string name)
+        {
+            int textureID = -1;
+            if (loadedTextures.TryGetValue(name, out textureID))
+                return textureID;
+            else
+                return textureID;
         }
         
         /// <summary>

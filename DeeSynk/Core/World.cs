@@ -10,10 +10,11 @@ namespace DeeSynk.Core
     using Component = Components.Component;
     using SystemRender = Systems.SystemRender;
     using SystemTransform = Systems.SystemTransform;
+    using VAOTypes = Systems.VAOTypes;
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 20000;
+        private const uint OBJECT_MEMORY = 2000;
         public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
         public GameObject[] GameObjects { get => _gameObjects; }
@@ -91,7 +92,7 @@ namespace DeeSynk.Core
             _systemTransform = new SystemTransform(this);
             _systemTransform.InitLocation();
             _systemRender.InitModels();
-            _systemRender.InitVAO();
+            _systemRender.InitVAO(VAOTypes.Textured);
         }
 
         public void PushCameraRef(ref Camera camera)

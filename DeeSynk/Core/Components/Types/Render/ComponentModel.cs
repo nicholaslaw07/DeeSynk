@@ -15,15 +15,15 @@ namespace DeeSynk.Core.Components.Types.Render
         public bool HasModelData { get => _hasModelData; }
 
         private Vector4[] _vertices;
-        public Vector4[] GetVertices { get => _vertices; }
-        public ref Vector4[] GetVerticesByRef { get => ref _vertices; }
+        public Vector4[] Vertices { get => _vertices; }
+        public ref Vector4[] VerticesByRef { get => ref _vertices; }
 
         private int _vertexCount;
         public int VertexCount { get => _vertexCount; }
 
         private uint[] _indices;        //only used if drawing via elements
-        public uint[] GetIndices { get => _indices; }
-        public ref uint[] GetIndicesByRef { get => ref _indices; }
+        public uint[] Indices { get => _indices; }
+        public ref uint[] IndicesByRef { get => ref _indices; }
 
         private int _indexCount;
         public int IndexCount { get => _indexCount; }
@@ -70,20 +70,42 @@ namespace DeeSynk.Core.Components.Types.Render
         /// </summary>
         /// <param name="width">Width of the rectangle.</param>
         /// <param name="height">Height of the rectangle.</param>
-        public ComponentModel(float width, float height)
+        public ComponentModel(float width, float height, bool isTextured)
         {
-            _vertices = new Vector4[4];
-            _vertices[0] = new Vector4(-width, -height, 0.0f, 1.0f);
-            _vertices[1] = new Vector4(width, -height, 0.0f, 1.0f);
-            _vertices[2] = new Vector4(width, height, 0.0f, 1.0f);
-            _vertices[3] = new Vector4(-width, height, 0.0f, 1.0f);
+            if (isTextured)
+            {
+                _vertices = new Vector4[6];
+                _vertices[0] = new Vector4(-width, -height, 0.0f, 1.0f);
+                _vertices[1] = new Vector4(width, -height, 0.0f, 1.0f);
+                _vertices[2] = new Vector4(width, height, 0.0f, 1.0f);
+                _vertices[3] = new Vector4(width, height, 0.0f, 1.0f);
+                _vertices[4] = new Vector4(-width, height, 0.0f, 1.0f);
+                _vertices[5] = new Vector4(-width, -height, 0.0f, 1.0f);
 
-            _vertexCount = _vertices.Length;
+                _vertexCount = _vertices.Length;
 
-            _indices = new uint[6];
-            _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 2; _indices[4] = 3; _indices[5] = 0;
+                _indices = new uint[6];
+                _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 3; _indices[4] = 4; _indices[5] = 5;
 
-            _indexCount = _indices.Length;
+                _indexCount = _indices.Length;
+            }
+            else
+            {
+                _vertices = new Vector4[4];
+                _vertices[0] = new Vector4(-width, -height, 0.0f, 1.0f);
+                _vertices[1] = new Vector4(width, -height, 0.0f, 1.0f);
+                _vertices[2] = new Vector4(width, height, 0.0f, 1.0f);
+                _vertices[3] = new Vector4(width, height, 0.0f, 1.0f);
+                _vertices[4] = new Vector4(-width, height, 0.0f, 1.0f);
+                _vertices[5] = new Vector4(-width, -height, 0.0f, 1.0f);
+
+                _vertexCount = _vertices.Length;
+
+                _indices = new uint[6];
+                _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 2; _indices[4] = 3; _indices[5] = 0;
+
+                _indexCount = _indices.Length;
+            }
         }
 
         /// <summary>
@@ -93,20 +115,40 @@ namespace DeeSynk.Core.Components.Types.Render
         /// <param name="height">Height of the rectangle.</param>
         /// <param name="offsetX">Offset of the center point of the rectangle.</param>
         /// <param name="offsetY">Offset of the center point of the rectangle.</param>
-        public ComponentModel(float width, float height, float offsetX, float offsetY)
+        public ComponentModel(float width, float height, float offsetX, float offsetY, bool isTextured)
         {
-            _vertices = new Vector4[4];
-            _vertices[0] = new Vector4(offsetX - width, offsetY - height, 0.0f, 1.0f);
-            _vertices[1] = new Vector4(offsetX + width, offsetY - height, 0.0f, 1.0f);
-            _vertices[2] = new Vector4(offsetX + width, offsetY + height, 0.0f, 1.0f);
-            _vertices[3] = new Vector4(offsetX - width, offsetY + height, 0.0f, 1.0f);
+            if (isTextured)
+            {
+                _vertices = new Vector4[6];
+                _vertices[0] = new Vector4(offsetX - width, offsetY - height, 0.0f, 1.0f);
+                _vertices[1] = new Vector4(offsetX + width, offsetY - height, 0.0f, 1.0f);
+                _vertices[2] = new Vector4(offsetX + width, offsetY + height, 0.0f, 1.0f);
+                _vertices[3] = new Vector4(offsetX - width, offsetY + height, 0.0f, 1.0f);
+                _vertices[4] = new Vector4(offsetX - width, offsetY - height, 0.0f, 1.0f);
+                _vertices[5] = new Vector4(offsetX + width, offsetY + height, 0.0f, 1.0f);
 
-            _vertexCount = _vertices.Length;
+                _vertexCount = _vertices.Length;
 
-            _indices = new uint[6];
-            _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 2; _indices[4] = 3; _indices[5] = 0;
+                _indices = new uint[6];
+                _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 3; _indices[4] = 4; _indices[5] = 5;
 
-            _indexCount = _indices.Length;
+                _indexCount = _indices.Length;
+            }
+            else
+            {
+                _vertices = new Vector4[4];
+                _vertices[0] = new Vector4(offsetX - width, offsetY - height, 0.0f, 1.0f);
+                _vertices[1] = new Vector4(offsetX + width, offsetY - height, 0.0f, 1.0f);
+                _vertices[2] = new Vector4(offsetX + width, offsetY + height, 0.0f, 1.0f);
+                _vertices[3] = new Vector4(offsetX - width, offsetY + height, 0.0f, 1.0f);
+
+                _vertexCount = _vertices.Length;
+
+                _indices = new uint[6];
+                _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 2; _indices[4] = 3; _indices[5] = 0;
+
+                _indexCount = _indices.Length;
+            }
         }
 
         /// <summary>
