@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Systems
 {
-    interface ISystem
+    public interface ISystem
     {
         int MonitoredComponents { get; }
         void Update(float time);

@@ -12,13 +12,13 @@ namespace DeeSynk.Core.Systems
 {
     class SystemTransform : ISystem
     {
-        public int MonitoredComponents = (int)Component.LOCATION |
-                                         (int)Component.VELOCITY |
-                                         (int)Component.GRAVITY |
-                                         (int)Component.ROTATION_X |
-                                         (int)Component.ROTATION_Y |
-                                         (int)Component.ROTATION_Z |
-                                         (int)Component.SCALE;
+        public int MonitoredComponents => (int)Component.LOCATION |
+                                          (int)Component.VELOCITY |
+                                          (int)Component.GRAVITY |
+                                          (int)Component.ROTATION_X |
+                                          (int)Component.ROTATION_Y |
+                                          (int)Component.ROTATION_Z |
+                                          (int)Component.SCALE;
 
         private World _world;
 
@@ -32,8 +32,6 @@ namespace DeeSynk.Core.Systems
         private ComponentRotation_Z[]   _rotZComps;
         private ComponentScale[]        _scaleComps;
         private ComponentTransform[]    _transComps;
-
-        int ISystem.MonitoredComponents => throw new NotImplementedException();
 
         private Camera _camera;
 
@@ -182,13 +180,13 @@ namespace DeeSynk.Core.Systems
                 _locationComps[i] = new ComponentLocation(r.Next(-500, 500), r.Next(-500, 500), r.Next( -1000, -300));
 
                 _rotXComps[i] = new ComponentRotation_X((float)(6.28 * r.NextDouble()));
-                _rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
+                //_rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
 
                 _rotYComps[i] = new ComponentRotation_Y((float)(6.28 * r.NextDouble()));
-                _rotYComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
+                //_rotYComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
 
                 _rotZComps[i] = new ComponentRotation_Z((float)(6.28 * r.NextDouble()));
-                _rotZComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
+                //_rotZComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
 
                 _scaleComps[i] = new ComponentScale((float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f);
             }

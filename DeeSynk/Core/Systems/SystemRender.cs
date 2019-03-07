@@ -15,10 +15,10 @@ namespace DeeSynk.Core.Systems
     {
         public const int RECANGLE_INDEX_COUNT = 6;
 
-        public int MonitoredComponents = (int)Component.RENDER |
-                                         (int)Component.MODEL |
-                                         (int)Component.TEXTURE |
-                                         (int)Component.COLOR;
+        public int MonitoredComponents => (int)Component.RENDER |
+                                          (int)Component.MODEL |
+                                          (int)Component.TEXTURE |
+                                          (int)Component.COLOR;
 
         private World _world;
 
@@ -28,8 +28,6 @@ namespace DeeSynk.Core.Systems
         private ComponentModel[]        _modelComps;
         private ComponentTexture[]      _textureComps;
         private ComponentColor[]        _colorComps;
-
-        int ISystem.MonitoredComponents => throw new NotImplementedException();
 
         public SystemRender(World world)
         {

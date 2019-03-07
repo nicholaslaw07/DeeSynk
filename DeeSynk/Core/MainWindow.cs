@@ -38,7 +38,6 @@ namespace DeeSynk.Core
         private int dx = 0;
         private int dy = 0;
 
-        private bool doUpdateOnMouse = true;
         Point center;
         Point mousePos;
 
@@ -92,7 +91,7 @@ namespace DeeSynk.Core
             //CursorVisible = true;
 
             this.Cursor = MouseCursor.Empty;
-            this.WindowState = this.WindowState | WindowState.Fullscreen;
+            //this.WindowState = this.WindowState | WindowState.Fullscreen;
 
             _camera = new Camera(1.5f, (float)Width, (float)Height, 0.1f, 1200f);
 
@@ -118,6 +117,8 @@ namespace DeeSynk.Core
             _camera.UpdateMatrices();
 
             _game.Update((float)(e.Time));
+
+            
         }
 
         /// <summary>
