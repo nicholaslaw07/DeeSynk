@@ -188,5 +188,10 @@ namespace DeeSynk.Core.Components.Types.Transform
             if (_valueUpdated)  //prevents loss of significant digits by keep Rotation within +-2pi
                 Rotation %= 6.283185f;
         }
+
+        public void CompleteUpdate()
+        {
+            _valueUpdated = false;
+        }
     }
 }

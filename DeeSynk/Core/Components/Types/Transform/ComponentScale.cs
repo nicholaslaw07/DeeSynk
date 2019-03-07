@@ -63,6 +63,10 @@ namespace DeeSynk.Core.Components.Types.Transform
 
         public void Update(float time)
         {
+        }
+
+        public void CompleteUpdate()
+        {
             _valueUpdated = false;
         }
     }

@@ -74,7 +74,7 @@ namespace DeeSynk.Core.Systems
             color4Arr[3] = Color4.Yellow;
             */
 
-            int texID = TextureManager.GetInstance().GetTexture("Ball");
+            int texID = TextureManager.GetInstance().GetTexture("Ball - Copy");
 
             var uvArr = new Vector2[6];
             uvArr[0] = new Vector2(0.0f, 0.0f);

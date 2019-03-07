@@ -101,11 +101,11 @@ namespace DeeSynk.Core.Components.Types.Transform
                     rotMats *= _rotZ;
 
                 if (((_transformComponentsMask & (int)Component.LOCATION) != 0) && ((_transformComponentsMask & (int)Component.SCALE) != 0))
-                    _modelView = _translate_origin * rotMats * _scale * _translate;
+                    _modelView = _translate_origin * _scale * rotMats * _translate;
                 else if ((_transformComponentsMask & (int)Component.LOCATION) != 0)
                     _modelView = _translate_origin * rotMats * _translate;
                 else if ((_transformComponentsMask & (int)Component.SCALE) != 0)
-                    _modelView = rotMats * _scale;
+                    _modelView = _scale * rotMats;
                 else
                     _modelView = rotMats;
             }

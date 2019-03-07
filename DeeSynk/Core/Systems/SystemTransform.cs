@@ -102,11 +102,12 @@ namespace DeeSynk.Core.Systems
 
                 if ((tm & (int)Component.LOCATION) != 0)
                 {
+                    _locationComps[i].Update(time);
                     if (_locationComps[i].ValueUpdated)
                     {
                         recomputeProduct = true;
-                        _locationComps[i].Update(time);
                         tc.PushLocation(ref _locationComps[i].GetLocationByRef());
+                        _locationComps[i].CompleteUpdate();
                     }
                 }
                 if ((tm & (int)Component.VELOCITY) != 0)
@@ -129,38 +130,42 @@ namespace DeeSynk.Core.Systems
                 }
                 if ((tm & (int)Component.ROTATION_X) != 0)
                 {
+                    _rotXComps[i].Update(time);
                     if (_rotXComps[i].ValueUpdated)
                     {
                         recomputeProduct = true;
-                        _rotXComps[i].Update(time);
                         tc.PushRotationX(_rotXComps[i].Rotation);
+                        _rotXComps[i].CompleteUpdate();
                     }
                 }
                 if ((tm & (int)Component.ROTATION_Y) != 0)
                 {
+                    _rotYComps[i].Update(time);
                     if (_rotYComps[i].ValueUpdated)
                     {
                         recomputeProduct = true;
-                        _rotYComps[i].Update(time);
                         tc.PushRotationY(_rotYComps[i].Rotation);
+                        _rotYComps[i].CompleteUpdate();
                     }
                 }
                 if ((tm & (int)Component.ROTATION_Z) != 0)
                 {
+                    _rotZComps[i].Update(time);
                     if (_rotZComps[i].ValueUpdated)
                     {
                         recomputeProduct = true;
-                        _rotZComps[i].Update(time);
                         tc.PushRotationZ(_rotZComps[i].Rotation);
+                        _rotZComps[i].CompleteUpdate();
                     }
                 }
                 if ((tm & (int)Component.SCALE) != 0)
                 {
+                    _scaleComps[i].Update(time);
                     if (_scaleComps[i].ValueUpdated)
                     {
                         recomputeProduct = true;
-                        _scaleComps[i].Update(time);
                         tc.PushScale(ref _scaleComps[i].GetScaleByRef());
+                        _scaleComps[i].CompleteUpdate();
                     }
                 }
 
@@ -179,16 +184,16 @@ namespace DeeSynk.Core.Systems
 
                 _locationComps[i] = new ComponentLocation(r.Next(-500, 500), r.Next(-500, 500), r.Next( -1000, -300));
 
-                _rotXComps[i] = new ComponentRotation_X(0.0f); //(float)(6.28 * r.NextDouble())
-                _rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
+                _rotXComps[i] = new ComponentRotation_X((float)(6.28 * r.NextDouble()));
+                //_rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
 
-                _rotYComps[i] = new ComponentRotation_Y(0.0f);
-                _rotYComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
+                _rotYComps[i] = new ComponentRotation_Y((float)(6.28 * r.NextDouble()));
+                //_rotYComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
 
-                _rotZComps[i] = new ComponentRotation_Z(0.0f);
-                _rotZComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
+                _rotZComps[i] = new ComponentRotation_Z((float)(6.28 * r.NextDouble()));
+                //_rotZComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
 
-                _scaleComps[i] = new ComponentScale(1.0f, 1.0f); //(float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f
+                _scaleComps[i] = new ComponentScale((float)(r.NextDouble() * r.NextDouble()) * 2f, false); //(float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f
             }
         }
 

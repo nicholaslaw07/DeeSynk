@@ -6,5 +6,11 @@ out vec4 color;
 
 void main(void)
 {
-	color = texture(tex, vs_texCoord);
+	vec4 c = texture(tex, vs_texCoord);
+	if(c.a < 0.3)
+		discard;
+	else{
+		c.a = c.a * c.a * c.a * c.a;
+		color = c;	
+	}
 }
