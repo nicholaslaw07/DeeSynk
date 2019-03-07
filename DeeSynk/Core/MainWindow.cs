@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeeSynk.Core.Components;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -19,17 +21,28 @@ namespace DeeSynk.Core
         private Game _game;
 
         private KeyboardState keyState;    // holds current keyboard state, updated every frame
-        private Color4 clearColor = Color4.White;     // the color that OpenGL uses to clear the color buffer on each frame
-        private Matrix4 viewmat4;
-        private Matrix4 viewmat4_o;
-        private Vector3 offsetLocation;
-        private Vector3 offsetLocationN;
-        private Matrix4 lam4;
+        private Color4 clearColor = Color4.BlanchedAlmond;     // the color that OpenGL uses to clear the color buffer on each frame
 
-        private float rotY;
-        private Matrix4 rotYMat4;
+        private Camera _camera = new Camera();
 
-        public static Matrix4 ORTHO_MATRIX = Matrix4.Identity;
+        private const float dX = 100f;
+        private const float dR = 0.4f;
+
+        private Vector3 V_W = new Vector3(0.0f, 0.0f, -100f);
+        private Vector3 V_S = new Vector3(0.0f, 0.0f, 100f);
+        private Vector3 V_A = new Vector3(-100f, 0.0f, 0.0f);
+        private Vector3 V_D = new Vector3(100f, 0.0f, 0.0f);
+        private Vector3 V_Up = new Vector3(0.0f, 100.0f, 0.0f);
+        private Vector3 V_Dn = new Vector3(0.0f, -100.0f, 0.0f);
+
+        private int dx = 0;
+        private int dy = 0;
+
+        private bool doUpdateOnMouse = true;
+        Point center;
+        Point mousePos;
+
+        private MouseState msPrevious;
 
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be
@@ -48,6 +61,9 @@ namespace DeeSynk.Core
         {
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
             VSync = VSyncMode.Off;
+            center = new Point(Width / 2, Height / 2);
+            mousePos = PointToScreen(center);
+            msPrevious = Mouse.GetState();
         }
         
         /// <summary>
@@ -58,7 +74,11 @@ namespace DeeSynk.Core
         protected override void OnResize(EventArgs e)
         {
             GL.Viewport(0, 0, Width, Height);
-            Matrix4.CreateOrthographic((float)Width, (float)Height, -1f, 1f, out ORTHO_MATRIX);
+            _camera.Width = Width;
+            _camera.Height = Height;
+
+            center = new Point(Width / 2, Height / 2);
+            mousePos = PointToScreen(center);
         }
 
         /// <summary>
@@ -69,15 +89,17 @@ namespace DeeSynk.Core
         protected override void OnLoad(EventArgs e)
         {
             _game = new Game();
-            Matrix4.CreateOrthographic((float)Width, (float)Height, -1f, 1f, out ORTHO_MATRIX);
-            CursorVisible = true;
+            //CursorVisible = true;
+
+            this.Cursor = MouseCursor.Empty;
+            this.WindowState = this.WindowState | WindowState.Fullscreen;
+
+            _camera = new Camera(1.5f, (float)Width, (float)Height, 0.1f, 1200f);
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();
 
-            lam4 = Matrix4.LookAt(offsetLocation, new Vector3(0.0f, 0.0f, -1.0f), new Vector3(0.0f, 1.0f, 0.0f));
-
-            rotYMat4 = Matrix4.Identity;
+            _game.PushCameraRef(ref _camera);
 
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -90,24 +112,12 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            _game.Update((float)(e.Time));
             HandleKeyboard((float)e.Time);
-            offsetLocationN = offsetLocation * -1f;
-            Vector4 val = new Vector4(offsetLocation);
-            val = rotYMat4 * val;
-            var val2 = val.Xyz;
-            var val3 = val2 * -1f;
-            
-            //Matrix4.LookAt()
-            Matrix4.CreateTranslation(ref val2, out viewmat4);
-            Matrix4.CreateTranslation(ref val3, out viewmat4_o);
-            Matrix4.CreateRotationY(rotY, out rotYMat4);
 
-            var la = new Vector4(0.0f, 0.0f, -1.0f, 1.0f);
-            la = rotYMat4 * la;
-            var la2 = la.Xyz;
+            _camera.AddRotation();
+            _camera.UpdateMatrices();
 
-            lam4 = Matrix4.LookAt(offsetLocation, la2 + offsetLocation, new Vector3(0.0f, 1.0f, 0.0f));
+            _game.Update((float)(e.Time));
         }
 
         /// <summary>
@@ -118,10 +128,9 @@ namespace DeeSynk.Core
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             Title = $"DeeSynk | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f / e.Time:0}"; // adds miscellaneous information to the title bar of the window
-
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            _game.Render(ref lam4);
+            _game.Render();
 
             SwapBuffers();
         }
@@ -136,6 +145,14 @@ namespace DeeSynk.Core
             Console.WriteLine("I listen to you sleep...");
         }
 
+        protected override void OnMouseMove(MouseMoveEventArgs e)
+        {
+            MouseState ms = Mouse.GetState();
+            _camera.AddRotation((msPrevious.Y - ms.Y) * 0.001f, (msPrevious.X - ms.X) * 0.001f);
+            OpenTK.Input.Mouse.SetPosition(mousePos.X, mousePos.Y);
+            msPrevious = ms;
+        }
+
         /// <summary>
         /// The HandleKeyboard method listens for any keyboard inputs from the user. Anything dealing
         /// with keybindings should go here.
@@ -147,23 +164,17 @@ namespace DeeSynk.Core
             if (keyState.IsKeyDown(Key.Escape))
                 Exit();
             if (keyState.IsKeyDown(Key.W))
-                offsetLocation += (rotYMat4 * new Vector4(0.0f, 0.0f, -time * 100f, 1.0f)).Xyz;
+                _camera.AddLocation(ref V_W, time);
             if (keyState.IsKeyDown(Key.S))
-                offsetLocation += (rotYMat4 * new Vector4(0.0f, 0.0f, time * 100f, 1.0f)).Xyz;
+                _camera.AddLocation(ref V_S, time);
             if (keyState.IsKeyDown(Key.A))
-                offsetLocation += (rotYMat4 * new Vector4(-time * 100f, 0.0f, 0.0f, 1.0f)).Xyz;
+                _camera.AddLocation(ref V_A, time);
             if (keyState.IsKeyDown(Key.D))
-                offsetLocation += (rotYMat4 * new Vector4(time * 100f, 0.0f, 0.0f, 1.0f)).Xyz;
+                _camera.AddLocation(ref V_D, time);
             if (keyState.IsKeyDown(Key.Space))
-                offsetLocation += new Vector3(0.0f, -time * 100f, 0.0f);
+                _camera.AddLocation(ref V_Up, time);
             if (keyState.IsKeyDown(Key.ShiftLeft))
-                offsetLocation += new Vector3(0.0f, time * 100f, 0.0f);
-            if (keyState.IsKeyDown(Key.Q))
-                rotY -= time * 0.5f;
-            if (keyState.IsKeyDown(Key.E))
-                rotY += time * 0.5f;
-
-
+                _camera.AddLocation(ref V_Dn, time);
         }
     }
 }

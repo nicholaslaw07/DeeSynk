@@ -2,6 +2,7 @@
 using DeeSynk.Core.Components.Types.Transform;
 using DeeSynk.Core.Components.Types.Render;
 using OpenTK;
+using DeeSynk.Core.Components;
 
 namespace DeeSynk.Core
 {
@@ -12,7 +13,7 @@ namespace DeeSynk.Core
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 5000;
+        private const uint OBJECT_MEMORY = 2000;
         public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
         public GameObject[] GameObjects { get => _gameObjects; }
@@ -91,6 +92,11 @@ namespace DeeSynk.Core
             _systemTransform.InitLocation();
             _systemRender.InitModels();
             _systemRender.InitVAO();
+        }
+
+        public void PushCameraRef(ref Camera camera)
+        {
+            _systemTransform.PushCameraRef(ref camera);
         }
 
         /// <summary>
@@ -192,9 +198,9 @@ namespace DeeSynk.Core
             _systemTransform.Update(time);
         }
 
-        public void Render(ref Matrix4 mat4)
+        public void Render()
         {
-            _systemRender.RenderAll(ref _systemTransform, ref mat4);
+            _systemRender.RenderAll(ref _systemTransform);
         }
     }
 }

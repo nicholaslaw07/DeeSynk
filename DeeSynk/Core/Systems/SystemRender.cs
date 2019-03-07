@@ -162,13 +162,13 @@ namespace DeeSynk.Core.Systems
         //
         //    Add a way for a window resize to update the orthographic matrix inside of SystemTransform, ideally this shouldn't happen often as it is expensive.
 
-        public void RenderAll(ref SystemTransform systemTransform, ref Matrix4 mat4)
+        public void RenderAll(ref SystemTransform systemTransform)
         {
             GL.Enable(EnableCap.DepthTest);
             for(int idx=0; idx<_renderComps.Length; idx++)
             {
                 Bind(idx);
-                systemTransform.PushMatrixData(idx, ref mat4);
+                systemTransform.PushMatrixData(idx);
                 Render(idx);
             }
         }

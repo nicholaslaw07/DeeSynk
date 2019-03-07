@@ -35,7 +35,7 @@ namespace DeeSynk.Core.Systems
 
         int ISystem.MonitoredComponents => throw new NotImplementedException();
 
-        private Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(1.2f, 1.777778f, 0.1f, 1200f);
+        private Camera _camera;
 
         public SystemTransform(World world)
         {
@@ -53,6 +53,29 @@ namespace DeeSynk.Core.Systems
             _transComps = _world.TransComps;
 
             UpdateMonitoredGameObjects();
+        }
+
+        public SystemTransform(World world, ref Matrix4 view, ref Matrix4 projection)
+        {
+            _world = world;
+
+            _monitoredGameObjects = new bool[_world.ObjectMemory];
+
+            _locationComps = _world.LocationComps;
+            _velocityComps = _world.VelocityComps;
+            _gravityComps = _world.GravityComps;
+            _rotXComps = _world.RotXComps;
+            _rotYComps = _world.RotYComps;
+            _rotZComps = _world.RotZComps;
+            _scaleComps = _world.ScaleComps;
+            _transComps = _world.TransComps;
+
+            UpdateMonitoredGameObjects();
+        }
+
+        public void PushCameraRef(ref Camera camera)
+        {
+            _camera = camera;
         }
 
         public void UpdateMonitoredGameObjects()
@@ -144,8 +167,9 @@ namespace DeeSynk.Core.Systems
                 }
 
                 if (recomputeProduct)
-                    tc.ComputeModeViewProduct();
+                    tc.ComputeModelViewProduct();
             }
+            _camera.UpdateMatrices();
         }
 
         public void InitLocation()
@@ -170,12 +194,10 @@ namespace DeeSynk.Core.Systems
             }
         }
 
-        public void PushMatrixData(int index, ref Matrix4 mat4)
+        public void PushMatrixData(int index)
         {
-            Matrix4 m4 = _transComps[index].GetModelView;
-            //m4 *= mat4;
-            var m4a = m4 * mat4 * projection;
-            GL.UniformMatrix4(2, false, ref m4a);
+            Matrix4 m4 = _transComps[index].GetModelView * _camera.ViewProjection; //MVP
+            GL.UniformMatrix4(2, false, ref m4);
         }
     }
 }

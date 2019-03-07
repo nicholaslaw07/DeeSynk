@@ -88,7 +88,7 @@ namespace DeeSynk.Core.Components.Types.Transform
                 Matrix4.CreateScale(ref scale, out _scale);
         }
 
-        public void ComputeModeViewProduct()
+        public void ComputeModelViewProduct()
         {
             if((_transformComponentsMask & ((int)Component.ROTATION_X | (int)Component.ROTATION_Y | (int)Component.ROTATION_Z)) != 0)
             {
