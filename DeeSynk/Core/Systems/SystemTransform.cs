@@ -184,14 +184,14 @@ namespace DeeSynk.Core.Systems
 
                 _locationComps[i] = new ComponentLocation(r.Next(-500, 500), r.Next(-500, 500), r.Next( -1000, -300));
 
-                _rotXComps[i] = new ComponentRotation_X((float)(6.28 * r.NextDouble()));
+                _rotXComps[i] = new ComponentRotation_X(0.0f); //(float)(6.28 * r.NextDouble())
                 //_rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
 
-                _rotYComps[i] = new ComponentRotation_Y((float)(6.28 * r.NextDouble()));
+                _rotYComps[i] = new ComponentRotation_Y(0.0f);
                 //_rotYComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
 
-                _rotZComps[i] = new ComponentRotation_Z((float)(6.28 * r.NextDouble()));
-                //_rotZComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
+                _rotZComps[i] = new ComponentRotation_Z(0.0f);
+                //_rotZComps[i].SetConstantRotation((float)r.NextDouble() * 20f - 10f);
 
                 _scaleComps[i] = new ComponentScale((float)(r.NextDouble() * r.NextDouble()) * 2f, false); //(float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f
             }

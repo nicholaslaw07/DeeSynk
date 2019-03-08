@@ -12,12 +12,6 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace DeeSynk.Core.Systems
 {
-    public enum VAOTypes
-    {
-        Colored = 0,
-        Textured = 1
-    }
-
     class SystemRender : ISystem
     {
         public const int RECANGLE_INDEX_COUNT = 6;
@@ -64,146 +58,6 @@ namespace DeeSynk.Core.Systems
             }
         }
 
-        public void InitModels()
-        {
-            /*
-            var color4Arr = new Color4[4];
-            color4Arr[0] = Color4.Red;
-            color4Arr[1] = Color4.Green;
-            color4Arr[2] = Color4.Blue;
-            color4Arr[3] = Color4.Yellow;
-            */
-
-            int texID = TextureManager.GetInstance().GetTexture("Ball - Copy");
-
-            var uvArr = new Vector2[6];
-            uvArr[0] = new Vector2(0.0f, 0.0f);
-            uvArr[1] = new Vector2(1.0f, 0.0f);
-            uvArr[2] = new Vector2(1.0f, 1.0f);
-            uvArr[3] = new Vector2(1.0f, 1.0f);
-            uvArr[4] = new Vector2(0.0f, 1.0f);
-            uvArr[5] = new Vector2(0.0f, 0.0f);
-
-            for (int i=0; i< _world.ObjectMemory; i++)
-            {
-                _modelComps[i] = new ComponentModel(10f, 10f, true);
-                //_colorComps[i] = new ComponentColor(color4Arr);
-                _textureComps[i] = new ComponentTexture(ref uvArr, texID);
-            }
-        }
-
-        public void InitVAO(VAOTypes type)
-        {
-            if (type == VAOTypes.Colored)
-                InitVAO_Colored();
-            else if (type == VAOTypes.Textured)
-                InitVAO_Textured();
-        }
-
-        private void InitVAO_Colored()
-        {
-            int shaderID = ShaderManager.GetInstance().GetProgram("defaultColored");
-            GL.UseProgram(shaderID);
-
-            int vertexSize = 16;
-            int colorSize = 16;
-            int uintSize = 4;
-
-            for (int idx=0; idx< _world.ObjectMemory; idx++)
-            {
-                int vao = GL.GenVertexArray();
-                GL.BindVertexArray(vao);
-
-                int vbo = GL.GenBuffer();
-                int cbo = GL.GenBuffer();
-                int ibo = GL.GenBuffer();
-
-
-                int vertexCount = _modelComps[idx].VertexCount;
-
-                GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-                GL.NamedBufferStorage(vbo, vertexSize * vertexCount, _modelComps[idx].Vertices, BufferStorageFlags.MapReadBit);
-
-                GL.BindVertexBuffer(0, vbo, IntPtr.Zero, vertexSize);
-                GL.EnableVertexAttribArray(0);
-                GL.VertexAttribFormat(0, vertexSize * vertexCount, VertexAttribType.Float, false, 0);
-                GL.VertexAttribBinding(0, 0);
-
-
-                int colorCount = _colorComps[idx].ColorCount;
-
-                GL.BindBuffer(BufferTarget.ArrayBuffer, cbo);
-                GL.NamedBufferStorage(cbo, colorSize * colorCount, _colorComps[idx].Colors, BufferStorageFlags.MapReadBit);
-
-                GL.BindVertexBuffer(1, cbo, IntPtr.Zero, colorSize);
-                GL.EnableVertexAttribArray(1);
-                GL.VertexAttribFormat(1, colorSize * colorCount, VertexAttribType.Float, false, 0);
-                GL.VertexAttribBinding(1, 1);
-
-
-                int indexCount = _modelComps[idx].IndexCount;
-
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, ibo);
-                GL.NamedBufferStorage(ibo, uintSize * indexCount, _modelComps[idx].Indices, BufferStorageFlags.MapReadBit);
-
-                GL.BindVertexArray(0);
-
-                _renderComps[idx] = new ComponentRender(vao, ibo, shaderID);
-            }
-        }
-
-        private void InitVAO_Textured()
-        {
-            int shaderID = ShaderManager.GetInstance().GetProgram("defaultTextured");
-            GL.UseProgram(shaderID);
-
-            int vertexSize = 16;
-            int texSize = 8;
-            int uintSize = 4;
-
-            for (int idx = 0; idx < _world.ObjectMemory; idx++)
-            {
-                int vao = GL.GenVertexArray();
-                GL.BindVertexArray(vao);
-
-                int vbo = GL.GenBuffer();
-                int tbo = GL.GenBuffer();
-                int ibo = GL.GenBuffer();
-
-
-                int vertexCount = _modelComps[idx].VertexCount;
-
-                GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-                GL.NamedBufferStorage(vbo, vertexSize * vertexCount, _modelComps[idx].Vertices, BufferStorageFlags.MapReadBit);
-
-                GL.BindVertexBuffer(0, vbo, IntPtr.Zero, vertexSize);
-                GL.EnableVertexAttribArray(0);
-                GL.VertexAttribFormat(0, vertexSize * vertexCount, VertexAttribType.Float, false, 0);
-                GL.VertexAttribBinding(0, 0);
-
-
-                int texCount = _textureComps[idx].TextureCount;
-
-                GL.BindBuffer(BufferTarget.ArrayBuffer, tbo);
-                GL.NamedBufferStorage(tbo, texSize * texCount, _textureComps[idx].TextureCoodinates, BufferStorageFlags.MapReadBit);
-
-                GL.BindVertexBuffer(1, tbo, IntPtr.Zero, texSize);
-                GL.EnableVertexAttribArray(1);
-                GL.VertexAttribFormat(1, texSize * texCount, VertexAttribType.Float, false, 0);
-                GL.VertexAttribBinding(1, 1);
-
-
-                int indexCount = _modelComps[idx].IndexCount;
-
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, ibo);
-                GL.NamedBufferStorage(ibo, uintSize * indexCount, _modelComps[idx].Indices, BufferStorageFlags.MapReadBit);
-
-                GL.BindVertexArray(0);
-
-                _renderComps[idx] = new ComponentRender(vao, ibo, shaderID);
-            }
-        }
-
         public void Update(float time)
         {
         }
@@ -244,12 +98,14 @@ namespace DeeSynk.Core.Systems
         public void RenderAll(ref SystemTransform systemTransform)
         {
             GL.Enable(EnableCap.DepthTest);
-            for(int idx=0; idx<_renderComps.Length; idx++)
+
+            for (int idx=0; idx<_renderComps.Length; idx++)
             {
                 Bind(idx);
                 systemTransform.PushMatrixData(idx);
                 Render(idx);
             }
+            
         }
     }
 }

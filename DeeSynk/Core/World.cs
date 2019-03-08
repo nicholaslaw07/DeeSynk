@@ -10,11 +10,12 @@ namespace DeeSynk.Core
     using Component = Components.Component;
     using SystemRender = Systems.SystemRender;
     using SystemTransform = Systems.SystemTransform;
+    using SystemVAO = Systems.SystemVAO;
     using VAOTypes = Systems.VAOTypes;
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 20000;
+        private const uint OBJECT_MEMORY = 10000;
         public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
         public GameObject[] GameObjects { get => _gameObjects; }
@@ -24,6 +25,7 @@ namespace DeeSynk.Core
 
         private SystemRender _systemRender;
         private SystemTransform _systemTransform;
+        private SystemVAO _systemVAO;
 
         private ComponentLocation[]     _locationComps;
         public ComponentLocation[] LocationComps { get => _locationComps; }
@@ -91,8 +93,10 @@ namespace DeeSynk.Core
 
             _systemTransform = new SystemTransform(this);
             _systemTransform.InitLocation();
-            _systemRender.InitModels();
-            _systemRender.InitVAO(VAOTypes.Textured);
+
+            _systemVAO = new SystemVAO(this);
+            _systemVAO.InitModels();
+            _systemVAO.InitVAOInRange((int)VAOTypes.Textured | (int)VAOTypes.Indexed, 0, (int)(OBJECT_MEMORY - 1), true);
         }
 
         public void PushCameraRef(ref Camera camera)
