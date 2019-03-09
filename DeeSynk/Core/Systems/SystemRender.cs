@@ -107,14 +107,21 @@ namespace DeeSynk.Core.Systems
 
         public void RenderInstanced(ref SystemTransform systemTransform, int renderIdx)
         {
-            //Bind(renderIdx);
-            //GL.BindVertexArray(1);
             Bind(renderIdx);
 
             systemTransform.PushMatrixDataNoTransform();
-            GL.DrawElementsInstanced(PrimitiveType.Triangles, _modelComps[renderIdx].IndexCount, DrawElementsType.UnsignedInt, _modelComps[renderIdx].Indices, _renderComps[renderIdx].OBJECT_COUNT);
-            //GL.DrawElements(PrimitiveType.Triangles, _modelComps[renderIdx].IndexCount, DrawElementsType.UnsignedInt, _modelComps[renderIdx].Indices);
-            //GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, 100);
+
+            //GL.DrawElementsInstanced(PrimitiveType.Triangles, 
+            //                         _modelComps[renderIdx].IndexCount, 
+            //                         DrawElementsType.UnsignedInt, 
+            //                         _modelComps[renderIdx].Indices, 
+            //                         _renderComps[renderIdx].OBJECT_COUNT);
+
+            //GL.DrawElements(PrimitiveType.Triangles, _modelComps[renderIdx].IndexCount, DrawElementsType.UnsignedInt, 0);
+
+            GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, _modelComps[renderIdx].IndexCount, (int)_world.ObjectMemory);
+
+            //Console.WriteLine(GL.GetError().ToString());
         }
     }
 }

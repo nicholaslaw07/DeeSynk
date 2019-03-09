@@ -2,15 +2,14 @@
 
 layout (location = 0) in vec4 position;
 layout (location = 1) in vec2 texCoord;
+layout (location = 2) in vec4 offset;
 
-layout (location = 4) in mat4 model;
-
-layout (location = 10) uniform mat4 viewProjection;
+layout (location = 3) uniform mat4 viewProjection;
 
 out vec2 vs_texCoord;
 
 void main(void)
 {
  vs_texCoord = texCoord;
- gl_Position = model * viewProjection * position;
+ gl_Position = viewProjection * position;
 }

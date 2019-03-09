@@ -15,7 +15,7 @@ namespace DeeSynk.Core
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 10000;
+        private const uint OBJECT_MEMORY = 250000;
         public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
         public GameObject[] GameObjects { get => _gameObjects; }
@@ -97,8 +97,8 @@ namespace DeeSynk.Core
             _systemVAO = new SystemVAO(this);
             _systemVAO.InitModels();
             //_systemVAO.InitModels(0);
-            _systemVAO.InitVAOInRange((int)VAOTypes.Textured | (int)VAOTypes.Indexed, 0, (int)(OBJECT_MEMORY - 1), true);
-            //_systemVAO.InitVAOInRange((int)VAOTypes.Textured | (int)VAOTypes.Indexed | (int)VAOTypes.Instanced, 0, (int)(OBJECT_MEMORY - 1));
+            _systemVAO.InitVAOInRange((int)VAOTypes.Textured | (int)VAOTypes.Instanced, 0, (int)(OBJECT_MEMORY - 1), true);
+            //_systemVAO.InitVAOInRange((int)VAOTypes.Textured | (int)VAOTypes.Instanced, 0, (int)(OBJECT_MEMORY));
         }
 
         public void PushCameraRef(ref Camera camera)
@@ -208,7 +208,7 @@ namespace DeeSynk.Core
         public void Render()
         {
             //_systemRender.RenderAll(ref _systemTransform);
-            _systemRender.RenderAll(ref _systemTransform);
+            _systemRender.RenderInstanced(ref _systemTransform, 0);
         }
     }
 }

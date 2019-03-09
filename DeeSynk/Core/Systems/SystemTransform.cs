@@ -261,29 +261,54 @@ namespace DeeSynk.Core.Systems
         public void InitLocation()
         {
             //TEST START
-
+            
             Random r = new Random();
             for(int i=0; i < _transComps.Length; i++)
             {
-                _transComps[i] = new ComponentTransform((int)(Component.LOCATION | Component.ROTATION_X | Component.ROTATION_Y | Component.ROTATION_Z | Component.SCALE));
+                _transComps[i] = new ComponentTransform((int)(Component.LOCATION));  //| Component.ROTATION_X | Component.ROTATION_Y | Component.ROTATION_Z | Component.SCALE
 
                 _locationComps[i] = new ComponentLocation(r.Next(-500, 500), r.Next(-500, 500), r.Next( -1000, -300));
 
-                _rotXComps[i] = new ComponentRotation_X(0.0f); //(float)(6.28 * r.NextDouble())
+                //_rotXComps[i] = new ComponentRotation_X(0.0f); //(float)(6.28 * r.NextDouble())
                 //_rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
 
-                _rotYComps[i] = new ComponentRotation_Y(0.0f);
+                //_rotYComps[i] = new ComponentRotation_Y(0.0f);
                 //_rotYComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
 
-                _rotZComps[i] = new ComponentRotation_Z(0.0f);
+                //_rotZComps[i] = new ComponentRotation_Z(0.0f);
                 //_rotZComps[i].SetConstantRotation((float)r.NextDouble() * 20f - 10f);
 
-                _scaleComps[i] = new ComponentScale((float)(r.NextDouble() * r.NextDouble()) * 2f, false); //(float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f
+                //_scaleComps[i] = new ComponentScale((float)(r.NextDouble() * r.NextDouble()) * 2f, false); //(float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f
 
                 //_transComps[i].ComputeModelViewProduct();
             }
+            
+            InitialUpdate();
+            //TEST END
 
-            //InitialUpdate();
+            //TEST2 START
+            //Random r = new Random();
+            //for (int i = 0; i < _transComps.Length; i++)
+            //{
+            //_transComps[0] = new ComponentTransform((int)(Component.LOCATION));
+            //_locationComps[0] = new ComponentLocation(150.0f, 200.0f, -400f);
+
+            //_transComps[1] = new ComponentTransform((int)(Component.LOCATION));
+            //_locationComps[1] = new ComponentLocation(350.0f, 250.0f, -400f);
+
+            //_rotXComps[i] = new ComponentRotation_X(0.0f); //(float)(6.28 * r.NextDouble())
+            //_rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
+
+            //_rotYComps[i] = new ComponentRotation_Y(0.0f);
+            //_rotYComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
+
+            //_rotZComps[i] = new ComponentRotation_Z(0.0f);
+            //_rotZComps[i].SetConstantRotation((float)r.NextDouble() * 20f - 10f);
+
+            //_scaleComps[i] = new ComponentScale((float)(r.NextDouble() * r.NextDouble()) * 2f, false); //(float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f
+
+            //_transComps[i].ComputeModelViewProduct();
+            //}
             //TEST END
         }
 
@@ -295,14 +320,7 @@ namespace DeeSynk.Core.Systems
 
         public void PushMatrixDataNoTransform()
         {
-            GL.UniformMatrix4(10, false, ref _camera.ViewProjection);
-
-            int data = GL.GetInteger(GetPName.CurrentProgram);
-            int loc = GL.GetUniformLocation(data, "model[0]");
-            for (int i=0; i<_world.ObjectMemory; i++)
-            {
-                GL.UniformMatrix4(loc + i * 4, false, ref _transComps[i].GetModelView);
-            }
+            GL.UniformMatrix4(3, false, ref _camera.ViewProjection);
         }
     }
 }

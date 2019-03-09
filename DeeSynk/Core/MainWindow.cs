@@ -95,7 +95,7 @@ namespace DeeSynk.Core
             this.Cursor = MouseCursor.Empty;
             //this.WindowState = this.WindowState | WindowState.Fullscreen;
 
-            _camera = new Camera(1.5f, (float)Width, (float)Height, 0.1f, 1200f);
+            _camera = new Camera(1.5f, (float)Width, (float)Height, 0.1f, 2000f);
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();
