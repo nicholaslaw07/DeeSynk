@@ -3,13 +3,14 @@
 layout (location = 0) in vec4 position;
 layout (location = 1) in vec2 texCoord;
 
+layout (location = 4) in mat4 model;
+
 layout (location = 10) uniform mat4 viewProjection;
-uniform mat4 model[100];
 
 out vec2 vs_texCoord;
 
 void main(void)
 {
  vs_texCoord = texCoord;
- gl_Position = model[gl_InstanceID] * viewProjection * position;
+ gl_Position = model * viewProjection * position;
 }

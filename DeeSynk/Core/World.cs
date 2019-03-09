@@ -15,7 +15,7 @@ namespace DeeSynk.Core
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 100;
+        private const uint OBJECT_MEMORY = 10000;
         public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
         public GameObject[] GameObjects { get => _gameObjects; }

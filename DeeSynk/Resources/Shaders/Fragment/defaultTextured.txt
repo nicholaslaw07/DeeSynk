@@ -7,7 +7,7 @@ out vec4 color;
 void main(void)
 {
 	vec4 c = texture(tex, vs_texCoord);
-	if(c.a < 0.9)
+	if(c.a < 0.3)
 		discard;
 	color = c;
 }
