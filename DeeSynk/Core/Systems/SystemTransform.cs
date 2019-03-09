@@ -175,8 +175,93 @@ namespace DeeSynk.Core.Systems
             _camera.UpdateMatrices();
         }
 
+        public void InitialUpdate()
+        {
+            float time = 1.0f;
+            for (int i = 0; i < _world.ObjectMemory; i++)
+            {
+                bool recomputeProduct = false;
+
+                int tm = _transComps[i].TransformComponentsMask;
+                var tc = _transComps[i];
+
+                if ((tm & (int)Component.LOCATION) != 0)
+                {
+                    _locationComps[i].Update(time);
+                    if (_locationComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        tc.PushLocation(ref _locationComps[i].GetLocationByRef());
+                        _locationComps[i].CompleteUpdate();
+                    }
+                }
+                if ((tm & (int)Component.VELOCITY) != 0)
+                {
+                    if (_velocityComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        _velocityComps[i].Update(time);
+                        //similar, push location
+                    }
+                }
+                if ((tm & (int)Component.GRAVITY) != 0)
+                {
+                    //    if (_gravityComps[i].ValueUpdated)
+                    //    {
+                    //        recomputeProduct = true;
+                    //        _gravityComps[i].Update(time);
+                    //        also a push location thingy
+                    //    }
+                }
+                if ((tm & (int)Component.ROTATION_X) != 0)
+                {
+                    _rotXComps[i].Update(time);
+                    if (_rotXComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        tc.PushRotationX(_rotXComps[i].Rotation);
+                        _rotXComps[i].CompleteUpdate();
+                    }
+                }
+                if ((tm & (int)Component.ROTATION_Y) != 0)
+                {
+                    _rotYComps[i].Update(time);
+                    if (_rotYComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        tc.PushRotationY(_rotYComps[i].Rotation);
+                        _rotYComps[i].CompleteUpdate();
+                    }
+                }
+                if ((tm & (int)Component.ROTATION_Z) != 0)
+                {
+                    _rotZComps[i].Update(time);
+                    if (_rotZComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        tc.PushRotationZ(_rotZComps[i].Rotation);
+                        _rotZComps[i].CompleteUpdate();
+                    }
+                }
+                if ((tm & (int)Component.SCALE) != 0)
+                {
+                    _scaleComps[i].Update(time);
+                    if (_scaleComps[i].ValueUpdated)
+                    {
+                        recomputeProduct = true;
+                        tc.PushScale(ref _scaleComps[i].GetScaleByRef());
+                        _scaleComps[i].CompleteUpdate();
+                    }
+                }
+
+                if (recomputeProduct)
+                    tc.ComputeModelViewProduct();
+            }
+        }
         public void InitLocation()
         {
+            //TEST START
+
             Random r = new Random();
             for(int i=0; i < _transComps.Length; i++)
             {
@@ -194,13 +279,30 @@ namespace DeeSynk.Core.Systems
                 //_rotZComps[i].SetConstantRotation((float)r.NextDouble() * 20f - 10f);
 
                 _scaleComps[i] = new ComponentScale((float)(r.NextDouble() * r.NextDouble()) * 2f, false); //(float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f
+
+                //_transComps[i].ComputeModelViewProduct();
             }
+
+            //InitialUpdate();
+            //TEST END
         }
 
         public void PushMatrixData(int index)
         {
             Matrix4 m4 = _transComps[index].GetModelView * _camera.ViewProjection; //MVP
             GL.UniformMatrix4(2, false, ref m4);
+        }
+
+        public void PushMatrixDataNoTransform()
+        {
+            GL.UniformMatrix4(10, false, ref _camera.ViewProjection);
+
+            int data = GL.GetInteger(GetPName.CurrentProgram);
+            int loc = GL.GetUniformLocation(data, "model[0]");
+            for (int i=0; i<_world.ObjectMemory; i++)
+            {
+                GL.UniformMatrix4(loc + i * 4, false, ref _transComps[i].GetModelView);
+            }
         }
     }
 }

@@ -87,6 +87,8 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
+            GL.Enable(EnableCap.DepthTest);
+
             _game = new Game();
             //CursorVisible = true;
 

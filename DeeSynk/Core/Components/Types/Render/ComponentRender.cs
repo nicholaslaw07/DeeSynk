@@ -66,6 +66,26 @@ namespace DeeSynk.Core.Components.Types.Render
             }
         }
 
+        private int _objectCount;
+        /// <summary>
+        /// The number of objects that this VAO contains (not necessarily the number of triangles).
+        /// </summary>
+        public int OBJECT_COUNT
+        {
+            get => _objectCount;
+            set
+            {
+                if(value >= 0)
+                {
+                    _objectCount = value;
+                }
+                else
+                {
+                    _objectCount = 0;
+                }
+            }
+        }
+
         //Render Layer
         //Render method (2D or 3D)
         //Is simple sprite?  Idk
@@ -84,11 +104,12 @@ namespace DeeSynk.Core.Components.Types.Render
             _init = false;
         }
 
-        public void AddVAOData(int vaoID, int iboID, int programID)
+        public void AddVAOData(int vaoID, int iboID, int programID, int objectCount)
         {
             VAO_ID = vaoID;
             IBO_ID = iboID;
             PROGRAM_ID = programID;
+            OBJECT_COUNT = objectCount;
         }
 
         /// <summary>
@@ -145,6 +166,13 @@ namespace DeeSynk.Core.Components.Types.Render
                 if (data != _programID)  //if program id == the program that is to be used by this object then continue
                     GL.UseProgram(_programID); //use the program as determined by this class
             }
+        }
+
+        public void BindDataTest()
+        {
+            GL.BindVertexArray(_vaoID);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _iboID);
+            GL.UseProgram(_programID);
         }
 
         public void Update(float time)

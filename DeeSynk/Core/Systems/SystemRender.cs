@@ -97,15 +97,24 @@ namespace DeeSynk.Core.Systems
 
         public void RenderAll(ref SystemTransform systemTransform)
         {
-            GL.Enable(EnableCap.DepthTest);
-
             for (int idx=0; idx<_renderComps.Length; idx++)
             {
                 Bind(idx);
                 systemTransform.PushMatrixData(idx);
                 Render(idx);
             }
-            
+        }
+
+        public void RenderInstanced(ref SystemTransform systemTransform, int renderIdx)
+        {
+            //Bind(renderIdx);
+            //GL.BindVertexArray(1);
+            Bind(renderIdx);
+
+            systemTransform.PushMatrixDataNoTransform();
+            //GL.DrawElementsInstanced(PrimitiveType.Triangles, _modelComps[renderIdx].IndexCount, DrawElementsType.UnsignedInt, _modelComps[renderIdx].Indices, _renderComps[renderIdx].OBJECT_COUNT);
+            //GL.DrawElements(PrimitiveType.Triangles, _modelComps[renderIdx].IndexCount, DrawElementsType.UnsignedInt, _modelComps[renderIdx].Indices);
+            GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, 100);
         }
     }
 }
