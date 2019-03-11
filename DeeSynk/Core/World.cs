@@ -15,7 +15,7 @@ namespace DeeSynk.Core
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 250000;
+        private const uint OBJECT_MEMORY = 1000000;
         public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
         public GameObject[] GameObjects { get => _gameObjects; }
@@ -75,19 +75,19 @@ namespace DeeSynk.Core
             _textureComps = new ComponentTexture[OBJECT_MEMORY];
             _colorComps = new ComponentColor[OBJECT_MEMORY];
 
-            _locationComps.Initialize();
-            _velocityComps.Initialize();
-            _gravityComps.Initialize();
-            _rotXComps.Initialize();
-            _rotYComps.Initialize();
-            _rotZComps.Initialize();
-            _scaleComps.Initialize();
-            _transComps.Initialize();
+            //_locationComps.Initialize();
+            //_velocityComps.Initialize();
+            //_gravityComps.Initialize();
+            //_rotXComps.Initialize();
+            //_rotYComps.Initialize();
+            //_rotZComps.Initialize();
+            //_scaleComps.Initialize();
+            //_transComps.Initialize();
 
-            _renderComps.Initialize();
-            _modelComps.Initialize();
-            _textureComps.Initialize();
-            _colorComps.Initialize();
+            //_renderComps.Initialize();
+            //_modelComps.Initialize();
+            //_textureComps.Initialize();
+            //_colorComps.Initialize();
 
             _systemRender = new SystemRender(this);
 
