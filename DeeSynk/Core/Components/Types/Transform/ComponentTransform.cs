@@ -30,9 +30,9 @@ namespace DeeSynk.Core.Components.Types.Transform
         private Vector3 _scl;  //scale    XYZ
 
         private Vector3 _vel_LOC, _acc_LOC;
-        private float   _vel_RTX, _acc_RTX;
-        private float   _vel_RTY, _acc_RTY;
-        private float   _vel_RTZ, _acc_RTZ;
+        private float   _vel_RTX, _acc_RTX,
+                        _vel_RTY, _acc_RTY,
+                        _vel_RTZ, _acc_RTZ;
         private Vector3 _vel_SCL, _acc_SCL;
 
         //TRANSFORM PROPERTIES
@@ -98,11 +98,11 @@ namespace DeeSynk.Core.Components.Types.Transform
 
         //INTERPOLATION
         //IS TRANSFORM TYPE UNDERGOING INTERPOLATION
-        private bool _isInterpolating_LOC;
-        private bool _isInterpolating_RTX, 
+        private bool _isInterpolating_LOC,
+                     _isInterpolating_RTX, 
                      _isInterpolating_RTY, 
-                     _isInterpolatingRTZ;
-        private bool _isInterpolating_SCL;
+                     _isInterpolatingRTZ,
+                     _isInterpolating_SCL;
 
         //CHANGE IN VALUE FOR INTERPOLATION (delta value)
         private Vector3 _dX_LOC;
