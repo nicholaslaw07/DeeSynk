@@ -23,14 +23,7 @@ namespace DeeSynk.Core.Systems
         private World _world;
 
         private bool[] _monitoredGameObjects;
-        
-        private ComponentLocation[]     _locationComps;
-        private ComponentVelocity[]     _velocityComps;
-        private ComponentGravity[]      _gravityComps;
-        private ComponentRotation_X[]   _rotXComps;
-        private ComponentRotation_Y[]   _rotYComps;
-        private ComponentRotation_Z[]   _rotZComps;
-        private ComponentScale[]        _scaleComps;
+
         private ComponentTransform[]    _transComps;
 
         private Camera _camera;
@@ -41,13 +34,6 @@ namespace DeeSynk.Core.Systems
 
             _monitoredGameObjects = new bool[_world.ObjectMemory];
 
-            _locationComps = _world.LocationComps;
-            _velocityComps = _world.VelocityComps;
-            _gravityComps = _world.GravityComps;
-            _rotXComps = _world.RotXComps;
-            _rotYComps = _world.RotYComps;
-            _rotZComps = _world.RotZComps;
-            _scaleComps = _world.ScaleComps;
             _transComps = _world.TransComps;
 
             UpdateMonitoredGameObjects();
@@ -59,13 +45,6 @@ namespace DeeSynk.Core.Systems
 
             _monitoredGameObjects = new bool[_world.ObjectMemory];
 
-            _locationComps = _world.LocationComps;
-            _velocityComps = _world.VelocityComps;
-            _gravityComps = _world.GravityComps;
-            _rotXComps = _world.RotXComps;
-            _rotYComps = _world.RotYComps;
-            _rotZComps = _world.RotZComps;
-            _scaleComps = _world.ScaleComps;
             _transComps = _world.TransComps;
 
             UpdateMonitoredGameObjects();
@@ -94,170 +73,10 @@ namespace DeeSynk.Core.Systems
         public void Update(float time)
         {
             for(int i=0; i< _world.ObjectMemory; i++)
-            {
-                bool recomputeProduct = false;
-
-                int tm = _transComps[i].TransformComponentsMask;
-                var tc = _transComps[i];
-
-                if ((tm & (int)Component.LOCATION) != 0)
-                {
-                    _locationComps[i].Update(time);
-                    if (_locationComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        tc.PushLocation(ref _locationComps[i].GetLocationByRef());
-                        _locationComps[i].CompleteUpdate();
-                    }
-                }
-                if ((tm & (int)Component.VELOCITY) != 0)
-                {
-                    if (_velocityComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        _velocityComps[i].Update(time);
-                        //similar, push location
-                    }
-                }
-                if ((tm & (int)Component.GRAVITY)  != 0)
-                {
-                //    if (_gravityComps[i].ValueUpdated)
-                //    {
-                //        recomputeProduct = true;
-                //        _gravityComps[i].Update(time);
-                //        also a push location thingy
-                //    }
-                }
-                if ((tm & (int)Component.ROTATION_X) != 0)
-                {
-                    _rotXComps[i].Update(time);
-                    if (_rotXComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        tc.PushRotationX(_rotXComps[i].Rotation);
-                        _rotXComps[i].CompleteUpdate();
-                    }
-                }
-                if ((tm & (int)Component.ROTATION_Y) != 0)
-                {
-                    _rotYComps[i].Update(time);
-                    if (_rotYComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        tc.PushRotationY(_rotYComps[i].Rotation);
-                        _rotYComps[i].CompleteUpdate();
-                    }
-                }
-                if ((tm & (int)Component.ROTATION_Z) != 0)
-                {
-                    _rotZComps[i].Update(time);
-                    if (_rotZComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        tc.PushRotationZ(_rotZComps[i].Rotation);
-                        _rotZComps[i].CompleteUpdate();
-                    }
-                }
-                if ((tm & (int)Component.SCALE) != 0)
-                {
-                    _scaleComps[i].Update(time);
-                    if (_scaleComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        tc.PushScale(ref _scaleComps[i].GetScaleByRef());
-                        _scaleComps[i].CompleteUpdate();
-                    }
-                }
-
-                if (recomputeProduct)
-                    tc.ComputeModelViewProduct();
-            }
+                _transComps[i].Update(time);
             _camera.UpdateMatrices();
         }
 
-        public void InitialUpdate()
-        {
-            float time = 1.0f;
-            for (int i = 0; i < _world.ObjectMemory; i++)
-            {
-                bool recomputeProduct = false;
-
-                int tm = _transComps[i].TransformComponentsMask;
-                var tc = _transComps[i];
-
-                if ((tm & (int)Component.LOCATION) != 0)
-                {
-                    _locationComps[i].Update(time);
-                    if (_locationComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        tc.PushLocation(ref _locationComps[i].GetLocationByRef());
-                        _locationComps[i].CompleteUpdate();
-                    }
-                }
-                if ((tm & (int)Component.VELOCITY) != 0)
-                {
-                    if (_velocityComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        _velocityComps[i].Update(time);
-                        //similar, push location
-                    }
-                }
-                if ((tm & (int)Component.GRAVITY) != 0)
-                {
-                    //    if (_gravityComps[i].ValueUpdated)
-                    //    {
-                    //        recomputeProduct = true;
-                    //        _gravityComps[i].Update(time);
-                    //        also a push location thingy
-                    //    }
-                }
-                if ((tm & (int)Component.ROTATION_X) != 0)
-                {
-                    _rotXComps[i].Update(time);
-                    if (_rotXComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        tc.PushRotationX(_rotXComps[i].Rotation);
-                        _rotXComps[i].CompleteUpdate();
-                    }
-                }
-                if ((tm & (int)Component.ROTATION_Y) != 0)
-                {
-                    _rotYComps[i].Update(time);
-                    if (_rotYComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        tc.PushRotationY(_rotYComps[i].Rotation);
-                        _rotYComps[i].CompleteUpdate();
-                    }
-                }
-                if ((tm & (int)Component.ROTATION_Z) != 0)
-                {
-                    _rotZComps[i].Update(time);
-                    if (_rotZComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        tc.PushRotationZ(_rotZComps[i].Rotation);
-                        _rotZComps[i].CompleteUpdate();
-                    }
-                }
-                if ((tm & (int)Component.SCALE) != 0)
-                {
-                    _scaleComps[i].Update(time);
-                    if (_scaleComps[i].ValueUpdated)
-                    {
-                        recomputeProduct = true;
-                        tc.PushScale(ref _scaleComps[i].GetScaleByRef());
-                        _scaleComps[i].CompleteUpdate();
-                    }
-                }
-
-                if (recomputeProduct)
-                    tc.ComputeModelViewProduct();
-            }
-        }
         public void InitLocation()
         {
             //TEST START
@@ -265,50 +84,20 @@ namespace DeeSynk.Core.Systems
             Random r = new Random();
             for(int i=0; i < _transComps.Length; i++)
             {
-                _transComps[i] = new ComponentTransform((int)(Component.LOCATION));  //| Component.ROTATION_X | Component.ROTATION_Y | Component.ROTATION_Z | Component.SCALE
-
-                _locationComps[i] = new ComponentLocation(r.Next(-500, 500), r.Next(-500, 500), r.Next( -1000, -300));
-
-                //_rotXComps[i] = new ComponentRotation_X(0.0f); //(float)(6.28 * r.NextDouble())
-                //_rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
-
-                //_rotYComps[i] = new ComponentRotation_Y(0.0f);
-                //_rotYComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
-
-                //_rotZComps[i] = new ComponentRotation_Z(0.0f);
-                //_rotZComps[i].SetConstantRotation((float)r.NextDouble() * 20f - 10f);
-
-                //_scaleComps[i] = new ComponentScale((float)(r.NextDouble() * r.NextDouble()) * 2f, false); //(float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f
-
-                //_transComps[i].ComputeModelViewProduct();
+                //| Component.ROTATION_X | Component.ROTATION_Y | Component.ROTATION_Z | Component.SCALE
+                _transComps[i] = new ComponentTransform((int)(Component.LOCATION),
+                                                        r.Next(-500, 500), r.Next(-500, 500), r.Next(-1000, -300));
             }
-            
-            InitialUpdate();
+
             //TEST END
+        }
 
-            //TEST2 START
-            //Random r = new Random();
-            //for (int i = 0; i < _transComps.Length; i++)
-            //{
-            //_transComps[0] = new ComponentTransform((int)(Component.LOCATION));
-            //_locationComps[0] = new ComponentLocation(150.0f, 200.0f, -400f);
+        public void InitLocation(int index)
+        {
+            //TEST START
 
-            //_transComps[1] = new ComponentTransform((int)(Component.LOCATION));
-            //_locationComps[1] = new ComponentLocation(350.0f, 250.0f, -400f);
-
-            //_rotXComps[i] = new ComponentRotation_X(0.0f); //(float)(6.28 * r.NextDouble())
-            //_rotXComps[i].SetConstantRotation((float)r.NextDouble()*2f - 1f);
-
-            //_rotYComps[i] = new ComponentRotation_Y(0.0f);
-            //_rotYComps[i].SetConstantRotation((float)r.NextDouble() * 2f - 1f);
-
-            //_rotZComps[i] = new ComponentRotation_Z(0.0f);
-            //_rotZComps[i].SetConstantRotation((float)r.NextDouble() * 20f - 10f);
-
-            //_scaleComps[i] = new ComponentScale((float)(r.NextDouble() * r.NextDouble()) * 2f, false); //(float)r.NextDouble() * 2f, (float)r.NextDouble() * 2f
-
-            //_transComps[i].ComputeModelViewProduct();
-            //}
+            Random r = new Random();
+           _transComps[index] = new ComponentTransform((int)(Component.LOCATION), r.Next(-500, 500), r.Next(-500, 500), r.Next(-1000, -300));
             //TEST END
         }
 

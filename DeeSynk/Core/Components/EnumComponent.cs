@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Components
 {
+    [Flags]
     public enum Component : int
     {
         NONE        = 0,
@@ -19,10 +20,10 @@ namespace DeeSynk.Core.Components
         SCALE       = 1 << 6,
         TRANSFORM   = 1 << 7,
 
-        ROTATION_XY  = 1 << 3 | 1 << 4,
-        ROTATION_XZ  = 1 << 3 | 1 << 5,
-        ROTATION_YZ  = 1 << 4 | 1 << 5,
-        ROTATION_XYZ = 1 << 3 | 1 << 4 | 1 << 5,
+        ROTATION_XY  = ROTATION_X | ROTATION_Y,
+        ROTATION_XZ  = ROTATION_X              | ROTATION_Z,
+        ROTATION_YZ  =              ROTATION_Y | ROTATION_Z,
+        ROTATION_XYZ = ROTATION_X | ROTATION_Y | ROTATION_Z,
 
         RENDER      = 1 << 8,
         MODEL       = 1 << 9,

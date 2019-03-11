@@ -75,8 +75,6 @@ namespace DeeSynk.Core.Systems
 
         private ComponentTransform[] _transComps;
 
-        private ComponentLocation[] _locationComps;
-
         public SystemVAO(World world)
         {
             _world = world;
@@ -89,8 +87,6 @@ namespace DeeSynk.Core.Systems
             _colorComps = _world.ColorComps;
 
             _transComps = _world.TransComps;
-
-            _locationComps = _world.LocationComps;
         }
 
         public void InitModels()
@@ -321,7 +317,7 @@ namespace DeeSynk.Core.Systems
 
             Vector4[] offsets = new Vector4[count];
             for (int idx = start; idx < start + count; idx++)
-                offsets[idx - start] = new Vector4(_locationComps[idx].Location.X, _locationComps[idx].Location.Y, _locationComps[idx].Location.Z, 0.0f);
+                offsets[idx - start] = new Vector4(_transComps[idx].LocationComp.Location, 0.0f);
 
             int dataSize = VERTEX_SIZE * count;
             GL.BindBuffer(BufferTarget.ArrayBuffer, lbo);

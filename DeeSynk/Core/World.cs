@@ -27,20 +27,6 @@ namespace DeeSynk.Core
         private SystemTransform _systemTransform;
         private SystemVAO _systemVAO;
 
-        private ComponentLocation[]     _locationComps;
-        public ComponentLocation[] LocationComps { get => _locationComps; }
-        private ComponentVelocity[]     _velocityComps;
-        public ComponentVelocity[] VelocityComps { get => _velocityComps; }
-        private ComponentGravity[]      _gravityComps;
-        public ComponentGravity[] GravityComps { get => _gravityComps; }
-        private ComponentRotation_X[]   _rotXComps;
-        public ComponentRotation_X[] RotXComps { get => _rotXComps; }
-        private ComponentRotation_Y[]   _rotYComps;
-        public ComponentRotation_Y[] RotYComps { get => _rotYComps; }
-        private ComponentRotation_Z[]   _rotZComps;
-        public ComponentRotation_Z[] RotZComps { get => _rotZComps; }
-        private ComponentScale[]        _scaleComps;
-        public ComponentScale[] ScaleComps { get => _scaleComps; }
         private ComponentTransform[]        _transComps;
         public ComponentTransform[] TransComps { get => _transComps; }
 
@@ -61,13 +47,6 @@ namespace DeeSynk.Core
             _systemRender = new SystemRender(this);
             _systemTransform = new SystemTransform(this);
 
-            _locationComps  = new ComponentLocation[OBJECT_MEMORY];
-            _velocityComps  = new ComponentVelocity[OBJECT_MEMORY];
-            _gravityComps   = new ComponentGravity[OBJECT_MEMORY];
-            _rotXComps      = new ComponentRotation_X[OBJECT_MEMORY];
-            _rotYComps      = new ComponentRotation_Y[OBJECT_MEMORY];
-            _rotZComps      = new ComponentRotation_Z[OBJECT_MEMORY];
-            _scaleComps     = new ComponentScale[OBJECT_MEMORY];
             _transComps     = new ComponentTransform[OBJECT_MEMORY];
 
             _renderComps = new ComponentRender[OBJECT_MEMORY];
@@ -171,22 +150,22 @@ namespace DeeSynk.Core
         public void InitializeComponents(ref GameObject obj, Vector3 location, Vector4 velocity, float rotX, float rotY, float rotZ, Vector3 scale)
         {
             //Not permanent
-            int id = obj.ID;
-            int bitMask = obj.Components;
-            if ((bitMask & (int)Component.LOCATION) == ((int)Component.LOCATION))
-                _locationComps[id] = new ComponentLocation(ref location);
+            //int id = obj.ID;
+            //int bitMask = obj.Components;
+            //if ((bitMask & (int)Component.LOCATION) == ((int)Component.LOCATION))
+            //    _locationComps[id] = new ComponentLocation(ref location);
 
-            if ((bitMask & (int)Component.VELOCITY) == ((int)Component.VELOCITY))
-                _velocityComps[id] = new ComponentVelocity(ref velocity);
+            //if ((bitMask & (int)Component.VELOCITY) == ((int)Component.VELOCITY))
+            //    _velocityComps[id] = new ComponentVelocity(ref velocity);
 
-            if ((bitMask & (int)Component.ROTATION_X) == ((int)Component.ROTATION_X))
-                _rotXComps[id] = new ComponentRotation_X(rotX);
+            //if ((bitMask & (int)Component.ROTATION_X) == ((int)Component.ROTATION_X))
+            //    _rotXComps[id] = new ComponentRotation_X(rotX);
 
-            if ((bitMask & (int)Component.ROTATION_Y) == ((int)Component.ROTATION_Y))
-                _rotYComps[id] = new ComponentRotation_Y(rotY);
+            //if ((bitMask & (int)Component.ROTATION_Y) == ((int)Component.ROTATION_Y))
+            //    _rotYComps[id] = new ComponentRotation_Y(rotY);
 
-            if ((bitMask & (int)Component.ROTATION_Z) == ((int)Component.ROTATION_Z))
-                _rotZComps[id] = new ComponentRotation_Z(rotZ);
+            //if ((bitMask & (int)Component.ROTATION_Z) == ((int)Component.ROTATION_Z))
+            //    _rotZComps[id] = new ComponentRotation_Z(rotZ);
 
             //if ((bitMask & (int)Component.SCALE) == ((int)Component.SCALE))
             //    _scaleComps[id] = new ComponentScale(ref scale);
@@ -194,9 +173,9 @@ namespace DeeSynk.Core
             //if ((bitMask & (int)Component.GRAVITY) == ((int)Component.GRAVITY))
             //    _gravityComps[id] = new ComponentGravity(ref location);
 
-            _rotXComps[id].SetConstantRotation(2.0f);
-            _rotYComps[id].SetConstantRotation(2.0f);
-            _rotZComps[id].SetConstantRotation(2.0f);
+            //_rotXComps[id].SetConstantRotation(2.0f);
+            //_rotYComps[id].SetConstantRotation(2.0f);
+            //_rotZComps[id].SetConstantRotation(2.0f);
 
         }
 
