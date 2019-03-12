@@ -17,7 +17,8 @@ namespace DeeSynk.Core.Systems
         public const int RECANGLE_INDEX_COUNT = 6;
 
         public int MonitoredComponents => (int)Component.RENDER |
-                                          (int)Component.MODEL |
+                                          (int)Component.MODEL_STATIC |
+                                          (int)Component.MODEL_DYNAMIC |
                                           (int)Component.TEXTURE |
                                           (int)Component.COLOR;
 
@@ -26,7 +27,7 @@ namespace DeeSynk.Core.Systems
         private bool[] _monitoredGameObjects;
         
         private ComponentRender[]       _renderComps;
-        private ComponentModel[]        _modelComps;
+        private ComponentModelStatic[]  _staticModelComps;
         private ComponentTexture[]      _textureComps;
         private ComponentColor[]        _colorComps;
 
@@ -37,7 +38,7 @@ namespace DeeSynk.Core.Systems
             _monitoredGameObjects = new bool[_world.ObjectMemory];
 
             _renderComps = _world.RenderComps;
-            _modelComps = _world.ModelComps;
+            _staticModelComps = _world.StaticModelComps;
             _textureComps = _world.TextureComps;
             _colorComps = _world.ColorComps;
 
@@ -65,12 +66,12 @@ namespace DeeSynk.Core.Systems
         public void Bind(int idx)
         {
             _renderComps[idx].BindData();
-            _textureComps[idx].BindTexture();
+            //_textureComps[idx].BindTexture();
         }
 
         public void Render(int idx)
         {
-            GL.DrawElements(BeginMode.Triangles, _modelComps[idx].IndexCount, DrawElementsType.UnsignedInt, 0);
+            //GL.DrawElements(BeginMode.Triangles, _staticModelComps[idx].IndexCount, DrawElementsType.UnsignedInt, 0);
         }
 
         public void UnBind()
@@ -119,7 +120,9 @@ namespace DeeSynk.Core.Systems
 
             //GL.DrawElements(PrimitiveType.Triangles, _modelComps[renderIdx].IndexCount, DrawElementsType.UnsignedInt, 0);
 
-            GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, _modelComps[renderIdx].IndexCount, (int)_world.ObjectMemory);
+            //GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, _modelComps[renderIdx].IndexCount, (int)_world.ObjectMemory);
+            int x = ModelManager.GetInstance().GetModel("dragon_vripPLY").VertexIndices.Length;
+            GL.DrawElements(BeginMode.Triangles, x, DrawElementsType.UnsignedInt, 0);
 
             //Console.WriteLine(GL.GetError().ToString());
         }

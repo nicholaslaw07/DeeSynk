@@ -26,6 +26,7 @@ namespace DeeSynk.Core
         {
             Managers.ShaderManager.GetInstance().Load();
             Managers.TextureManager.GetInstance().Load();
+            Managers.ModelManager.GetInstance().Load();
             _world = new World();
         }
 

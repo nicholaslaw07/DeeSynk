@@ -1,166 +1,173 @@
-﻿using OpenTK;
+﻿using DeeSynk.Core.Managers;
+using DeeSynk.Core.Systems;
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Components.Types.Render
 {
-    public class ComponentModel : IComponent
+    [Flags]
+    public enum ModelProperties
     {
-        public int BitMaskID => (int)Component.MODEL;
+        VERTICES = 1,
+        FACE_ELEMENTS = 1 << 1,
 
-        private bool _hasModelData;
-        public bool HasModelData { get => _hasModelData; }
+        NORMALS = 1 << 2,
+        COLORS  = 1 << 3,
+        UVS     = 1 << 4,
 
-        private Vector4[] _vertices;
-        public Vector4[] Vertices { get => _vertices; }
-        public ref Vector4[] VerticesByRef { get => ref _vertices; }
+        VERTICES_ELEMENTS        = VERTICES | FACE_ELEMENTS,
+        VERTICES_COLORS_ELEMENTS = VERTICES_ELEMENTS | COLORS,
+        VERTICES_UVS_ELEMENTS    = VERTICES_ELEMENTS | UVS,
 
-        private int _vertexCount;
-        public int VertexCount { get => _vertexCount; }
+        VERTICES_NORMALS          = VERTICES | NORMALS,
+        VERTICES_NORMALS_ELEMENTS = VERTICES_NORMALS| FACE_ELEMENTS,
 
-        private uint[] _indices;        //only used if drawing via elements
-        public uint[] Indices { get => _indices; }
-        public ref uint[] IndicesByRef { get => ref _indices; }
+        VERTICES_NORMALS_COLORS          = VERTICES_NORMALS | COLORS,
+        VERTICES_NORMALS_COLORS_ELEMENTS = VERTICES_NORMALS_COLORS | FACE_ELEMENTS,
 
-        private int _indexCount;
-        public int IndexCount { get => _indexCount; }
+        VERTICES_NORMALS_UVS          = VERTICES_NORMALS | UVS,
+        VERTICES_NORMALS_UVS_ELEMENTS = VERTICES_NORMALS_UVS | FACE_ELEMENTS
+    }
 
-        private bool _isDrawnUsingIndices;
-        public bool IsDrawnUsingIndices { get => _isDrawnUsingIndices; }
+    public enum ModelReferenceType
+    {
+        DISCRETE = 0,
+        TEMPLATE = 1
+    }
 
-        //private bool _isDataDynamic;
-        //public bool  IsDataDynamic { get => _isDataDynamic; }
+    public class ComponentModelStatic : IComponent //, ISerializable
+    {
+        public int BitMaskID => (int)Component.MODEL_STATIC;
 
-        public ComponentModel()
-        {
-            _hasModelData = false;
-
-            _isDrawnUsingIndices = false;
-        }
-
-        public ComponentModel(Vector4[] vertices)
-        {
-            _hasModelData = true;
-
-            _vertices = vertices;
-            _vertexCount = _vertices.Length;
-            _indices = new uint[0];
-            _indexCount = 0;
-
-            _isDrawnUsingIndices = false;
-        }
-
-        public ComponentModel(Vector4[] vertices, uint[] indices)
-        {
-            _hasModelData = true;
-
-            _vertices = vertices;
-            _vertexCount = _vertices.Length;
-            _indices = indices;
-            _indexCount = _indices.Length;
-
-            _isDrawnUsingIndices = true;
-        }
-
+        private ModelProperties _modelProperties;
         /// <summary>
-        /// Constructs a rectangle using the width and height provided.
+        /// Indicates which types of data this model contains.
         /// </summary>
-        /// <param name="width">Width of the rectangle.</param>
-        /// <param name="height">Height of the rectangle.</param>
-        public ComponentModel(float width, float height, bool isTextured)
+        public ModelProperties ModelProperties { get => _modelProperties; }
+
+        private ModelReferenceType _modelReferenceType;
+        /// <summary>
+        /// Indicates whether the Model ID for this ComponentModel points to either a preloaded model or template class inside of ModelManager.
+        /// </summary>
+        public ModelReferenceType ModelReferenceType { get => _modelReferenceType; }
+
+        private string _modelID;
+        /// <summary>
+        /// The string ID used by model manager to reference a specific model or template.
+        /// </summary>
+        public string ModelID { get => _modelID; }
+
+        private byte[] _constructionData;
+        /// <summary>
+        /// The set of parameters, in a byte array, used to manipulate or build the model before uploading it to GPU memory.
+        /// </summary>
+        public ref byte[] ConstructionData { get => ref _constructionData; }
+
+        private ConstructionParameterFlags _parameterFlags;
+        /// <summary>
+        /// A bit mask used to indicate which parameters are stored in the byte array.  The order of the parameters corresponds to the order of the enumerated types.
+        /// </summary>
+        public ConstructionParameterFlags ParameterFlags { get => _parameterFlags; }
+
+        //+++
+
+        private bool _isLoadedIntoVAO;
+        /// <summary>
+        /// Whether or not the model data for this ComponentModel has been loaded into a VAO yet.
+        /// </summary>
+        public bool IsLoadedIntoVAO { get => _isLoadedIntoVAO; }
+
+        private int[] _bufferIDs;
+        /// <summary>
+        /// List of buffers used to store this model's data.
+        /// </summary>
+        public int[] BufferIDs { get => _bufferIDs; }
+
+        private Buffers _bufferFlags;
+        /// <summary>
+        /// A bit mask used to indicate which buffers the BufferIDs property holds.  Their order corresponds to the order of the enumerated types.
+        /// </summary>
+        public Buffers BufferFlags { get => _bufferFlags; }
+
+        private int[] _baseBufferIndices;
+        /// <summary>
+        /// An array of the offset indices that point to the data in each of the buffers used by this model.
+        /// </summary>
+        public int[] BaseBufferIndices { get => _baseBufferIndices; }
+
+        private int[] _lengthsInMemory;
+        /// <summary>
+        /// An array of the number of the indices that the data in each of the buffers used by this model occupies (sequentially, of course).
+        /// </summary>
+        public int[] LengthsInMemory { get => _lengthsInMemory; }
+
+        //ADD ENUMERATED TYPES FOR ALL OF THE DIFFERENT FLAGS
+
+        public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID,
+                                    byte[] constructionData, ConstructionParameterFlags parameterFlags)
         {
-            if (isTextured)
+            _modelProperties = ModelProperties;
+            _modelReferenceType = modelReferenceType;
+            _modelID = modelID;
+            _constructionData = constructionData;
+            _parameterFlags = parameterFlags;
+
+            _isLoadedIntoVAO = false; //Enum of states instead?
+        }
+
+        //Most of this data is purely for debugging, or model modification
+        public void PushVAOBufferProperties(int[] bufferIDs, Buffers bufferFlags, int[] baseBufferIndices, int[] lengthsInMemory)
+        {
+            if (!_isLoadedIntoVAO)
             {
-                _vertices = new Vector4[6];
-                _vertices[0] = new Vector4(-width, -height, 0.0f, 1.0f);
-                _vertices[1] = new Vector4(width, -height, 0.0f, 1.0f);
-                _vertices[2] = new Vector4(width, height, 0.0f, 1.0f);
-                _vertices[3] = new Vector4(width, height, 0.0f, 1.0f);
-                _vertices[4] = new Vector4(-width, height, 0.0f, 1.0f);
-                _vertices[5] = new Vector4(-width, -height, 0.0f, 1.0f);
+                _bufferIDs = bufferIDs;
+                _bufferFlags = bufferFlags;
+                _baseBufferIndices = baseBufferIndices;
+                _lengthsInMemory = lengthsInMemory;
 
-                _vertexCount = _vertices.Length;
-
-                _indices = new uint[6];
-                _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 3; _indices[4] = 4; _indices[5] = 5;
-
-                _indexCount = _indices.Length;
+                _isLoadedIntoVAO = true;
             }
             else
             {
-                _vertices = new Vector4[4];
-                _vertices[0] = new Vector4(-width, -height, 0.0f, 1.0f);
-                _vertices[1] = new Vector4(width, -height, 0.0f, 1.0f);
-                _vertices[2] = new Vector4(width, height, 0.0f, 1.0f);
-                _vertices[3] = new Vector4(width, height, 0.0f, 1.0f);
-                _vertices[4] = new Vector4(-width, height, 0.0f, 1.0f);
-                _vertices[5] = new Vector4(-width, -height, 0.0f, 1.0f);
-
-                _vertexCount = _vertices.Length;
-
-                _indices = new uint[6];
-                _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 2; _indices[4] = 3; _indices[5] = 0;
-
-                _indexCount = _indices.Length;
+                Console.WriteLine("Warning: Cannot push buffer properties on a static model since VAO data should also be static");
             }
         }
 
-        /// <summary>
-        /// Constructs a rectangle using the width and height provided with a specified offset from the center.
-        /// </summary>
-        /// <param name="width">Width of the rectangle.</param>
-        /// <param name="height">Height of the rectangle.</param>
-        /// <param name="offsetX">Offset of the center point of the rectangle.</param>
-        /// <param name="offsetY">Offset of the center point of the rectangle.</param>
-        public ComponentModel(float width, float height, float offsetX, float offsetY, bool isTextured)
+        //This is a test method because I am lazy
+        public void PushVAOBufferProperties(int[] bufferIDs, Buffers bufferFlags)
         {
-            if (isTextured)
+            if (!_isLoadedIntoVAO)
             {
-                _vertices = new Vector4[6];
-                _vertices[0] = new Vector4(offsetX - width, offsetY - height, 0.0f, 1.0f);
-                _vertices[1] = new Vector4(offsetX + width, offsetY - height, 0.0f, 1.0f);
-                _vertices[2] = new Vector4(offsetX + width, offsetY + height, 0.0f, 1.0f);
-                _vertices[3] = new Vector4(offsetX - width, offsetY + height, 0.0f, 1.0f);
-                _vertices[4] = new Vector4(offsetX - width, offsetY - height, 0.0f, 1.0f);
-                _vertices[5] = new Vector4(offsetX + width, offsetY + height, 0.0f, 1.0f);
+                _bufferIDs = bufferIDs;
+                _bufferFlags = bufferFlags;
+                //_baseBufferIndices = baseBufferIndices;
+                //_lengthsInMemory = lengthsInMemory;
 
-                _vertexCount = _vertices.Length;
-
-                _indices = new uint[6];
-                _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 3; _indices[4] = 4; _indices[5] = 5;
-
-                _indexCount = _indices.Length;
+                _isLoadedIntoVAO = true;
             }
             else
             {
-                _vertices = new Vector4[4];
-                _vertices[0] = new Vector4(offsetX - width, offsetY - height, 0.0f, 1.0f);
-                _vertices[1] = new Vector4(offsetX + width, offsetY - height, 0.0f, 1.0f);
-                _vertices[2] = new Vector4(offsetX + width, offsetY + height, 0.0f, 1.0f);
-                _vertices[3] = new Vector4(offsetX - width, offsetY + height, 0.0f, 1.0f);
-
-                _vertexCount = _vertices.Length;
-
-                _indices = new uint[6];
-                _indices[0] = 0; _indices[1] = 1; _indices[2] = 2; _indices[3] = 2; _indices[4] = 3; _indices[5] = 0;
-
-                _indexCount = _indices.Length;
+                Console.WriteLine("Warning: Cannot push buffer properties on a static model since VAO data should also be static");
             }
         }
 
-        /// <summary>
-        /// Used to either initialize model data if it is not already present (say it used the default constructor).
-        /// </summary>
-        /// <param name="vertices"></param>
-        /// <param name="indices"></param>
-        public void SetModelData(ref Vector4[] vertices, ref uint[] indices)
+        /*
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            _vertices = vertices;
-            _indices = indices;
+            throw new NotImplementedException();
         }
+        */
+    }
+
+    public class ComponentModelDyanmic : IComponent
+    {
+        public int BitMaskID => (int)Component.MODEL_DYNAMIC;
+
 
         public void Update(float time)
         {

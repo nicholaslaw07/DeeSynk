@@ -25,9 +25,10 @@ namespace DeeSynk.Core.Components
         ROTATION_YZ  =              ROTATION_Y | ROTATION_Z,
         ROTATION_XYZ = ROTATION_X | ROTATION_Y | ROTATION_Z,
 
-        RENDER      = 1 << 8,
-        MODEL       = 1 << 9,
-        TEXTURE     = 1 << 10,
-        COLOR       = 1 << 11
+        RENDER        = 1 << 8,
+        MODEL_STATIC  = 1 << 9,
+        MODEL_DYNAMIC = 1 << 10,
+        TEXTURE       = 1 << 11,
+        COLOR         = 1 << 12
     }
 }

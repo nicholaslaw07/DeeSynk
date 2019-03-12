@@ -28,12 +28,14 @@ namespace DeeSynk.Core
         private const float dX = 100f;
         private const float dR = 0.4f;
 
-        private Vector3 V_W = new Vector3(0.0f, 0.0f, -100f);
-        private Vector3 V_S = new Vector3(0.0f, 0.0f, 100f);
-        private Vector3 V_A = new Vector3(-100f, 0.0f, 0.0f);
-        private Vector3 V_D = new Vector3(100f, 0.0f, 0.0f);
-        private Vector3 V_Up = new Vector3(0.0f, 100.0f, 0.0f);
-        private Vector3 V_Dn = new Vector3(0.0f, -100.0f, 0.0f);
+        private const float v = 10f;
+
+        private Vector3 V_W = new Vector3(0.0f, 0.0f, -v);
+        private Vector3 V_S = new Vector3(0.0f, 0.0f, v);
+        private Vector3 V_A = new Vector3(-v, 0.0f, 0.0f);
+        private Vector3 V_D = new Vector3(v, 0.0f, 0.0f);
+        private Vector3 V_Up = new Vector3(0.0f, v, 0.0f);
+        private Vector3 V_Dn = new Vector3(0.0f, -v, 0.0f);
 
         private int dx = 0;
         private int dy = 0;
@@ -95,7 +97,7 @@ namespace DeeSynk.Core
             this.Cursor = MouseCursor.Empty;
             //this.WindowState = this.WindowState | WindowState.Fullscreen;
 
-            _camera = new Camera(1.5f, (float)Width, (float)Height, 0.1f, 2000f);
+            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 2000f);
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();

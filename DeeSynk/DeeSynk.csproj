@@ -60,15 +60,18 @@
     <Compile Include="Core\Components\Types\Render\ComponentTexture.cs" />
     <Compile Include="Core\Components\Types\Transform\ComponentTransform.cs" />
     <Compile Include="Core\Components\EnumComponent.cs" />
-    <Compile Include="Core\Components\Groups\DataGroup.cs" />
+    <Compile Include="Core\Components\Collections\DataGroup.cs" />
     <Compile Include="Core\Components\Types\IComponent.cs" />
+    <Compile Include="Core\Components\Models\Model.cs" />
     <Compile Include="Core\Game.cs" />
     <Compile Include="Core\MainWindow.cs" />
+    <Compile Include="Core\Managers\ModelManager.cs" />
     <Compile Include="Core\Managers\TextureManager.cs" />
     <Compile Include="Core\Managers\IManager.cs" />
     <Compile Include="Core\Managers\ShaderManager.cs" />
     <Compile Include="Core\Components\GameObject.cs" />
     <Compile Include="Core\Systems\ISystem.cs" />
+    <Compile Include="Core\Systems\SystemModel.cs" />
     <Compile Include="Core\Systems\SystemRender.cs" />
     <Compile Include="Core\Systems\SystemTransform.cs" />
     <Compile Include="Core\Systems\SystemVAO.cs" />
@@ -80,8 +83,13 @@
     <None Include="App.config" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
+    <None Include="Resources\Temp\armadillo.obj" />
+    <None Include="Resources\Temp\dragon_vrip.obj" />
+    <None Include="Resources\Models\dragon_vripPLY.ply" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Core\Components\Models\Templates\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Shaders\Fragment\defaultTextured_Instanced.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultTextured.txt" />

@@ -11,11 +11,12 @@ namespace DeeSynk.Core
     using SystemRender = Systems.SystemRender;
     using SystemTransform = Systems.SystemTransform;
     using SystemVAO = Systems.SystemVAO;
+    using SystemModel = Systems.SystemModel;
     using VAOTypes = Systems.VAOTypes;
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 1000000;
+        private const uint OBJECT_MEMORY = 1;
         public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
         public GameObject[] GameObjects { get => _gameObjects; }
@@ -23,21 +24,22 @@ namespace DeeSynk.Core
         public bool[] ExistingGameObjects { get => _existingGameObjects; }
         private int MaxObjectCount;
 
-        private SystemRender _systemRender;
+        private SystemRender    _systemRender;
         private SystemTransform _systemTransform;
-        private SystemVAO _systemVAO;
+        private SystemVAO       _systemVAO;
+        private SystemModel     _systemModel;
 
         private ComponentTransform[]        _transComps;
         public ComponentTransform[] TransComps { get => _transComps; }
 
         private ComponentRender[]       _renderComps;
-        public ComponentRender[] RenderComps { get => _renderComps; }
-        private ComponentModel[]        _modelComps;
-        public ComponentModel[] ModelComps { get => _modelComps; }
+        public  ComponentRender[]       RenderComps      { get => _renderComps; }
+        private ComponentModelStatic[]  _staticModelComps;
+        public  ComponentModelStatic[]  StaticModelComps { get => _staticModelComps; }
         private ComponentTexture[]      _textureComps;
-        public ComponentTexture[] TextureComps { get => _textureComps; }
+        public  ComponentTexture[]      TextureComps     { get => _textureComps; }
         private ComponentColor[]        _colorComps;
-        public ComponentColor[] ColorComps { get => _colorComps; }
+        public  ComponentColor[]        ColorComps       { get => _colorComps; }
 
         public World()
         {
@@ -50,34 +52,20 @@ namespace DeeSynk.Core
             _transComps     = new ComponentTransform[OBJECT_MEMORY];
 
             _renderComps = new ComponentRender[OBJECT_MEMORY];
-            _modelComps = new ComponentModel[OBJECT_MEMORY];
+            _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
             _textureComps = new ComponentTexture[OBJECT_MEMORY];
             _colorComps = new ComponentColor[OBJECT_MEMORY];
 
-            //_locationComps.Initialize();
-            //_velocityComps.Initialize();
-            //_gravityComps.Initialize();
-            //_rotXComps.Initialize();
-            //_rotYComps.Initialize();
-            //_rotZComps.Initialize();
-            //_scaleComps.Initialize();
-            //_transComps.Initialize();
-
-            //_renderComps.Initialize();
-            //_modelComps.Initialize();
-            //_textureComps.Initialize();
-            //_colorComps.Initialize();
-
             _systemRender = new SystemRender(this);
+
+            _systemModel = new SystemModel(this);
+            _systemModel.InitModel();
 
             _systemTransform = new SystemTransform(this);
             _systemTransform.InitLocation();
 
             _systemVAO = new SystemVAO(this);
-            _systemVAO.InitModels();
-            //_systemVAO.InitModels(0);
-            _systemVAO.InitVAOInRange((int)VAOTypes.Textured | (int)VAOTypes.Instanced, 0, (int)(OBJECT_MEMORY - 1), true);
-            //_systemVAO.InitVAOInRange((int)VAOTypes.Textured | (int)VAOTypes.Instanced, 0, (int)(OBJECT_MEMORY));
+            _systemVAO.InitVAOInRange((int)VAOTypes.Colored | (int)VAOTypes.Indexed, 0, (int)(OBJECT_MEMORY - 1), true);
         }
 
         public void PushCameraRef(ref Camera camera)
