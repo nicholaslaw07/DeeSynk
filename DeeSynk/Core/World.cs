@@ -12,7 +12,7 @@ namespace DeeSynk.Core
     using SystemTransform = Systems.SystemTransform;
     using SystemVAO = Systems.SystemVAO;
     using SystemModel = Systems.SystemModel;
-    using VAOTypes = Systems.VAOTypes;
+    using Buffers = Systems.Buffers;
 
     public class World
     {
@@ -65,7 +65,7 @@ namespace DeeSynk.Core
             _systemTransform.InitLocation();
 
             _systemVAO = new SystemVAO(this);
-            _systemVAO.InitVAOInRange((int)VAOTypes.Colored | (int)VAOTypes.Indexed | (int)VAOTypes.Normals, 0, (int)(OBJECT_MEMORY - 1), true);
+            _systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, (int)(OBJECT_MEMORY - 1), true);
         }
 
         public void PushCameraRef(ref Camera camera)
@@ -137,33 +137,6 @@ namespace DeeSynk.Core
 
         public void InitializeComponents(ref GameObject obj, Vector3 location, Vector4 velocity, float rotX, float rotY, float rotZ, Vector3 scale)
         {
-            //Not permanent
-            //int id = obj.ID;
-            //int bitMask = obj.Components;
-            //if ((bitMask & (int)Component.LOCATION) == ((int)Component.LOCATION))
-            //    _locationComps[id] = new ComponentLocation(ref location);
-
-            //if ((bitMask & (int)Component.VELOCITY) == ((int)Component.VELOCITY))
-            //    _velocityComps[id] = new ComponentVelocity(ref velocity);
-
-            //if ((bitMask & (int)Component.ROTATION_X) == ((int)Component.ROTATION_X))
-            //    _rotXComps[id] = new ComponentRotation_X(rotX);
-
-            //if ((bitMask & (int)Component.ROTATION_Y) == ((int)Component.ROTATION_Y))
-            //    _rotYComps[id] = new ComponentRotation_Y(rotY);
-
-            //if ((bitMask & (int)Component.ROTATION_Z) == ((int)Component.ROTATION_Z))
-            //    _rotZComps[id] = new ComponentRotation_Z(rotZ);
-
-            //if ((bitMask & (int)Component.SCALE) == ((int)Component.SCALE))
-            //    _scaleComps[id] = new ComponentScale(ref scale);
-
-            //if ((bitMask & (int)Component.GRAVITY) == ((int)Component.GRAVITY))
-            //    _gravityComps[id] = new ComponentGravity(ref location);
-
-            //_rotXComps[id].SetConstantRotation(2.0f);
-            //_rotYComps[id].SetConstantRotation(2.0f);
-            //_rotZComps[id].SetConstantRotation(2.0f);
 
         }
 

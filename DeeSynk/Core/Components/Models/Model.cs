@@ -28,12 +28,24 @@ namespace DeeSynk.Core.Components.Models
         private uint[] _normalIndices;
         public uint[] NormalIndices { get => _normalIndices; }
 
-        public Model(Vector3[] vertices, uint[] vertexIndices)
+        public Model(Vector3[] vertices, uint[] vertexIndices, bool recomputeCenter)
         {
             _vertexCount = vertices.Length;
             _vertices = new Vector3[_vertexCount];
             for (int idx = 0; idx < _vertexCount; idx++)
                 _vertices[idx] = vertices[idx];
+
+            if (recomputeCenter)
+            {
+                Vector3 offsetAvg = Vector3.Zero;
+                for (int idx = 0; idx < _vertexCount; idx++)
+                    offsetAvg += _vertices[idx];
+
+                offsetAvg /= (float)_vertexCount;
+
+                for (int idx = 0; idx < _vertexCount; idx++)
+                    _vertices[idx] -= offsetAvg;
+            }
 
             _vertexIndices = new uint[vertexIndices.Length];
             _vertexIndices = vertexIndices;

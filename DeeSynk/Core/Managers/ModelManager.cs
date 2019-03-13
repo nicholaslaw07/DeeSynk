@@ -16,7 +16,11 @@ namespace DeeSynk.Core.Managers
     public enum ConstructionParameterFlags
     {
         NONE = 0,
-        VECTOR3_OFFSET = 1
+        VECTOR3_OFFSET   = 1,
+        FLOAT_ROTATION_X = 1 << 1,
+        FLOAT_ROTATION_Y = 1 << 2,
+        FLOAT_ROTATION_Z = 1 << 3,
+        VECTOR3_SCALE    = 1 << 4
     }
 
     public class ModelManager : IManager
@@ -216,7 +220,7 @@ namespace DeeSynk.Core.Managers
                         string key = @"-?\d\.\d+(e-?\d+)?";
                         Regex regex = new Regex(key);
                         var matches = regex.Matches(data);
-
+                        Console.WriteLine(matches.Count);
                         if (matches.Count == vertexElementCount * 3)
                         {
                             for(int idx = 0; idx<vertexElementCount; idx++)
@@ -255,7 +259,7 @@ namespace DeeSynk.Core.Managers
                         }
                     }
 
-                    _modelLibrary.Add(Path.GetFileNameWithoutExtension(filePath), new Model(vertices, faceIndices));
+                    _modelLibrary.Add(Path.GetFileNameWithoutExtension(filePath), new Model(vertices, faceIndices, true));
                     Console.WriteLine("Loaded model {0}: {1} vertices, {2} faces", Path.GetFileNameWithoutExtension(filePath), vertexElementCount, faceElementCount);
                 }
             }

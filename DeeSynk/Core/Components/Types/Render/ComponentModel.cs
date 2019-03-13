@@ -62,18 +62,17 @@ namespace DeeSynk.Core.Components.Types.Render
         /// </summary>
         public string ModelID { get => _modelID; }
 
-        /*
-        private byte[] _constructionData;
-        /// <summary>
-        /// The set of parameters, in a byte array, used to manipulate or build the model before uploading it to GPU memory.
-        /// </summary>
-        public ref byte[] ConstructionData { get => ref _constructionData; }
-
         private ConstructionParameterFlags _parameterFlags;
         /// <summary>
         /// A bit mask used to indicate which parameters are stored in the byte array.  The order of the parameters corresponds to the order of the enumerated types.
         /// </summary>
         public ConstructionParameterFlags ParameterFlags { get => _parameterFlags; }
+
+        private float[] _constructionData;
+        /// <summary>
+        /// The set of parameters, in a byte array, used to manipulate or build the model before uploading it to GPU memory.
+        /// </summary>
+        public ref float[] ConstructionData { get => ref _constructionData; }
 
         //+++
         /*
@@ -108,13 +107,14 @@ namespace DeeSynk.Core.Components.Types.Render
         //public int[] LengthsInMemory { get => _lengthsInMemory; }
         */
 
-        public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID) //,byte[] constructionData, ConstructionParameterFlags parameterFlags
+        public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID,
+                                    ConstructionParameterFlags parameterFlags, float[] constructionData)
         {
             _modelProperties = ModelProperties;
             _modelReferenceType = modelReferenceType;
             _modelID = modelID;
-            //_constructionData = constructionData;
-            //_parameterFlags = parameterFlags;
+            _parameterFlags = parameterFlags;
+            _constructionData = constructionData;
 
             //_isLoadedIntoVAO = false; //Enum of states instead?
         }

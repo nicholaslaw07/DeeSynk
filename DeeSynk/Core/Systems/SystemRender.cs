@@ -112,19 +112,8 @@ namespace DeeSynk.Core.Systems
 
             systemTransform.PushMatrixDataNoTransform();
 
-            //GL.DrawElementsInstanced(PrimitiveType.Triangles, 
-            //                         _modelComps[renderIdx].IndexCount, 
-            //                         DrawElementsType.UnsignedInt, 
-            //                         _modelComps[renderIdx].Indices, 
-            //                         _renderComps[renderIdx].OBJECT_COUNT);
-
-            //GL.DrawElements(PrimitiveType.Triangles, _modelComps[renderIdx].IndexCount, DrawElementsType.UnsignedInt, 0);
-
-            //GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, _modelComps[renderIdx].IndexCount, (int)_world.ObjectMemory);
-            int x = ModelManager.GetInstance().GetModel("dragon_vripPLY").VertexIndices.Length;
-            GL.DrawElements(BeginMode.Triangles, x, DrawElementsType.UnsignedInt, 0);
-
-            //Console.WriteLine(GL.GetError().ToString());
+            int x = ModelManager.GetInstance().GetModel(_staticModelComps[renderIdx].ModelID).VertexIndices.Length;
+            GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, (int)_world.ObjectMemory);
         }
     }
 }

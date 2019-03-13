@@ -12,8 +12,8 @@ namespace DeeSynk.Core.Components.Types.Render
     {
         public int BitMaskID => (int)Component.RENDER;
 
-        private int _vaoBitMask;
-        public int VAOBitMask { get => _vaoBitMask; }
+        private Buffers _vaoBitMask;
+        public Buffers VAOBitMask { get => _vaoBitMask; }
 
         private bool _init;
         public bool Initialized { get => _init; }
@@ -41,7 +41,7 @@ namespace DeeSynk.Core.Components.Types.Render
             get => _iboID;
             set
             {
-                if((_vaoBitMask & (int)VAOTypes.Indexed) != 0)
+                if(_vaoBitMask.HasFlag(Buffers.FACE_ELEMENTS))
                 {
                     if (GL.IsBuffer(value))
                         _iboID = value;
@@ -93,7 +93,7 @@ namespace DeeSynk.Core.Components.Types.Render
         //Position in vao if not unique
         //Must also store cbo id somewhere
 
-        public ComponentRender(int vaoBitMask)
+        public ComponentRender(Buffers vaoBitMask)
         {
             _vaoBitMask = vaoBitMask;
 
@@ -120,9 +120,9 @@ namespace DeeSynk.Core.Components.Types.Render
         {
             if(GL.IsVertexArray(_vaoID) && 
                GL.IsProgram(_programID) &&
-               (_vaoBitMask & (int)VAOTypes.Colored) != (_vaoBitMask & (int)VAOTypes.Textured))
+               (_vaoBitMask.HasFlag(Buffers.COLORS) ^ _vaoBitMask.HasFlag(Buffers.UVS)))
             {
-                if((_vaoBitMask & (int)VAOTypes.Indexed) != 0)
+                if(_vaoBitMask.HasFlag(Buffers.FACE_ELEMENTS))
                 {
                     if(GL.IsBuffer(_iboID))
                     {
@@ -153,7 +153,7 @@ namespace DeeSynk.Core.Components.Types.Render
                 if (data != _vaoID)
                     GL.BindVertexArray(_vaoID);
                 GL.BindVertexArray(_vaoID);  //binds this object's VAO
-                if ((VAOBitMask & (int)VAOTypes.Instanced) != 0)
+                if (_vaoBitMask.HasFlag(Buffers.FACE_ELEMENTS))
                 {
                     data = 0;
                     GL.GetInteger(GetPName.ElementArrayBufferBinding, out data);

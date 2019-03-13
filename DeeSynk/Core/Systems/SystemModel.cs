@@ -30,7 +30,15 @@ namespace DeeSynk.Core.Systems
         //TEST START
         public void InitModel()
         {
-            _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_ELEMENTS, ModelReferenceType.DISCRETE, "dragon_vripPLY");
+            for(int i=0; i<_world.ObjectMemory; i++)
+            {
+                float[] data = new float[3];
+                data[0] = 0;
+                data[1] = 0;
+                data[2] = 0;
+                _staticModelComps[i] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "dragon_vripPLY",
+                                                ConstructionParameterFlags.VECTOR3_OFFSET, data);
+            }
         }
         //TEST END
 

@@ -82,11 +82,10 @@ namespace DeeSynk.Core.Systems
             //TEST START
             
             Random r = new Random();
-            for(int i=0; i < _transComps.Length; i++)
+            for(int i=0; i < _world.ObjectMemory; i++)
             {
                 //| Component.ROTATION_X | Component.ROTATION_Y | Component.ROTATION_Z | Component.SCALE
-                _transComps[i] = new ComponentTransform((int)(Component.LOCATION),
-                                                        r.Next(-500, 500), r.Next(-500, 500), r.Next(-1000, -300));
+                _transComps[i] = new ComponentTransform((int)(Component.NONE));
             }
 
             //TEST END
