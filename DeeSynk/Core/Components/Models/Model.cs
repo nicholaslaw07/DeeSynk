@@ -38,13 +38,55 @@ namespace DeeSynk.Core.Components.Models
             _vertexIndices = new uint[vertexIndices.Length];
             _vertexIndices = vertexIndices;
 
+            _normalCount = _vertexCount;
+            _normals = new Vector3[_vertexCount];
+            {
+                int[] counts = new int[_vertexCount];
+                for(int i=0; i< vertexIndices.Length / 3 + vertexIndices.Length % 3; i++)
+                {
+                    Vector3 p1 = _vertices[_vertexIndices[i * 3]];
+                    Vector3 p2 = _vertices[_vertexIndices[i * 3 + 1]];
+                    Vector3 p3 = _vertices[_vertexIndices[i * 3 + 2]];
+
+                    Vector3 U = p2 - p1;
+                    Vector3 V = p3 - p1;
+
+                    float Nx = (U.Y * V.Z) - (U.Z * V.Y);
+                    float Ny = (U.Z * V.X) - (U.X * V.Z);
+                    float Nz = (U.X * V.Y) - (U.Y * V.X);
+
+                    Vector3 normal = new Vector3(Nx, Ny, Nz);
+
+                    normal.Normalize();
+
+                    _normals[_vertexIndices[i * 3]] += normal;
+                    _normals[_vertexIndices[i * 3 + 1]] += normal;
+                    _normals[_vertexIndices[i * 3 + 2]] += normal;
+
+                    counts[_vertexIndices[i * 3]]++;
+                    counts[_vertexIndices[i * 3 + 1]]++;
+                    counts[_vertexIndices[i * 3 + 2]]++;
+                }
+
+                for(int i=0; i<_normals.Length; i++)
+                {
+                    Vector3 n = _normals[i];
+                    n.Normalize();
+                    _normals[i] = n;
+                }
+            }
+
+            _normalIndices = _vertexIndices;
+
             Random r = new Random();
 
             _colors = new Color4[_vertexCount];
             for (int i = 0; i < _vertexCount; i++)
             {
-                _colors[i] = new Color4((byte)r.Next(64, 120), (byte)r.Next(64, 120), (byte)r.Next(64, 120), 255);
+                _colors[i] = Color4.CornflowerBlue;//new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
             }
+
+            testLightComputations();
         }
 
         public Model(ref Vector3[] vertices, ref Vector3[] normals, ref uint[] vertexIndices, ref uint[] normalIndices)
@@ -71,6 +113,32 @@ namespace DeeSynk.Core.Components.Models
             for(int i=0; i<_vertexCount; i++)
             {
                 _colors[i] = new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
+            }
+        }
+
+        public void testLightComputations()
+        {
+            Vector3 light = new Vector3(200f, 200f, 200f);
+
+            Vector3 iA = new Vector3(1.0f, 1.0f, 1.0f);
+            Vector3 iD = new Vector3(1.0f, 1.0f, 1.0f);
+            Vector3 iS = new Vector3(1.0f, 1.0f, 1.0f);
+
+            float kA = 1.0f;
+            float kD = 2.0f;
+            float kS = 3.0f;
+
+            float a = 2;
+
+            for (int i=0; i<_vertices.Length; i++)
+            {
+                Vector3 Lm = (light - _vertices[i]); Lm.Normalize();
+                Vector3 N = _normals[i]; N.Normalize();
+                Vector3 Rm = 2 * (Vector3.Dot(Lm, N)) * N - Lm; Rm.Normalize();
+                Vector3 V  = new Vector3(-200f, 200f, 200f); V.Normalize();
+
+                Vector3 Ip = kA * iA + (kD * Vector3.Dot(Lm, N) * iD + kS * Vector3.Dot(Rm, V)* iS);
+                int x = 0;
             }
         }
     }

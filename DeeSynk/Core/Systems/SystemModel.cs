@@ -30,9 +30,7 @@ namespace DeeSynk.Core.Systems
         //TEST START
         public void InitModel()
         {
-            byte[] constructionData = new byte[0];
-            _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_ELEMENTS, ModelReferenceType.DISCRETE, "dragon_vripPLY",
-                                                            constructionData, ConstructionParameterFlags.NONE);
+            _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_ELEMENTS, ModelReferenceType.DISCRETE, "dragon_vripPLY");
         }
         //TEST END
 

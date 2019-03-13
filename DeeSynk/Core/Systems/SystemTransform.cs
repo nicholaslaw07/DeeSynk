@@ -104,12 +104,13 @@ namespace DeeSynk.Core.Systems
         public void PushMatrixData(int index)
         {
             Matrix4 m4 = _transComps[index].GetModelView * _camera.ViewProjection; //MVP
-            GL.UniformMatrix4(2, false, ref m4);
+            GL.UniformMatrix4(4, false, ref m4);
         }
 
         public void PushMatrixDataNoTransform()
         {
-            GL.UniformMatrix4(3, false, ref _camera.ViewProjection);
+            GL.Uniform3(4, _camera.Location);
+            GL.UniformMatrix4(5, false, ref _camera.ViewProjection);
         }
     }
 }

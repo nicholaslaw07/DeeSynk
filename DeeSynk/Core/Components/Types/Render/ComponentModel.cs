@@ -62,6 +62,7 @@ namespace DeeSynk.Core.Components.Types.Render
         /// </summary>
         public string ModelID { get => _modelID; }
 
+        /*
         private byte[] _constructionData;
         /// <summary>
         /// The set of parameters, in a byte array, used to manipulate or build the model before uploading it to GPU memory.
@@ -75,7 +76,7 @@ namespace DeeSynk.Core.Components.Types.Render
         public ConstructionParameterFlags ParameterFlags { get => _parameterFlags; }
 
         //+++
-
+        /*
         private bool _isLoadedIntoVAO;
         /// <summary>
         /// Whether or not the model data for this ComponentModel has been loaded into a VAO yet.
@@ -100,35 +101,34 @@ namespace DeeSynk.Core.Components.Types.Render
         /// </summary>
         public int[] BaseBufferIndices { get => _baseBufferIndices; }
 
-        private int[] _lengthsInMemory;
+        //private int[] _lengthsInMemory;
         /// <summary>
         /// An array of the number of the indices that the data in each of the buffers used by this model occupies (sequentially, of course).
         /// </summary>
-        public int[] LengthsInMemory { get => _lengthsInMemory; }
+        //public int[] LengthsInMemory { get => _lengthsInMemory; }
+        */
 
-        //ADD ENUMERATED TYPES FOR ALL OF THE DIFFERENT FLAGS
-
-        public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID,
-                                    byte[] constructionData, ConstructionParameterFlags parameterFlags)
+        public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID) //,byte[] constructionData, ConstructionParameterFlags parameterFlags
         {
             _modelProperties = ModelProperties;
             _modelReferenceType = modelReferenceType;
             _modelID = modelID;
-            _constructionData = constructionData;
-            _parameterFlags = parameterFlags;
+            //_constructionData = constructionData;
+            //_parameterFlags = parameterFlags;
 
-            _isLoadedIntoVAO = false; //Enum of states instead?
+            //_isLoadedIntoVAO = false; //Enum of states instead?
         }
 
+        /*
         //Most of this data is purely for debugging, or model modification
-        public void PushVAOBufferProperties(int[] bufferIDs, Buffers bufferFlags, int[] baseBufferIndices, int[] lengthsInMemory)
+        public void PushVAOBufferProperties(int[] bufferIDs, Buffers bufferFlags, int[] baseBufferIndices)
         {
             if (!_isLoadedIntoVAO)
             {
                 _bufferIDs = bufferIDs;
                 _bufferFlags = bufferFlags;
                 _baseBufferIndices = baseBufferIndices;
-                _lengthsInMemory = lengthsInMemory;
+                //_lengthsInMemory = lengthsInMemory;
 
                 _isLoadedIntoVAO = true;
             }
@@ -155,7 +155,7 @@ namespace DeeSynk.Core.Components.Types.Render
                 Console.WriteLine("Warning: Cannot push buffer properties on a static model since VAO data should also be static");
             }
         }
-
+        */
         /*
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {

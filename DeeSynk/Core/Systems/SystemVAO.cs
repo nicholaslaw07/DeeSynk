@@ -21,7 +21,8 @@ namespace DeeSynk.Core.Systems
         Textured = 1 << 1,
         Indexed = 1 << 2,
         Instanced = 1 << 3,
-        Interleaved = 1 << 4
+        Interleaved = 1 << 4,
+        Normals = 1 << 5
     }
 
     [Flags]
@@ -67,22 +68,6 @@ namespace DeeSynk.Core.Systems
         //    5 - MAT4 2
         //    6 - MAT4 3
         //    7 - MAT4 4
-
-        public static readonly int ATTR_VERTEX = 0;
-
-        public static readonly int ATTR_COLOR = 1;
-        public static readonly int ATTR_UV = 1;
-
-        public static readonly int ATTR_MVP = 2;
-        public static readonly int ATTR_VP = 2;
-
-        public static readonly int ATTR_NORM = 3;
-
-        public static readonly int ATTR_MAT4_0 = 4;
-        public static readonly int ATTR_MAT4_2 = 5;
-        public static readonly int ATTR_MAT4_3 = 6;
-        public static readonly int ATTR_MAT4_4 = 7;
-
 
         private const int VERTEX_SIZE = 16;
         private const int COLOR_SIZE = 16;
@@ -183,26 +168,29 @@ namespace DeeSynk.Core.Systems
                end < _world.ObjectMemory)
             {
                 int vao = 0;
+                int ibo = 0;
                 int programID = 0;
 
                 var shaderManager = ShaderManager.GetInstance();
+                var modelManager = ModelManager.GetInstance();
 
                 if (groupTogether)
                 {
                     vao = GL.GenVertexArray();
                     GL.BindVertexArray(vao);
 
-                    int vbo = 0, tbo = 0, cbo = 0, ibo = 0;
+                    AddVertices(start, end);
 
-                    AddVertices(start, end, out vbo);
+                    if (((vaoMask & (int)VAOTypes.Normals) != 0))
+                        AddNormals(start, end);
 
                     if ((vaoMask & (int)VAOTypes.Colored) != 0 && (vaoMask & (int)VAOTypes.Textured) == 0)
                     {
-                        AddColorBuffer(start, end, out cbo);
-                        programID = shaderManager.GetProgram("defaultColored");
+                        AddColorBuffer(start, end);
+                        programID = shaderManager.GetProgram("coloredPhong");
                     }else if((vaoMask & (int)VAOTypes.Colored) == 0 && (vaoMask & (int)VAOTypes.Textured) != 0)
                     {
-                        AddUVBuffer(start, end, out tbo);
+                        AddUVBuffer(start, end);
                         programID = shaderManager.GetProgram("defaultTextured");
                     }
 
@@ -218,86 +206,33 @@ namespace DeeSynk.Core.Systems
                         _renderComps[idx] = new ComponentRender(vaoMask);
                         _renderComps[idx].AddVAOData(vao, ibo, programID, end - start + 1);
                         _renderComps[idx].ValidateData();
-
-                        int bufferCount = 0;
-                        if (vbo != 0) bufferCount++;
-                        if (tbo != 0) bufferCount++;
-                        if (cbo != 0) bufferCount++;
-                        if (ibo != 0) bufferCount++;
-
-                        int[] bufferIDs = new int[bufferCount];
-                        int index = 0;
-                        Buffers buffers = Buffers.NONE;
-
-                        if (vbo != 0)
-                        {
-                            bufferIDs[index] = vbo;
-                            buffers |= Buffers.VERTICES;
-                            index++;
-                        }
-
-                        if (tbo != 0)
-                        {
-                            bufferIDs[index] = tbo;
-                            buffers |= Buffers.UVS;
-                            index++;
-                        }
-
-                        if (cbo != 0)
-                        {
-                            bufferIDs[index] = cbo;
-                            buffers |= Buffers.COLORS;
-                            index++;
-                        }
-
-                        if (ibo != 0)
-                        {
-                            bufferIDs[index] = ibo;
-                            buffers |= Buffers.FACE_ELEMENTS;
-                            index++;
-                        }
-
-                        _staticModelComps[idx].PushVAOBufferProperties(bufferIDs, buffers);
                     }
                 }
             }
         }
 
-        public void InitVAOForObject(int vaoMask, int index)
-        {
-
-        }
-
-        private void AddVertices(int lowerBound, int upperBound, out int vboID)
+        private void AddVertices(int lowerBound, int upperBound)
         {
             int vbo = GL.GenBuffer();
-            vboID = vbo;
 
-            var modelComp = _staticModelComps[0];
+            var modelManager = ModelManager.GetInstance();
 
-            var mm = ModelManager.GetInstance();
-            Model m = mm.GetModel(modelComp.ModelID);
-            int vertexCount = m.Vertices.Length;
-
-            /*
+            
             int vertexCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
-                vertexCount += _modelComps[idx].VertexCount;
+                vertexCount += modelManager.GetModel(_staticModelComps[idx].ModelID).Vertices.Length;
 
             int kdx = 0;
             Vector4[] vertices = new Vector4[vertexCount];
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                for (int jdx = 0; jdx < _modelComps[idx].VertexCount; jdx++)
+                int modelVertexCount = modelManager.GetModel(_staticModelComps[idx].ModelID).Vertices.Length;
+                for (int jdx = 0; jdx < modelVertexCount; jdx++)
                 {
-                    vertices[kdx] = _modelComps[idx].Vertices[jdx];
+                    vertices[kdx] = new Vector4(modelManager.GetModel(_staticModelComps[idx].ModelID).Vertices[jdx], 1.0f);
                     kdx++;
                 }
-            }*/
-
-            Vector4[] vertices = new Vector4[vertexCount];
-            for (int i = 0; i < vertexCount; i++)
-                vertices[i] = new Vector4(m.Vertices[i], 1.0f);
+            }
 
             int dataSize = VERTEX_SIZE * vertexCount;
 
@@ -310,36 +245,62 @@ namespace DeeSynk.Core.Systems
             GL.VertexAttribBinding(0, 0);
         }
 
-        private void AddColorBuffer(int lowerBound, int upperBound, out int cboID)
+        private void AddNormals(int lowerBound, int upperBound)
+        {
+            int nbo = GL.GenBuffer();
+
+            var modelManager = ModelManager.GetInstance();
+
+
+            int normalCount = 0;
+            for (int idx = lowerBound; idx <= upperBound; idx++)
+                normalCount += modelManager.GetModel(_staticModelComps[idx].ModelID).Normals.Length;
+
+            int kdx = 0;
+            Vector4[] normals = new Vector4[normalCount];
+            for (int idx = lowerBound; idx <= upperBound; idx++)
+            {
+                int modelNormalCount = modelManager.GetModel(_staticModelComps[idx].ModelID).Normals.Length;
+                for (int jdx = 0; jdx < modelNormalCount; jdx++)
+                {
+                    normals[kdx] = new Vector4(modelManager.GetModel(_staticModelComps[idx].ModelID).Normals[jdx], 1.0f);
+                    kdx++;
+                }
+            }
+
+            int dataSize = VERTEX_SIZE * normalCount;
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, nbo);
+            GL.NamedBufferStorage(nbo, dataSize, normals, BufferStorageFlags.MapReadBit);
+
+            GL.BindVertexBuffer(3, nbo, IntPtr.Zero, VERTEX_SIZE);
+            GL.EnableVertexAttribArray(3);
+            GL.VertexAttribFormat(3, 4, VertexAttribType.Float, false, 0);
+            GL.VertexAttribBinding(3, 3);
+        }
+
+        private void AddColorBuffer(int lowerBound, int upperBound)
         {
             int cbo = GL.GenBuffer();
-            cboID = cbo;
 
-            var modelComp = _staticModelComps[0];
+            var modelManager = ModelManager.GetInstance();
 
-            var mm = ModelManager.GetInstance();
-            Model m = mm.GetModel(modelComp.ModelID);
-            int colorCount = m.Colors.Length;
-
-            /*
+            
             int colorCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
-                colorCount += _colorComps[idx].ColorCount;
+                colorCount += modelManager.GetModel(_staticModelComps[idx].ModelID).Colors.Length;
 
             int kdx = 0;
             Color4[] colors = new Color4[colorCount];
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                for (int jdx = 0; jdx < _colorComps[idx].ColorCount; jdx++)
+                int modelColorCount = modelManager.GetModel(_staticModelComps[idx].ModelID).Colors.Length;
+                for (int jdx = 0; jdx < modelColorCount; jdx++)
                 {
-                    colors[kdx] = _colorComps[idx].Colors[jdx];
+                    colors[kdx] = modelManager.GetModel(_staticModelComps[idx].ModelID).Colors[jdx];
                     kdx++;
                 }
             }
-            */
-
-
-            Color4[] colors = m.Colors;
 
             int dataSize = COLOR_SIZE * colorCount;
 
@@ -352,10 +313,10 @@ namespace DeeSynk.Core.Systems
             GL.VertexAttribBinding(1, 1);
         }
 
-        private void AddUVBuffer(int lowerBound, int upperBound, out int tboID)
+        private void AddUVBuffer(int lowerBound, int upperBound)
         {
             int tbo = GL.GenBuffer();
-            tboID = tbo;
+
             int uvCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
                 uvCount += _textureComps[idx].TextureCount;
@@ -387,30 +348,23 @@ namespace DeeSynk.Core.Systems
             int ibo = GL.GenBuffer();
             iboID = ibo;
 
-            var modelComp = _staticModelComps[0];
+            var modelManager = ModelManager.GetInstance();
 
-            var mm = ModelManager.GetInstance();
-            Model m = mm.GetModel(modelComp.ModelID);
-
-            /*
             int indexCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
-                indexCount += _modelComps[idx].IndexCount;
+                indexCount += modelManager.GetModel(_staticModelComps[idx].ModelID).VertexIndices.Length;
 
             uint kdx = 0;
             uint[] indices = new uint[indexCount];
             for(int idx = lowerBound; idx <= upperBound; idx++)
             {
-                uint count = (uint)_modelComps[idx].IndexCount;
-                for(int jdx = 0; jdx < count; jdx++)
+                uint count = (uint)modelManager.GetModel(_staticModelComps[idx].ModelID).VertexIndices.Length;
+                for (int jdx = 0; jdx < count; jdx++)
                 {
-                    indices[kdx + jdx] = kdx + _modelComps[idx].Indices[jdx];
+                    indices[kdx + jdx] = kdx + modelManager.GetModel(_staticModelComps[idx].ModelID).VertexIndices[jdx];
                 }
                 kdx += count;
-            }*/
-
-            int indexCount = m.VertexIndices.Length;
-            uint[] indices = m.VertexIndices;
+            }
 
             int dataSize = UINT_SIZE * indexCount;
 

@@ -91,9 +91,11 @@
     <Folder Include="Core\Components\Models\Templates\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultTextured_Instanced.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultColored.txt" />
+    <Content Include="Resources\Shaders\Vertex\coloredPhong.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultTextured_Instanced.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultColored.txt" />

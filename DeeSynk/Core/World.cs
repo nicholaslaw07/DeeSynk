@@ -65,7 +65,7 @@ namespace DeeSynk.Core
             _systemTransform.InitLocation();
 
             _systemVAO = new SystemVAO(this);
-            _systemVAO.InitVAOInRange((int)VAOTypes.Colored | (int)VAOTypes.Indexed, 0, (int)(OBJECT_MEMORY - 1), true);
+            _systemVAO.InitVAOInRange((int)VAOTypes.Colored | (int)VAOTypes.Indexed | (int)VAOTypes.Normals, 0, (int)(OBJECT_MEMORY - 1), true);
         }
 
         public void PushCameraRef(ref Camera camera)

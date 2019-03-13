@@ -21,7 +21,7 @@ namespace DeeSynk.Core
         private Game _game;
 
         private KeyboardState keyState;    // holds current keyboard state, updated every frame
-        private Color4 clearColor = Color4.BlanchedAlmond;     // the color that OpenGL uses to clear the color buffer on each frame
+        private Color4 clearColor = Color4.Red;     // the color that OpenGL uses to clear the color buffer on each frame
 
         private Camera _camera = new Camera();
 
@@ -95,7 +95,7 @@ namespace DeeSynk.Core
             //CursorVisible = true;
 
             this.Cursor = MouseCursor.Empty;
-            //this.WindowState = this.WindowState | WindowState.Fullscreen;
+            this.WindowState = this.WindowState | WindowState.Fullscreen;
 
             _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 2000f);
 

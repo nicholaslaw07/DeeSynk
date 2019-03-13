@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using DeeSynk.Core.Components.Types.Render;
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -76,7 +77,7 @@ namespace DeeSynk.Core.Managers
 
                 vertices = new Vector3[matches.Count];
 
-                rs = @"-?\d\.\d*";
+                rs = @"-?\d\.\d+(e-?\d+)?";
                 regex = new Regex(rs);
 
                 int idx = 0;
@@ -101,7 +102,7 @@ namespace DeeSynk.Core.Managers
 
                 normals = new Vector3[matches.Count];
 
-                rs = @"-?\d\.\d*";
+                rs = @"-?\d\.\d+(e-?\d+)?";
                 regex = new Regex(rs);
                 idx = 0;
                 foreach (Match m in matches)
