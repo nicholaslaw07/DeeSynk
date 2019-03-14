@@ -29,7 +29,6 @@ namespace DeeSynk.Core.Systems
         private ComponentRender[]       _renderComps;
         private ComponentModelStatic[]  _staticModelComps;
         private ComponentTexture[]      _textureComps;
-        private ComponentColor[]        _colorComps;
 
         public SystemRender(World world)
         {
@@ -40,7 +39,6 @@ namespace DeeSynk.Core.Systems
             _renderComps = _world.RenderComps;
             _staticModelComps = _world.StaticModelComps;
             _textureComps = _world.TextureComps;
-            _colorComps = _world.ColorComps;
 
             //UpdateMonitoredGameObjects();
         }
@@ -66,7 +64,6 @@ namespace DeeSynk.Core.Systems
         public void Bind(int idx)
         {
             _renderComps[idx].BindData();
-            //_textureComps[idx].BindTexture();
         }
 
         public void Render(int idx)
@@ -116,6 +113,7 @@ namespace DeeSynk.Core.Systems
             GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, (int)_world.ObjectMemory - 1);
 
             Bind(1);
+            _textureComps[1].BindTexture();
             systemTransform.PushMatrixDataNoTransform();
             int y = ModelManager.GetInstance().GetModel(_staticModelComps[1].ModelID).VertexIndices.Length;
             GL.DrawElementsInstanced(PrimitiveType.Triangles, y, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);

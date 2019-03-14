@@ -14,19 +14,6 @@ namespace DeeSynk.Core.Managers
 {
     using Model = DeeSynk.Core.Components.Models.Model;
 
-    [Flags]
-    public enum ConstructionParameterFlags
-    {
-        NONE = 0,
-        VECTOR3_OFFSET   = 1,
-        FLOAT_ROTATION_X = 1 << 1,
-        FLOAT_ROTATION_Y = 1 << 2,
-        FLOAT_ROTATION_Z = 1 << 3,
-        VECTOR3_SCALE    = 1 << 4,
-        VECTOR2_DIMENSIONS = 1 << 5,
-        COLOR4_COLOR = 1 << 6
-    }
-
     public class ModelManager : IManager
     {
         private const string FILE_PATH = @"..\..\Resources\Models\";
@@ -297,16 +284,27 @@ namespace DeeSynk.Core.Managers
 
         private void CreateModelFromTemplate(ref ComponentModelStatic modelComp)
         {
+            Model model = GetModelFromTemplate(ref modelComp);
+
+            string name = GetValidNameForTemplate(Model.GetTemplateName(modelComp.TemplateID));
+            modelComp.ModelID = name;
+            if (model != null)
+                _modelLibrary.Add(name, model);
+        }
+
+        private Model GetModelFromTemplate(ref ComponentModelStatic modelComp)
+        {
             switch (modelComp.TemplateID)
             {
                 case (ModelTemplates.TemplatePlaneXZ):
-                    var model = Model.CreateTemplatePlaneXZ(ref modelComp);
-                    var name = GetValidNameForTemplate(Model.GetTemplateName(modelComp.TemplateID));
-                    modelComp.ModelID = name;
-                    if (model != null)
-                        _modelLibrary.Add(name, model);
-                    break;
+                    return Model.CreateTemplatePlaneXZ(ref modelComp);
+                case (ModelTemplates.TemplatePlaneXY):
+                    return Model.CreateTemplatePlaneXY(ref modelComp);
+                case (ModelTemplates.TemplatePlaneYZ):
+                    return Model.CreateTemplatePlaneYZ(ref modelComp);
             }
+
+            return null;
         }
 
         private string GetValidNameForTemplate(string keyName)

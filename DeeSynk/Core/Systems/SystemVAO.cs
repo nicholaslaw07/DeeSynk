@@ -71,7 +71,6 @@ namespace DeeSynk.Core.Systems
         private ComponentRender[] _renderComps;
         private ComponentModelStatic[] _staticModelComps;
         private ComponentTexture[] _textureComps;
-        private ComponentColor[] _colorComps;
 
         private ComponentTransform[] _transComps;
 
@@ -84,7 +83,6 @@ namespace DeeSynk.Core.Systems
             _renderComps = _world.RenderComps;
             _staticModelComps = _world.StaticModelComps;
             _textureComps = _world.TextureComps;
-            _colorComps = _world.ColorComps;
 
             _transComps = _world.TransComps;
         }
@@ -127,19 +125,7 @@ namespace DeeSynk.Core.Systems
             color4Arr[3] = Color4.Yellow;
             */
 
-            int texID = TextureManager.GetInstance().GetTexture("Ball");
 
-            var uvArr = new Vector2[6];
-            uvArr[0] = new Vector2(0.0f, 0.0f);
-            uvArr[1] = new Vector2(1.0f, 0.0f);
-            uvArr[2] = new Vector2(1.0f, 1.0f);
-            uvArr[3] = new Vector2(1.0f, 1.0f);
-            uvArr[4] = new Vector2(0.0f, 1.0f);
-            uvArr[5] = new Vector2(0.0f, 0.0f);
-
-            //_staticModelComps[idx] = new ComponentModelStatic(100f, 100f, true);
-            //_colorComps[idx] = new ComponentColor(color4Arr);
-            _textureComps[idx] = new ComponentTexture(ref uvArr, texID);
         }
 
         /// <summary>
@@ -280,7 +266,8 @@ namespace DeeSynk.Core.Systems
         {
             int tbo = GL.GenBuffer();
 
-            int uvCount = 0;
+            /*
+             * int uvCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
                 uvCount += _textureComps[idx].TextureCount;
 
@@ -293,7 +280,14 @@ namespace DeeSynk.Core.Systems
                     uvCoords[kdx] = _textureComps[idx].TextureCoodinates[jdx];
                     kdx++;
                 }
-            }
+            }*/
+
+            ModelManager mm = ModelManager.GetInstance();
+            ComponentModelStatic sm = _staticModelComps[1];
+            var m = mm.GetModel(ref sm);
+
+            int uvCount = m.UVS.Length;
+            Vector2[] uvCoords = m.UVS;
 
             int dataSize = UV_SIZE * uvCount;
 
@@ -313,7 +307,7 @@ namespace DeeSynk.Core.Systems
             Vector4[] offsets = new Vector4[count];
             for (int idx = start; idx < start + count; idx++)
             {
-                if (_staticModelComps[idx].ParameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_OFFSET) &&
+                if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.VECTOR3_OFFSET) &&
                     _staticModelComps[idx].ConstructionData.Length >= 3)
                 {
                     offsets[idx - start] = new Vector4(_staticModelComps[idx].ConstructionData[0],

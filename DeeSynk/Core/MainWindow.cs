@@ -92,7 +92,7 @@ namespace DeeSynk.Core
             //CursorVisible = true;
 
             this.Cursor = MouseCursor.Empty;
-            //this.WindowState = this.WindowState | WindowState.Fullscreen;
+            this.WindowState = this.WindowState | WindowState.Fullscreen;
 
             _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 2000f);
 

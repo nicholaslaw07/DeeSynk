@@ -36,13 +36,32 @@ namespace DeeSynk.Core.Components.Types.Render
         VERTICES_NORMALS_UVS_ELEMENTS = VERTICES_NORMALS_UVS | FACE_ELEMENTS
     }
 
+    [Flags]
+    public enum ConstructionFlags
+    {
+        NONE = 0,
+
+        VECTOR3_OFFSET   = 1,
+        FLOAT_ROTATION_X = 1 << 1,
+        FLOAT_ROTATION_Y = 1 << 2,
+        FLOAT_ROTATION_Z = 1 << 3,
+        VECTOR3_SCALE    = 1 << 4,
+
+        VECTOR3_DIMENSIONS = 1 << 5,
+
+        COLOR4_COLOR = 1 << 6,
+
+        VECTOR2_UV_OFFSET  = 1 << 7,
+        VECTOR2_UV_SCALE   = 1 << 8
+    }
+
     public enum ModelReferenceType
     {
         DISCRETE = 0,
         TEMPLATE = 1
     }
 
-    public class ComponentModelStatic : IComponent //, ISerializable
+    public class ComponentModelStatic : IComponent
     {
         public int BitMaskID => (int)Component.MODEL_STATIC;
 
@@ -71,11 +90,11 @@ namespace DeeSynk.Core.Components.Types.Render
         /// </summary>
         public string ModelID { get => _modelID; set => _modelID = value; }
 
-        private ConstructionParameterFlags _parameterFlags;
+        private ConstructionFlags _constructionFlags;
         /// <summary>
         /// A bit mask used to indicate which parameters are stored in the byte array.  The order of the parameters corresponds to the order of the enumerated types.
         /// </summary>
-        public ConstructionParameterFlags ParameterFlags { get => _parameterFlags; }
+        public ConstructionFlags ConstructionFlags { get => _constructionFlags; }
 
         private float[] _constructionData;
         /// <summary>
@@ -135,25 +154,25 @@ namespace DeeSynk.Core.Components.Types.Render
         */
 
         public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID,
-                            ConstructionParameterFlags parameterFlags, params object[] constructionData)
+                            ConstructionFlags parameterFlags, params object[] constructionData)
         {
             _modelProperties = modelProperties;
             _modelReferenceType = modelReferenceType;
             _modelID = modelID;
-            _parameterFlags = parameterFlags;
+            _constructionFlags = parameterFlags;
             LoadConstructionData(constructionData);
 
             //_isLoadedIntoVAO = false; //Enum of states instead?
         }
 
         public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType,
-                            ConstructionParameterFlags parameterFlags, ModelTemplates template,
-                            params object[] constructionData)
+            ModelTemplates template, ConstructionFlags parameterFlags,
+            params object[] constructionData)
         {
             _modelProperties = modelProperties;
             _modelReferenceType = modelReferenceType;
             _modelID = "";
-            _parameterFlags = parameterFlags;
+            _constructionFlags = parameterFlags;
             _templateID = template;
             LoadConstructionData(constructionData);
             
@@ -163,39 +182,49 @@ namespace DeeSynk.Core.Components.Types.Render
         {
             int totalFloats = 0;
             int objectCount = 0;
-            if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_OFFSET))
+            if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_OFFSET))
             {
                 totalFloats += VECTOR3;
                 objectCount++;
             }
-            if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_X))
+            if (_constructionFlags.HasFlag(ConstructionFlags.FLOAT_ROTATION_X))
             {
                 totalFloats += FLOAT;
                 objectCount++;
             }
-            if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Y))
+            if (_constructionFlags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Y))
             {
                 totalFloats += FLOAT;
                 objectCount++;
             }
-            if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Z))
+            if (_constructionFlags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Z))
             {
                 totalFloats += FLOAT;
                 objectCount++;
             }
-            if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_SCALE))
+            if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_SCALE))
             {
                 totalFloats += VECTOR3;
                 objectCount++;
             }
-            if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR2_DIMENSIONS))
+            if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS))
+            {
+                totalFloats += VECTOR3;
+                objectCount++;
+            }
+            if (_constructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))
+            {
+                totalFloats += COLOR4;
+                objectCount++;
+            }
+            if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_OFFSET))
             {
                 totalFloats += VECTOR2;
                 objectCount++;
             }
-            if (_parameterFlags.HasFlag(ConstructionParameterFlags.COLOR4_COLOR))
+            if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE))
             {
-                totalFloats += COLOR4;
+                totalFloats += VECTOR2;
                 objectCount++;
             }
 
@@ -204,7 +233,7 @@ namespace DeeSynk.Core.Components.Types.Render
                 _constructionData = new float[totalFloats];
                 int offset = 0;
                 int objectIndex = 0;
-                if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_OFFSET))
+                if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_OFFSET))
                 {
                     _constructionData[offset] = ((Vector3)constructionData[objectIndex]).X;
                     _constructionData[offset + 1] = ((Vector3)constructionData[objectIndex]).Y;
@@ -212,25 +241,25 @@ namespace DeeSynk.Core.Components.Types.Render
                     objectIndex++;
                     offset += VECTOR3;
                 }
-                if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_X))
+                if (_constructionFlags.HasFlag(ConstructionFlags.FLOAT_ROTATION_X))
                 {
                     _constructionData[offset] = (float)constructionData[objectIndex];
                     objectIndex++;
                     offset += FLOAT;
                 }
-                if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Y))
+                if (_constructionFlags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Y))
                 {
                     _constructionData[offset] = (float)constructionData[objectIndex];
                     objectIndex++;
                     offset += FLOAT;
                 }
-                if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Z))
+                if (_constructionFlags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Z))
                 {
                     _constructionData[offset] = (float)constructionData[objectIndex];
                     objectIndex++;
                     offset += FLOAT;
                 }
-                if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_SCALE))
+                if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_SCALE))
                 {
                     _constructionData[offset] = ((Vector3)constructionData[objectIndex]).X;
                     _constructionData[offset + 1] = ((Vector3)constructionData[objectIndex]).Y;
@@ -238,14 +267,15 @@ namespace DeeSynk.Core.Components.Types.Render
                     objectIndex++;
                     offset += VECTOR3;
                 }
-                if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR2_DIMENSIONS))
+                if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS))
                 {
-                    _constructionData[offset] = ((Vector2)constructionData[objectIndex]).X;
-                    _constructionData[offset + 1] = ((Vector2)constructionData[objectIndex]).Y;
+                    _constructionData[offset] = ((Vector3)constructionData[objectIndex]).X;
+                    _constructionData[offset + 1] = ((Vector3)constructionData[objectIndex]).Y;
+                    _constructionData[offset + 2] = ((Vector3)constructionData[objectIndex]).Z;
                     objectIndex++;
-                    offset += VECTOR2;
+                    offset += VECTOR3;
                 }
-                if (_parameterFlags.HasFlag(ConstructionParameterFlags.COLOR4_COLOR))
+                if (_constructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))
                 {
                     _constructionData[offset] = ((Color4)constructionData[objectIndex]).R;
                     _constructionData[offset + 1] = ((Color4)constructionData[objectIndex]).G;
@@ -254,6 +284,20 @@ namespace DeeSynk.Core.Components.Types.Render
                     objectIndex++;
                     offset += COLOR4;
                 }
+                if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_OFFSET))
+                {
+                    _constructionData[offset] = ((Vector2)constructionData[objectIndex]).X;
+                    _constructionData[offset + 1] = ((Vector2)constructionData[objectIndex]).Y;
+                    objectIndex++;
+                    offset += VECTOR2;
+                }
+                if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE))
+                {
+                    _constructionData[offset] = ((Vector2)constructionData[objectIndex]).X;
+                    _constructionData[offset + 1] = ((Vector2)constructionData[objectIndex]).Y;
+                    objectIndex++;
+                    offset += VECTOR2;
+                }
             }
             else
             {
@@ -261,7 +305,12 @@ namespace DeeSynk.Core.Components.Types.Render
             }
         }
 
-        public float[] GetConstructionParameter(ConstructionParameterFlags flag)
+        /// <summary>
+        /// Returns an array containing the data associated with the specified ConstructionFlag
+        /// </summary>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public float[] GetConstructionParameter(ConstructionFlags flag) //needs error checking or catching mechanism
         {
             int offset = ParameterOffset(flag);
             int size = ParameterSize(flag);
@@ -274,52 +323,62 @@ namespace DeeSynk.Core.Components.Types.Render
             return data;
         }
 
-        public int ParameterOffset(ConstructionParameterFlags flag)
+        public int ParameterOffset(ConstructionFlags flag)
         {
             int offset = 0;
 
-            if(flag == ConstructionParameterFlags.VECTOR3_OFFSET) { return offset; }
-            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_OFFSET)) ? VECTOR3 : 0;
+            if(flag == ConstructionFlags.VECTOR3_OFFSET) { return offset; }
+            offset += (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_OFFSET)) ? VECTOR3 : 0;
 
-            if (flag == ConstructionParameterFlags.FLOAT_ROTATION_X) { return offset; }
-            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_X)) ? FLOAT : 0;
+            if (flag == ConstructionFlags.FLOAT_ROTATION_X) { return offset; }
+            offset += (_constructionFlags.HasFlag(ConstructionFlags.FLOAT_ROTATION_X)) ? FLOAT : 0;
 
-            if (flag == ConstructionParameterFlags.FLOAT_ROTATION_Y) { return offset; }
-            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Y)) ? FLOAT : 0;
+            if (flag == ConstructionFlags.FLOAT_ROTATION_Y) { return offset; }
+            offset += (_constructionFlags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Y)) ? FLOAT : 0;
 
-            if (flag == ConstructionParameterFlags.FLOAT_ROTATION_Z) { return offset; }
-            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Z)) ? FLOAT : 0;
+            if (flag == ConstructionFlags.FLOAT_ROTATION_Z) { return offset; }
+            offset += (_constructionFlags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Z)) ? FLOAT : 0;
 
-            if (flag == ConstructionParameterFlags.VECTOR3_SCALE) { return offset; }
-            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_SCALE)) ? VECTOR3 : 0;
+            if (flag == ConstructionFlags.VECTOR3_SCALE) { return offset; }
+            offset += (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_SCALE)) ? VECTOR3 : 0;
 
-            if (flag == ConstructionParameterFlags.VECTOR2_DIMENSIONS) { return offset; }
-            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR2_DIMENSIONS)) ? VECTOR2 : 0;
+            if (flag == ConstructionFlags.VECTOR3_DIMENSIONS) { return offset; }
+            offset += (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS)) ? VECTOR3 : 0;
 
-            //if (flag == ConstructionParameterFlags.COLOR4_COLOR) { return offset; }
-            //offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.COLOR4_COLOR)) ? COLOR4: 0;  Don't need to check since this is the last parameter, for now
+            if (flag == ConstructionFlags.COLOR4_COLOR) { return offset; }
+            offset += (_constructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR)) ? COLOR4: 0;
 
-            return offset;
+            if (flag == ConstructionFlags.VECTOR2_UV_OFFSET) { return offset; }
+            offset += (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE)) ? VECTOR2 : 0;
+
+            if (flag == ConstructionFlags.VECTOR2_UV_SCALE) { return offset; }
+            offset += (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE)) ? VECTOR2: 0;
+
+            return offset; //Don't need to check since this is the last parameter, for now
         }
 
-        public int ParameterSize(ConstructionParameterFlags flag)
+        public int ParameterSize(ConstructionFlags flag)
         {
             switch (flag)
             {
-                case (ConstructionParameterFlags.VECTOR3_OFFSET):
+                case (ConstructionFlags.VECTOR3_OFFSET):
                     return VECTOR3;
-                case (ConstructionParameterFlags.FLOAT_ROTATION_X):
+                case (ConstructionFlags.FLOAT_ROTATION_X):
                     return FLOAT;
-                case (ConstructionParameterFlags.FLOAT_ROTATION_Y):
+                case (ConstructionFlags.FLOAT_ROTATION_Y):
                     return FLOAT;
-                case (ConstructionParameterFlags.FLOAT_ROTATION_Z):
+                case (ConstructionFlags.FLOAT_ROTATION_Z):
                     return FLOAT;
-                case (ConstructionParameterFlags.VECTOR3_SCALE):
+                case (ConstructionFlags.VECTOR3_SCALE):
                     return VECTOR3;
-                case (ConstructionParameterFlags.VECTOR2_DIMENSIONS):
-                    return VECTOR2;
-                case (ConstructionParameterFlags.COLOR4_COLOR):
+                case (ConstructionFlags.VECTOR3_DIMENSIONS):
+                    return VECTOR3;
+                case (ConstructionFlags.COLOR4_COLOR):
                     return COLOR4;
+                case (ConstructionFlags.VECTOR2_UV_OFFSET):
+                    return VECTOR2;
+                case (ConstructionFlags.VECTOR2_UV_SCALE):
+                    return VECTOR2;
                 default:
                     return 0;
             }

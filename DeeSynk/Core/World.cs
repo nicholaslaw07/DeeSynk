@@ -3,6 +3,7 @@ using DeeSynk.Core.Components.Types.Transform;
 using DeeSynk.Core.Components.Types.Render;
 using OpenTK;
 using DeeSynk.Core.Components;
+using DeeSynk.Core.Managers;
 
 namespace DeeSynk.Core
 {
@@ -38,8 +39,6 @@ namespace DeeSynk.Core
         public  ComponentModelStatic[]  StaticModelComps { get => _staticModelComps; }
         private ComponentTexture[]      _textureComps;
         public  ComponentTexture[]      TextureComps     { get => _textureComps; }
-        private ComponentColor[]        _colorComps;
-        public  ComponentColor[]        ColorComps       { get => _colorComps; }
 
         public World()
         {
@@ -54,7 +53,6 @@ namespace DeeSynk.Core
             _renderComps = new ComponentRender[OBJECT_MEMORY];
             _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
             _textureComps = new ComponentTexture[OBJECT_MEMORY];
-            _colorComps = new ComponentColor[OBJECT_MEMORY];
 
             _systemRender = new SystemRender(this);
 
@@ -64,9 +62,23 @@ namespace DeeSynk.Core
             _systemTransform = new SystemTransform(this);
             _systemTransform.InitLocation();
 
+            //TEST START
+            int texID = TextureManager.GetInstance().GetTexture("Ball");
+
+            var uvArr = new Vector2[6];
+            uvArr[0] = new Vector2(0.0f, 0.0f);
+            uvArr[1] = new Vector2(1.0f, 0.0f);
+            uvArr[2] = new Vector2(1.0f, 1.0f);
+            uvArr[3] = new Vector2(1.0f, 1.0f);
+            uvArr[4] = new Vector2(0.0f, 1.0f);
+            uvArr[5] = new Vector2(0.0f, 0.0f);
+
+            _textureComps[1] = new ComponentTexture(ref uvArr, texID);
+            //TEST END
+
             _systemVAO = new SystemVAO(this);
             _systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, 0, true);
-            _systemVAO.InitVAOInRange(Buffers.VERTICES_ELEMENTS | Buffers.COLORS | Buffers.INSTANCES, 1, 1, true);
+            _systemVAO.InitVAOInRange(Buffers.VERTICES_ELEMENTS | Buffers.UVS | Buffers.INSTANCES, 1, 1, true);
         }
 
         public void PushCameraRef(ref Camera camera)

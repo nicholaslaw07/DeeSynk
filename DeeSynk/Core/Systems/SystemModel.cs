@@ -33,21 +33,18 @@ namespace DeeSynk.Core.Systems
         //TEST START
         public void InitModel()
         {
-            _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "dragon_vripPLY", 
-                                                            ConstructionParameterFlags.VECTOR3_OFFSET,
-                                                            new Vector3(0, 1, -5));
+            var v00 = new Vector3(0, 1, 0);
+            _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "dragon_vripPLY",
+                                                            ConstructionFlags.VECTOR3_OFFSET,
+                                                            v00);
 
-            _staticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE,
-                                                            ConstructionParameterFlags.VECTOR3_OFFSET | 
-                                                            ConstructionParameterFlags.VECTOR2_DIMENSIONS | 
-                                                            ConstructionParameterFlags.COLOR4_COLOR, 
-                                                            ModelTemplates.TemplatePlaneXZ,
-                                                            new Vector3(0, -5, 0), new Vector2(100f, 100f), Color4.IndianRed);
-        }
-
-        private float[] Vector3(int v1, float v2, int v3)
-        {
-            throw new NotImplementedException();
+            var v10 = new Vector3(1, -5, -1);
+            var v11 = new Vector3(13f, 13f, 13f);
+            var v12 = new Vector2(0.0f, 0.0f);
+            var v13 = new Vector2(1.0f, 1.0f);
+            _staticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.TemplatePlaneXZ,
+                                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.VECTOR3_DIMENSIONS | ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
+                                                            v10, v11, v12, v13);
         }
 
         //TEST END

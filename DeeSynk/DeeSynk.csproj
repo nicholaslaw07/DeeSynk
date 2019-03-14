@@ -54,7 +54,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Components\Camera.cs" />
-    <Compile Include="Core\Components\Types\Render\ComponentColor.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentModel.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentRender.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentTexture.cs" />
