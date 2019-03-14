@@ -89,11 +89,15 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="Resources\Shaders\Fragment\coloredShaded.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Fragment\depthShader.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultTextured_Instanced.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultColored.txt" />
+    <Content Include="Resources\Shaders\Vertex\coloredShaded.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Vertex\depthShader.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultTextured_Instanced.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultColored.txt" />

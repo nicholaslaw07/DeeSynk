@@ -31,6 +31,19 @@ namespace DeeSynk.Core.Systems
         private ComponentTexture[]      _textureComps;
         private ComponentColor[]        _colorComps;
 
+        private Camera _camera;
+
+        //SHADOw STUFF START
+
+        private int depthMapFBO;
+        private const int sWidth = 2048;
+        private const int sHeight = 2048;
+
+        private int depthMap;
+
+
+        //SHADOW STUFF END
+
         public SystemRender(World world)
         {
             _world = world;
@@ -43,6 +56,20 @@ namespace DeeSynk.Core.Systems
             _colorComps = _world.ColorComps;
 
             //UpdateMonitoredGameObjects();
+
+            //SHADOW STUFF START
+
+            depthMapFBO = GL.GenFramebuffer();
+
+            depthMap = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, depthMap);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent, sWidth, sHeight, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+            //SHADOW STUFF END
         }
 
         public void UpdateMonitoredGameObjects()
@@ -57,6 +84,11 @@ namespace DeeSynk.Core.Systems
                     }
                 }
             }
+        }
+
+        public void PushCameraRef(ref Camera camera)
+        {
+            _camera = camera;
         }
 
         public void Update(float time)
@@ -108,17 +140,56 @@ namespace DeeSynk.Core.Systems
 
         public void RenderInstanced(ref SystemTransform systemTransform, int renderIdx)
         {
-            Bind(0);
+            //DEPTH MAP
+            Vector3 light = new Vector3(50, 50, 50);
 
-            systemTransform.PushMatrixDataNoTransform();
+            GL.Viewport(0, 0, sWidth, sHeight);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, depthMapFBO);
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+
+            Matrix4 lightProjection;
+            Matrix4.CreateOrthographic(-10f, 10f, -1.0f, 1000f, out lightProjection);
+
+            var lightView = Matrix4.LookAt(new Vector3(50, 50, 50), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+            var lightSpace = lightProjection * lightView;
+
+            _renderComps[0].BindData();
+
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("depthShader"));
+
+            GL.UniformMatrix4(3, false, ref lightSpace);
 
             int x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).VertexIndices.Length;
             GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, (int)_world.ObjectMemory - 1);
 
-            Bind(1);
-            systemTransform.PushMatrixDataNoTransform();
+            _renderComps[1].BindData();
+
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("depthShader"));
+
+            GL.UniformMatrix4(3, false, ref lightSpace);
+
             int y = ModelManager.GetInstance().GetModel(_staticModelComps[1].ModelID).VertexIndices.Length;
             GL.DrawElementsInstanced(PrimitiveType.Triangles, y, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);
+
+            //DEPTH MAP END
+            GL.Viewport(0, 0, (int)_camera.Width, (int)_camera.Height);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+            //NORMAL RENDER
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+
+            Bind(0);
+
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("coloredShaded"));
+            GL.BindTexture(TextureTarget.Texture2D, depthMap);
+            systemTransform.PushMatrixDataNoTransform();
+            GL.UniformMatrix4(10, false, ref lightSpace);
+            var v = _camera.Location;
+            x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).VertexIndices.Length;
+            GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, (int)_world.ObjectMemory - 1);
+
         }
     }
 }

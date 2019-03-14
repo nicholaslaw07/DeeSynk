@@ -12,7 +12,7 @@ out vec4 vs_color;
 
 void main(void)
 {
-	vec3 light = vec3(100, 1000, 100);
+	vec3 light = vec3(50, 50, 50);
 
 	vec3 iA = color.xyz / 5;
 	vec3 iD = color.xyz;

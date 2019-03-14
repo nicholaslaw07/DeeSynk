@@ -109,7 +109,8 @@ namespace DeeSynk.Core.Systems
         public void PushMatrixDataNoTransform()
         {
             GL.Uniform3(4, _camera.Location);
-            GL.UniformMatrix4(5, false, ref _camera.ViewProjection);
+            GL.Uniform3(5, new Vector3(50, 50, 50));
+            GL.UniformMatrix4(6, false, ref _camera.ViewProjection);
         }
     }
 }

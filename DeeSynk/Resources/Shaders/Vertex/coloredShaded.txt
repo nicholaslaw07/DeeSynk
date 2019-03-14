@@ -1,0 +1,35 @@
+﻿#version 450 core
+
+layout (location = 0) in vec4 position;
+layout (location = 1) in vec4 color;
+layout (location = 2) in vec4 offset;
+layout (location = 3) in vec4 normal;
+layout (location = 4) uniform vec3 cameraLoc;
+layout (location = 5) uniform vec3 lP;
+layout (location = 6) uniform mat4 model_view;
+layout (location = 10) uniform mat4 light_space;
+
+out vec4 vs_color;
+out vec3 lightPos;
+out vec3 viewPos;
+
+out VS_OUT
+{
+	vec3 FragPos;
+	vec3 Normal;
+	vec4 Color;
+	vec4 FragPosLightSpace;
+} vs_out;
+
+
+void main(void)
+{
+	vs_out.FragPos = vec3(model_view * (position + offset));
+	vs_out.Normal = transpose(inverse(mat3(model_view))) * normal.xyz;
+	vs_out.Color = color;
+	vs_out.FragPosLightSpace = light_space * vec4(vs_out.FragPos, 1.0);
+	gl_Position = model_view * (position + offset);
+
+	lightPos = lP;
+	viewPos = cameraLoc;
+}

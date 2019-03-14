@@ -3,6 +3,7 @@ using DeeSynk.Core.Components.Types.Transform;
 using DeeSynk.Core.Components.Types.Render;
 using OpenTK;
 using DeeSynk.Core.Components;
+using DeeSynk.Core.Managers;
 
 namespace DeeSynk.Core
 {
@@ -72,6 +73,7 @@ namespace DeeSynk.Core
         public void PushCameraRef(ref Camera camera)
         {
             _systemTransform.PushCameraRef(ref camera);
+            _systemRender.PushCameraRef(ref camera);
         }
 
         /// <summary>

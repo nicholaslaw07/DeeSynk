@@ -1,0 +1,12 @@
+﻿#version 450 core
+
+layout (location = 0) in vec4 position;
+layout (location = 1) in vec4 color;
+layout (location = 2) in vec4 offset;
+layout (location = 3) uniform mat4 light_view;
+out vec4 vs_color;
+
+void main(void)
+{
+ gl_Position = light_view * (position + offset);
+}

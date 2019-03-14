@@ -341,6 +341,11 @@ namespace DeeSynk.Core.Managers
                 return false;
         }
 
+        public void UnloadModel(string modelID)
+        {
+            var val = _modelLibrary.Remove(modelID);
+        }
+
         public void UnLoad()
         {
             throw new NotImplementedException();
