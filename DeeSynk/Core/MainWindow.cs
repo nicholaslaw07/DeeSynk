@@ -92,7 +92,7 @@ namespace DeeSynk.Core
             //CursorVisible = true;
 
             this.Cursor = MouseCursor.Empty;
-            this.WindowState = this.WindowState | WindowState.Fullscreen;
+            //this.WindowState = this.WindowState | WindowState.Fullscreen;
 
             _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 2000f);
 
@@ -100,6 +100,12 @@ namespace DeeSynk.Core
             _game.LoadGameData();
 
             _game.PushCameraRef(ref _camera);
+
+            {
+                long collectionBefore = System.GC.GetTotalMemory(false);
+                long collectionAfter = System.GC.GetTotalMemory(true);
+                Console.WriteLine("Collected garbage: removed {0} bytes", collectionBefore - collectionAfter);
+            }
 
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
