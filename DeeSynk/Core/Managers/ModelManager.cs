@@ -1,5 +1,7 @@
-﻿using DeeSynk.Core.Components.Types.Render;
+﻿using DeeSynk.Core.Components.Models;
+using DeeSynk.Core.Components.Types.Render;
 using OpenTK;
+using OpenTK.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,13 +22,17 @@ namespace DeeSynk.Core.Managers
         FLOAT_ROTATION_X = 1 << 1,
         FLOAT_ROTATION_Y = 1 << 2,
         FLOAT_ROTATION_Z = 1 << 3,
-        VECTOR3_SCALE    = 1 << 4
+        VECTOR3_SCALE    = 1 << 4,
+        VECTOR2_DIMENSIONS = 1 << 5,
+        COLOR4_COLOR = 1 << 6
     }
 
     public class ModelManager : IManager
     {
         private const string FILE_PATH = @"..\..\Resources\Models\";
         private static ModelManager _modelManager;
+
+        private const int MAX_INDEX_SIZE = 10000;
 
         private Dictionary<string, Model> _modelLibrary;
 
@@ -259,7 +265,7 @@ namespace DeeSynk.Core.Managers
                         }
                     }
 
-                    _modelLibrary.Add(Path.GetFileNameWithoutExtension(filePath), new Model(vertices, faceIndices, true));
+                    _modelLibrary.Add(Path.GetFileNameWithoutExtension(filePath), new Model(vertices, faceIndices, true, true));
                     Console.WriteLine("Loaded model {0}: {1} vertices, {2} faces", Path.GetFileNameWithoutExtension(filePath), vertexElementCount, faceElementCount);
                 }
             }
@@ -274,6 +280,65 @@ namespace DeeSynk.Core.Managers
             Model value;
             _modelLibrary.TryGetValue(name, out value);
             return value;
+        }
+
+        public Model GetModel(ref ComponentModelStatic modelComp)
+        {
+            if (modelComp.ModelReferenceType == ModelReferenceType.DISCRETE)
+                return GetModel(modelComp.ModelID);
+            else if(modelComp.ModelReferenceType == ModelReferenceType.TEMPLATE)
+            {
+                CreateModelFromTemplate(ref modelComp);
+                return GetModel(modelComp.ModelID);
+            }
+
+            return null;
+        }
+
+        private void CreateModelFromTemplate(ref ComponentModelStatic modelComp)
+        {
+            switch (modelComp.TemplateID)
+            {
+                case (ModelTemplates.TemplatePlaneXZ):
+                    var model = Model.CreateTemplatePlaneXZ(ref modelComp);
+                    var name = GetValidNameForTemplate(Model.GetTemplateName(modelComp.TemplateID));
+                    modelComp.ModelID = name;
+                    if (model != null)
+                        _modelLibrary.Add(name, model);
+                    break;
+            }
+        }
+
+        private string GetValidNameForTemplate(string keyName)
+        {
+            string testName = "";
+            int superIndex = 0;
+            int index = 0;
+            do
+            {
+                if (index >= MAX_INDEX_SIZE)
+                {
+                    index = 0;
+                    superIndex++;
+                }
+
+                if (superIndex >= MAX_INDEX_SIZE)
+                {
+                    throw new Exception("Woah there cowboy, that's too many object you have there.  You can wrangle that many cows now can you.");
+                }
+                testName = keyName + ((superIndex > 0) ? "" : ("_" + superIndex.ToString() + "_")) + index.ToString();
+                index++;
+            } while (_modelLibrary.Keys.Contains(testName));
+
+            return testName;
+        }
+
+        public bool ModelExists(string modelID)
+        {
+            if (_modelLibrary.Keys.Contains(modelID))
+                return true;
+            else
+                return false;
         }
 
         public void UnLoad()

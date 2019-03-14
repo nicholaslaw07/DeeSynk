@@ -1,4 +1,5 @@
-﻿using DeeSynk.Core.Managers;
+﻿using DeeSynk.Core.Components.Models;
+using DeeSynk.Core.Managers;
 using DeeSynk.Core.Systems;
 using OpenTK;
 using System;
@@ -44,6 +45,13 @@ namespace DeeSynk.Core.Components.Types.Render
     {
         public int BitMaskID => (int)Component.MODEL_STATIC;
 
+        public const int FLOAT   = 1;
+        public const int VECTOR2 = 2;
+        public const int VECTOR3 = 3;
+        public const int VECTOR4 = 4;
+        public const int COLOR3  = 3;
+        public const int COLOR4  = 4;
+
         private ModelProperties _modelProperties;
         /// <summary>
         /// Indicates which types of data this model contains.
@@ -60,7 +68,7 @@ namespace DeeSynk.Core.Components.Types.Render
         /// <summary>
         /// The string ID used by model manager to reference a specific model or template.
         /// </summary>
-        public string ModelID { get => _modelID; }
+        public string ModelID { get => _modelID; set => _modelID = value; }
 
         private ConstructionParameterFlags _parameterFlags;
         /// <summary>
@@ -73,6 +81,24 @@ namespace DeeSynk.Core.Components.Types.Render
         /// The set of parameters, in a byte array, used to manipulate or build the model before uploading it to GPU memory.
         /// </summary>
         public ref float[] ConstructionData { get => ref _constructionData; }
+
+        private ModelTemplates _templateID;
+        public ModelTemplates TemplateID
+        {
+            get
+            {
+                if (ModelReferenceType == ModelReferenceType.TEMPLATE)
+                    return _templateID;
+                return ModelTemplates.NONE;
+            }
+            set
+            {
+                if(ModelReferenceType == ModelReferenceType.TEMPLATE)
+                {
+                    _templateID = value;
+                }
+            }
+        }
 
         //+++
         /*
@@ -110,13 +136,91 @@ namespace DeeSynk.Core.Components.Types.Render
         public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID,
                                     ConstructionParameterFlags parameterFlags, float[] constructionData)
         {
-            _modelProperties = ModelProperties;
+            _modelProperties = modelProperties;
             _modelReferenceType = modelReferenceType;
             _modelID = modelID;
             _parameterFlags = parameterFlags;
             _constructionData = constructionData;
 
             //_isLoadedIntoVAO = false; //Enum of states instead?
+        }
+
+        public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType,
+                                    ConstructionParameterFlags parameterFlags, float[] constructionData,
+                                    ModelTemplates template)
+        {
+            _modelProperties = modelProperties;
+            _modelReferenceType = modelReferenceType;
+            _modelID = "";
+            _parameterFlags = parameterFlags;
+            _constructionData = constructionData;
+            _templateID = template;
+
+            //_isLoadedIntoVAO = false; //Enum of states instead?
+        }
+
+        public float[] GetConstructionParameter(ConstructionParameterFlags flag)
+        {
+            int offset = ParameterOffset(flag);
+            int size = ParameterSize(flag);
+
+            float[] data = new float[size];
+
+            for (int idx = 0; idx < size; idx++)
+                data[idx] = _constructionData[idx + offset];
+
+            return data;
+        }
+
+        public int ParameterOffset(ConstructionParameterFlags flag)
+        {
+            int offset = 0;
+
+            if(flag == ConstructionParameterFlags.VECTOR3_OFFSET) { return offset; }
+            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_OFFSET)) ? VECTOR3 : 0;
+
+            if (flag == ConstructionParameterFlags.FLOAT_ROTATION_X) { return offset; }
+            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_X)) ? FLOAT : 0;
+
+            if (flag == ConstructionParameterFlags.FLOAT_ROTATION_Y) { return offset; }
+            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Y)) ? FLOAT : 0;
+
+            if (flag == ConstructionParameterFlags.FLOAT_ROTATION_Z) { return offset; }
+            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Z)) ? FLOAT : 0;
+
+            if (flag == ConstructionParameterFlags.VECTOR3_SCALE) { return offset; }
+            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_SCALE)) ? VECTOR3 : 0;
+
+            if (flag == ConstructionParameterFlags.VECTOR2_DIMENSIONS) { return offset; }
+            offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR2_DIMENSIONS)) ? VECTOR2 : 0;
+
+            //if (flag == ConstructionParameterFlags.COLOR4_COLOR) { return offset; }
+            //offset += (_parameterFlags.HasFlag(ConstructionParameterFlags.COLOR4_COLOR)) ? COLOR4: 0;  Don't need to check since this is the last parameter, for now
+
+            return offset;
+        }
+
+        public int ParameterSize(ConstructionParameterFlags flag)
+        {
+            switch (flag)
+            {
+                case (ConstructionParameterFlags.VECTOR3_OFFSET):
+                    return VECTOR3;
+                case (ConstructionParameterFlags.FLOAT_ROTATION_X):
+                    return FLOAT;
+                case (ConstructionParameterFlags.FLOAT_ROTATION_Y):
+                    return FLOAT;
+                case (ConstructionParameterFlags.FLOAT_ROTATION_Z):
+                    return FLOAT;
+                case (ConstructionParameterFlags.VECTOR3_SCALE):
+                    return VECTOR3;
+                case (ConstructionParameterFlags.VECTOR2_DIMENSIONS):
+                    return VECTOR2;
+                case (ConstructionParameterFlags.COLOR4_COLOR):
+                    return COLOR4;
+                default:
+                    return 0;
+            }
         }
 
         /*

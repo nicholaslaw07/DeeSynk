@@ -108,12 +108,17 @@ namespace DeeSynk.Core.Systems
 
         public void RenderInstanced(ref SystemTransform systemTransform, int renderIdx)
         {
-            Bind(renderIdx);
+            Bind(0);
 
             systemTransform.PushMatrixDataNoTransform();
 
-            int x = ModelManager.GetInstance().GetModel(_staticModelComps[renderIdx].ModelID).VertexIndices.Length;
+            int x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).VertexIndices.Length;
             GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, (int)_world.ObjectMemory);
+
+            //Bind(1);
+            //systemTransform.PushMatrixDataNoTransform();
+            //int y = ModelManager.GetInstance().GetModel(_staticModelComps[1].ModelID).VertexIndices.Length;
+            //GL.DrawElements(BeginMode.Triangles, y, DrawElementsType.UnsignedInt, 0);
         }
     }
 }

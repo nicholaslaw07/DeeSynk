@@ -16,7 +16,7 @@ namespace DeeSynk.Core
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 1;
+        private const uint OBJECT_MEMORY = 2;
         public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
         public GameObject[] GameObjects { get => _gameObjects; }
@@ -65,7 +65,8 @@ namespace DeeSynk.Core
             _systemTransform.InitLocation();
 
             _systemVAO = new SystemVAO(this);
-            _systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, (int)(OBJECT_MEMORY - 1), true);
+            _systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, 0, true);
+            _systemVAO.InitVAOInRange(Buffers.VERTICES_ELEMENTS | Buffers.COLORS, 1, 1, true);
         }
 
         public void PushCameraRef(ref Camera camera)

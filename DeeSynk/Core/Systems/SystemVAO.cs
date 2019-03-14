@@ -174,7 +174,14 @@ namespace DeeSynk.Core.Systems
                     if (bufferMask.HasFlag(Buffers.COLORS) && !bufferMask.HasFlag(Buffers.UVS))
                     {
                         AddColorBuffer(start, end);
-                        programID = shaderManager.GetProgram("coloredPhong");
+                        if (bufferMask.HasFlag(Buffers.NORMALS))
+                        {
+                            programID = shaderManager.GetProgram("coloredPhong");
+                        }
+                        else
+                        {
+                            programID = shaderManager.GetProgram("defaultColored");
+                        }
                     }
                     else if(!bufferMask.HasFlag(Buffers.COLORS) && bufferMask.HasFlag(Buffers.UVS))
                     {
@@ -210,7 +217,7 @@ namespace DeeSynk.Core.Systems
             
             int vertexCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
-                vertexCount += modelManager.GetModel(_staticModelComps[idx].ModelID).Vertices.Length;
+                vertexCount += modelManager.GetModel(ref _staticModelComps[idx]).Vertices.Length;
 
             int kdx = 0;
             Vector4[] vertices = new Vector4[vertexCount];
@@ -325,6 +332,8 @@ namespace DeeSynk.Core.Systems
             GL.VertexAttribFormat(2, 4, VertexAttribType.Float, false, 0);
             GL.VertexAttribBinding(2, 2);
             GL.VertexAttribDivisor(2, verticesPerInstance);
+
+            Console.WriteLine(GL.GetError().ToString());
         }
 
         private void AddNormalBuffer(int lowerBound, int upperBound)

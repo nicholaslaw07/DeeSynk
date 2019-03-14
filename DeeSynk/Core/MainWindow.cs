@@ -25,10 +25,7 @@ namespace DeeSynk.Core
 
         private Camera _camera = new Camera();
 
-        private const float dX = 20f;
-        private const float dR = 0.4f;
-
-        private const float v = 100f;
+        private const float v = 10f;
 
         private Vector3 V_W = new Vector3(0.0f, 0.0f, -v);
         private Vector3 V_S = new Vector3(0.0f, 0.0f, v);
