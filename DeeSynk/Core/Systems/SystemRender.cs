@@ -113,12 +113,12 @@ namespace DeeSynk.Core.Systems
             systemTransform.PushMatrixDataNoTransform();
 
             int x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).VertexIndices.Length;
-            GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, (int)_world.ObjectMemory);
+            GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, (int)_world.ObjectMemory - 1);
 
-            //Bind(1);
-            //systemTransform.PushMatrixDataNoTransform();
-            //int y = ModelManager.GetInstance().GetModel(_staticModelComps[1].ModelID).VertexIndices.Length;
-            //GL.DrawElements(BeginMode.Triangles, y, DrawElementsType.UnsignedInt, 0);
+            Bind(1);
+            systemTransform.PushMatrixDataNoTransform();
+            int y = ModelManager.GetInstance().GetModel(_staticModelComps[1].ModelID).VertexIndices.Length;
+            GL.DrawElementsInstanced(PrimitiveType.Triangles, y, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);
         }
     }
 }

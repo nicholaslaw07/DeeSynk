@@ -2,6 +2,7 @@
 using DeeSynk.Core.Managers;
 using DeeSynk.Core.Systems;
 using OpenTK;
+using OpenTK.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,7 +84,7 @@ namespace DeeSynk.Core.Components.Types.Render
         public ref float[] ConstructionData { get => ref _constructionData; }
 
         private ModelTemplates _templateID;
-        public ModelTemplates TemplateID
+        public  ModelTemplates TemplateID
         {
             get
             {
@@ -134,29 +135,130 @@ namespace DeeSynk.Core.Components.Types.Render
         */
 
         public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID,
-                                    ConstructionParameterFlags parameterFlags, float[] constructionData)
+                            ConstructionParameterFlags parameterFlags, params object[] constructionData)
         {
             _modelProperties = modelProperties;
             _modelReferenceType = modelReferenceType;
             _modelID = modelID;
             _parameterFlags = parameterFlags;
-            _constructionData = constructionData;
+            LoadConstructionData(constructionData);
 
             //_isLoadedIntoVAO = false; //Enum of states instead?
         }
 
         public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType,
-                                    ConstructionParameterFlags parameterFlags, float[] constructionData,
-                                    ModelTemplates template)
+                            ConstructionParameterFlags parameterFlags, ModelTemplates template,
+                            params object[] constructionData)
         {
             _modelProperties = modelProperties;
             _modelReferenceType = modelReferenceType;
             _modelID = "";
             _parameterFlags = parameterFlags;
-            _constructionData = constructionData;
             _templateID = template;
+            LoadConstructionData(constructionData);
+            
+        }
 
-            //_isLoadedIntoVAO = false; //Enum of states instead?
+        private void LoadConstructionData(object[] constructionData)
+        {
+            int totalFloats = 0;
+            int objectCount = 0;
+            if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_OFFSET))
+            {
+                totalFloats += VECTOR3;
+                objectCount++;
+            }
+            if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_X))
+            {
+                totalFloats += FLOAT;
+                objectCount++;
+            }
+            if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Y))
+            {
+                totalFloats += FLOAT;
+                objectCount++;
+            }
+            if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Z))
+            {
+                totalFloats += FLOAT;
+                objectCount++;
+            }
+            if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_SCALE))
+            {
+                totalFloats += VECTOR3;
+                objectCount++;
+            }
+            if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR2_DIMENSIONS))
+            {
+                totalFloats += VECTOR2;
+                objectCount++;
+            }
+            if (_parameterFlags.HasFlag(ConstructionParameterFlags.COLOR4_COLOR))
+            {
+                totalFloats += COLOR4;
+                objectCount++;
+            }
+
+            if (objectCount == constructionData.Length)
+            {
+                _constructionData = new float[totalFloats];
+                int offset = 0;
+                int objectIndex = 0;
+                if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_OFFSET))
+                {
+                    _constructionData[offset] = ((Vector3)constructionData[objectIndex]).X;
+                    _constructionData[offset + 1] = ((Vector3)constructionData[objectIndex]).Y;
+                    _constructionData[offset + 2] = ((Vector3)constructionData[objectIndex]).Z;
+                    objectIndex++;
+                    offset += VECTOR3;
+                }
+                if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_X))
+                {
+                    _constructionData[offset] = (float)constructionData[objectIndex];
+                    objectIndex++;
+                    offset += FLOAT;
+                }
+                if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Y))
+                {
+                    _constructionData[offset] = (float)constructionData[objectIndex];
+                    objectIndex++;
+                    offset += FLOAT;
+                }
+                if (_parameterFlags.HasFlag(ConstructionParameterFlags.FLOAT_ROTATION_Z))
+                {
+                    _constructionData[offset] = (float)constructionData[objectIndex];
+                    objectIndex++;
+                    offset += FLOAT;
+                }
+                if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR3_SCALE))
+                {
+                    _constructionData[offset] = ((Vector3)constructionData[objectIndex]).X;
+                    _constructionData[offset + 1] = ((Vector3)constructionData[objectIndex]).Y;
+                    _constructionData[offset + 2] = ((Vector3)constructionData[objectIndex]).Z;
+                    objectIndex++;
+                    offset += VECTOR3;
+                }
+                if (_parameterFlags.HasFlag(ConstructionParameterFlags.VECTOR2_DIMENSIONS))
+                {
+                    _constructionData[offset] = ((Vector2)constructionData[objectIndex]).X;
+                    _constructionData[offset + 1] = ((Vector2)constructionData[objectIndex]).Y;
+                    objectIndex++;
+                    offset += VECTOR2;
+                }
+                if (_parameterFlags.HasFlag(ConstructionParameterFlags.COLOR4_COLOR))
+                {
+                    _constructionData[offset] = ((Color4)constructionData[objectIndex]).R;
+                    _constructionData[offset + 1] = ((Color4)constructionData[objectIndex]).G;
+                    _constructionData[offset + 2] = ((Color4)constructionData[objectIndex]).B;
+                    _constructionData[offset + 3] = ((Color4)constructionData[objectIndex]).A;
+                    objectIndex++;
+                    offset += COLOR4;
+                }
+            }
+            else
+            {
+                throw new Exception("The construction data passed does not match the ParameterFlags. Invalid ComponentModel construction.");
+            }
         }
 
         public float[] GetConstructionParameter(ConstructionParameterFlags flag)
@@ -222,7 +324,6 @@ namespace DeeSynk.Core.Components.Types.Render
                     return 0;
             }
         }
-
         /*
         //Most of this data is purely for debugging, or model modification
         public void PushVAOBufferProperties(int[] bufferIDs, Buffers bufferFlags, int[] baseBufferIndices)

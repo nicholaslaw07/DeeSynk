@@ -66,7 +66,7 @@ namespace DeeSynk.Core
 
             _systemVAO = new SystemVAO(this);
             _systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, 0, true);
-            _systemVAO.InitVAOInRange(Buffers.VERTICES_ELEMENTS | Buffers.COLORS, 1, 1, true);
+            _systemVAO.InitVAOInRange(Buffers.VERTICES_ELEMENTS | Buffers.COLORS | Buffers.INSTANCES, 1, 1, true);
         }
 
         public void PushCameraRef(ref Camera camera)
