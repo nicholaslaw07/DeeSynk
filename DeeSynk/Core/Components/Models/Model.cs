@@ -19,60 +19,162 @@ namespace DeeSynk.Core.Components.Models
         TemplatePlaneYZ = 3
     }
 
+    public enum ModelDataState : int
+    {
+        ReadOnly = 0,
+        ReadWrite = 1,
+    }
+
     public class Model
     {
-        private int _vertexCount;
-        private Vector3[] _vertices;
-        public Vector3[] Vertices { get => _vertices; }
+        private bool _hasValidData;
+        public bool HasValidData { get => _hasValidData; }
+
+        private ModelDataState _modelDataState;
+        public ModelDataState ModelDataState { get => _modelDataState; }
+
+        private ModelProperties _modelProperties;
+        public ModelProperties Properties { get => _modelProperties; }
+
+        private Vector4[] _vertices;
+        public Vector4[] Vertices
+        {
+            get => _vertices;
+            set
+            {
+                if (_modelDataState == ModelDataState.ReadWrite && value.Length > 0)
+                {
+                    _modelProperties |= ModelProperties.VERTICES;
+                    _vertices = value;
+                }
+            }
+        }
+        public int VertexCount { get => _vertices.Length; }
 
         private Color4[] _colors;
-        public Color4[] Colors { get => _colors; }
+        public Color4[] Colors
+        {
+            get => _colors;
+            set
+            {
+                if (_modelDataState == ModelDataState.ReadWrite && !_modelProperties.HasFlag(ModelProperties.UVS) && value.Length > 0)
+                {
+                    _modelProperties |= ModelProperties.COLORS;
+                    _colors = value;
+                }
+            }
+        }
+        public int ColorCount { get => _colors.Length; }
 
         private Vector2[] _uvs;
-        public Vector2[] UVS { get => _uvs; }
+        public Vector2[] UVs
+        {
+            get => _uvs;
+            set
+            {
+                if (_modelDataState == ModelDataState.ReadWrite && !_modelProperties.HasFlag(ModelProperties.COLORS) && value.Length > 0)
+                {
+                    _modelProperties |= ModelProperties.UVS;
+                    _uvs = value;
+                }
+            }
+        }
+        public int UVCount { get => _uvs.Length; }
 
-        private int _normalCount;
         private Vector3[] _normals;
-        public Vector3[] Normals { get => _normals; }
-
-        private uint[] _vertexIndices;
-        public uint[] VertexIndices { get => _vertexIndices; }
-
-        private uint[] _normalIndices;
-        public uint[] NormalIndices { get => _normalIndices; }
-
-        public Model(Vector3[] vertices, uint[] vertexIndices, bool recomputeCenter, bool computeNormals)
+        public Vector3[] Normals
         {
-            _vertexCount = vertices.Length;
-            _vertices = new Vector3[_vertexCount];
-            for (int idx = 0; idx < _vertexCount; idx++)
-                _vertices[idx] = vertices[idx];
-
-            if (recomputeCenter)
+            get => _normals;
+            set
             {
-                Vector3 offsetAvg = Vector3.Zero;
-                for (int idx = 0; idx < _vertexCount; idx++)
+                if (_modelDataState == ModelDataState.ReadWrite && value.Length > 0)
+                {
+                    _modelProperties |= ModelProperties.NORMALS;
+                    _normals = value;
+                }
+            }
+        }
+        public int NormalCount { get => _normals.Length; }
+
+        private uint[] _elements;
+        public uint[] Elements
+        {
+            get => _elements;
+            set
+            {
+                if (_modelDataState == ModelDataState.ReadWrite && value.Length > 0)
+                {
+                    _modelProperties |= ModelProperties.ELEMENTS;
+                    _elements = value;
+                }
+            }
+        }
+        public int ElementCount { get => _elements.Length; }
+
+        public Model()
+        {
+            _modelDataState = ModelDataState.ReadWrite;
+        }
+
+        /// <summary>
+        /// Sets the model's data state such that it can no longer be written to.
+        /// </summary>
+        public void SetReadOnly()
+        {
+            _hasValidData = ValidateData();
+
+            if (_modelDataState == ModelDataState.ReadWrite)
+                _modelDataState = ModelDataState.ReadOnly;
+        }
+
+        /// <summary>
+        /// Sets the model's data state such that it can no longer be written to.  Includes 
+        /// </summary>
+        /// <param name="centerToZero">Sets the model's zero position (center) equal to the average of it's vertices.</param>
+        /// <param name="computeNormals">Computes the normals for this model.</param>
+        public void SetReadOnly(bool centerToZero, bool computeNormals)
+        {
+            _hasValidData = ValidateData();
+
+            if (_hasValidData)
+            {
+                if (centerToZero) CenterToZero();
+                if (computeNormals) ComputeNormals();
+
+                if (_modelDataState == ModelDataState.ReadWrite)
+                    _modelDataState = ModelDataState.ReadOnly;
+            }
+        }
+
+        private void CenterToZero()
+        {
+            int count = VertexCount;
+            if(VertexCount > 0)
+            {
+                Vector4 offsetAvg = Vector4.Zero;
+                for (int idx = 0; idx < count; idx++)
                     offsetAvg += _vertices[idx];
 
-                offsetAvg /= (float)_vertexCount;
+                offsetAvg /= (float)count;
+                offsetAvg.W = 0f;
 
-                for (int idx = 0; idx < _vertexCount; idx++)
+                for (int idx = 0; idx < count; idx++)
                     _vertices[idx] -= offsetAvg;
             }
-
-            _vertexIndices = vertexIndices;
-
-            if (computeNormals)
+        }
+        private void ComputeNormals()
+        {
+            if(_normals == null)
             {
-                _normalCount = _vertexCount;
-                _normals = new Vector3[_vertexCount];
+                int count = VertexCount;
+                _normals = new Vector3[count];
                 {
-                    int[] counts = new int[_vertexCount];
-                    for (int i = 0; i < vertexIndices.Length / 3 + vertexIndices.Length % 3; i++)
+                    int[] counts = new int[count];
+                    for (int i = 0; i < ElementCount / 3; i++)
                     {
-                        Vector3 p1 = _vertices[_vertexIndices[i * 3]];
-                        Vector3 p2 = _vertices[_vertexIndices[i * 3 + 1]];
-                        Vector3 p3 = _vertices[_vertexIndices[i * 3 + 2]];
+                        Vector3 p1 = _vertices[_elements[i * 3]].Xyz;
+                        Vector3 p2 = _vertices[_elements[i * 3 + 1]].Xyz;
+                        Vector3 p3 = _vertices[_elements[i * 3 + 2]].Xyz;
 
                         Vector3 U = p2 - p1;
                         Vector3 V = p3 - p1;
@@ -85,13 +187,13 @@ namespace DeeSynk.Core.Components.Models
 
                         normal.Normalize();
 
-                        _normals[_vertexIndices[i * 3]] += normal;
-                        _normals[_vertexIndices[i * 3 + 1]] += normal;
-                        _normals[_vertexIndices[i * 3 + 2]] += normal;
+                        _normals[_elements[i * 3]] += normal;
+                        _normals[_elements[i * 3 + 1]] += normal;
+                        _normals[_elements[i * 3 + 2]] += normal;
 
-                        counts[_vertexIndices[i * 3]]++;
-                        counts[_vertexIndices[i * 3 + 1]]++;
-                        counts[_vertexIndices[i * 3 + 2]]++;
+                        counts[_elements[i * 3]]++;
+                        counts[_elements[i * 3 + 1]]++;
+                        counts[_elements[i * 3 + 2]]++;
                     }
 
                     for (int i = 0; i < _normals.Length; i++)
@@ -102,317 +204,71 @@ namespace DeeSynk.Core.Components.Models
                     }
                 }
             }
-
-            Random r = new Random();
-
-            _colors = new Color4[_vertexCount];
-            for (int i = 0; i < _vertexCount; i++)
-            {
-                _colors[i] = Color4.CornflowerBlue;
-            }
-        }
-
-        public Model(Vector3[] vertices, Vector2[] uvs, uint[] vertexIndices, bool recomputeCenter, bool computeNormals)
-        {
-            _vertexCount = vertices.Length;
-            _vertices = new Vector3[_vertexCount];
-            for (int idx = 0; idx < _vertexCount; idx++)
-                _vertices[idx] = vertices[idx];
-
-            if (recomputeCenter)
-            {
-                Vector3 offsetAvg = Vector3.Zero;
-                for (int idx = 0; idx < _vertexCount; idx++)
-                    offsetAvg += _vertices[idx];
-
-                offsetAvg /= (float)_vertexCount;
-
-                for (int idx = 0; idx < _vertexCount; idx++)
-                    _vertices[idx] -= offsetAvg;
-            }
-
-            _vertexIndices = vertexIndices;
-
-            if (computeNormals)
-            {
-                _normalCount = _vertexCount;
-                _normals = new Vector3[_vertexCount];
-                {
-                    int[] counts = new int[_vertexCount];
-                    for (int i = 0; i < vertexIndices.Length / 3 + vertexIndices.Length % 3; i++)
-                    {
-                        Vector3 p1 = _vertices[_vertexIndices[i * 3]];
-                        Vector3 p2 = _vertices[_vertexIndices[i * 3 + 1]];
-                        Vector3 p3 = _vertices[_vertexIndices[i * 3 + 2]];
-
-                        Vector3 U = p2 - p1;
-                        Vector3 V = p3 - p1;
-
-                        float Nx = (U.Y * V.Z) - (U.Z * V.Y);
-                        float Ny = (U.Z * V.X) - (U.X * V.Z);
-                        float Nz = (U.X * V.Y) - (U.Y * V.X);
-
-                        Vector3 normal = new Vector3(Nx, Ny, Nz);
-
-                        normal.Normalize();
-
-                        _normals[_vertexIndices[i * 3]] += normal;
-                        _normals[_vertexIndices[i * 3 + 1]] += normal;
-                        _normals[_vertexIndices[i * 3 + 2]] += normal;
-
-                        counts[_vertexIndices[i * 3]]++;
-                        counts[_vertexIndices[i * 3 + 1]]++;
-                        counts[_vertexIndices[i * 3 + 2]]++;
-                    }
-
-                    for (int i = 0; i < _normals.Length; i++)
-                    {
-                        Vector3 n = _normals[i];
-                        n.Normalize();
-                        _normals[i] = n;
-                    }
-                }
-
-                _normalIndices = _vertexIndices;
-            }
-
-            _uvs = new Vector2[uvs.Length];
-            for (int idx = 0; idx < uvs.Length; idx++)
-                _uvs[idx] = uvs[idx];
-        }
-
-        public Model(Vector3[] vertices, Vector2[] uvs, bool recomputeCenter, bool computeNormals)
-        {
-            _vertexCount = vertices.Length;
-            _vertices = new Vector3[_vertexCount];
-            for (int idx = 0; idx < _vertexCount; idx++)
-                _vertices[idx] = vertices[idx];
-
-            if (recomputeCenter)
-            {
-                Vector3 offsetAvg = Vector3.Zero;
-                for (int idx = 0; idx < _vertexCount; idx++)
-                    offsetAvg += _vertices[idx];
-
-                offsetAvg /= (float)_vertexCount;
-
-                for (int idx = 0; idx < _vertexCount; idx++)
-                    _vertices[idx] -= offsetAvg;
-            }
-
-            /*
-            if (computeNormals)
-            {
-                _normalCount = _vertexCount;
-                _normals = new Vector3[_vertexCount];
-                {
-                    int[] counts = new int[_vertexCount];
-                    for (int i = 0; i < vertexIndices.Length / 3 + vertexIndices.Length % 3; i++)
-                    {
-                        Vector3 p1 = _vertices[_vertexIndices[i * 3]];
-                        Vector3 p2 = _vertices[_vertexIndices[i * 3 + 1]];
-                        Vector3 p3 = _vertices[_vertexIndices[i * 3 + 2]];
-
-                        Vector3 U = p2 - p1;
-                        Vector3 V = p3 - p1;
-
-                        float Nx = (U.Y * V.Z) - (U.Z * V.Y);
-                        float Ny = (U.Z * V.X) - (U.X * V.Z);
-                        float Nz = (U.X * V.Y) - (U.Y * V.X);
-
-                        Vector3 normal = new Vector3(Nx, Ny, Nz);
-
-                        normal.Normalize();
-
-                        _normals[_vertexIndices[i * 3]] += normal;
-                        _normals[_vertexIndices[i * 3 + 1]] += normal;
-                        _normals[_vertexIndices[i * 3 + 2]] += normal;
-
-                        counts[_vertexIndices[i * 3]]++;
-                        counts[_vertexIndices[i * 3 + 1]]++;
-                        counts[_vertexIndices[i * 3 + 2]]++;
-                    }
-
-                    for (int i = 0; i < _normals.Length; i++)
-                    {
-                        Vector3 n = _normals[i];
-                        n.Normalize();
-                        _normals[i] = n;
-                    }
-                }
-
-                _normalIndices = _vertexIndices;
-            }
-            */
-            _uvs = new Vector2[uvs.Length];
-            for (int idx = 0; idx < uvs.Length; idx++)
-                _uvs[idx] = uvs[idx];
-        }
-
-        public Model(Vector3[] vertices, Color4[] colors, uint[] vertexIndices, bool recomputeCenter, bool computeNormals)
-        {
-            _vertexCount = vertices.Length;
-            _vertices = new Vector3[_vertexCount];
-            for (int idx = 0; idx < _vertexCount; idx++)
-                _vertices[idx] = vertices[idx];
-
-            if (recomputeCenter)
-            {
-                Vector3 offsetAvg = Vector3.Zero;
-                for (int idx = 0; idx < _vertexCount; idx++)
-                    offsetAvg += _vertices[idx];
-
-                offsetAvg /= (float)_vertexCount;
-
-                for (int idx = 0; idx < _vertexCount; idx++)
-                    _vertices[idx] -= offsetAvg;
-            }
-
-            _vertexIndices = new uint[vertexIndices.Length];
-            _vertexIndices = vertexIndices;
-
-            if (computeNormals)
-            {
-                _normalCount = _vertexCount;
-                _normals = new Vector3[_vertexCount];
-                {
-                    int[] counts = new int[_vertexCount];
-                    for (int i = 0; i < vertexIndices.Length / 3 + vertexIndices.Length % 3; i++)
-                    {
-                        Vector3 p1 = _vertices[_vertexIndices[i * 3]];
-                        Vector3 p2 = _vertices[_vertexIndices[i * 3 + 1]];
-                        Vector3 p3 = _vertices[_vertexIndices[i * 3 + 2]];
-
-                        Vector3 U = p2 - p1;
-                        Vector3 V = p3 - p1;
-
-                        float Nx = (U.Y * V.Z) - (U.Z * V.Y);
-                        float Ny = (U.Z * V.X) - (U.X * V.Z);
-                        float Nz = (U.X * V.Y) - (U.Y * V.X);
-
-                        Vector3 normal = new Vector3(Nx, Ny, Nz);
-
-                        normal.Normalize();
-
-                        _normals[_vertexIndices[i * 3]] += normal;
-                        _normals[_vertexIndices[i * 3 + 1]] += normal;
-                        _normals[_vertexIndices[i * 3 + 2]] += normal;
-
-                        counts[_vertexIndices[i * 3]]++;
-                        counts[_vertexIndices[i * 3 + 1]]++;
-                        counts[_vertexIndices[i * 3 + 2]]++;
-                    }
-
-                    for (int i = 0; i < _normals.Length; i++)
-                    {
-                        Vector3 n = _normals[i];
-                        n.Normalize();
-                        _normals[i] = n;
-                    }
-                }
-
-                _normalIndices = _vertexIndices;
-            }
-
-            _colors = new Color4[colors.Length];
-            for (int idx = 0; idx < colors.Length; idx++)
-                _colors[idx] = colors[idx];
-        }
-
-        public Model(Vector3[] vertices, Color4[] colors, bool recomputeCenter, bool computeNormals)
-        {
-            _vertexCount = vertices.Length;
-            _vertices = new Vector3[_vertexCount];
-            for (int idx = 0; idx < _vertexCount; idx++)
-                _vertices[idx] = vertices[idx];
-
-            if (recomputeCenter)
-            {
-                Vector3 offsetAvg = Vector3.Zero;
-                for (int idx = 0; idx < _vertexCount; idx++)
-                    offsetAvg += _vertices[idx];
-
-                offsetAvg /= (float)_vertexCount;
-
-                for (int idx = 0; idx < _vertexCount; idx++)
-                    _vertices[idx] -= offsetAvg;
-            }
-
-            if (computeNormals)
-            {
-                _normalCount = _vertexCount;
-                _normals = new Vector3[_vertexCount];
-                {
-                    int[] counts = new int[_vertexCount];
-                    for (int i = 0; i < _vertexCount / 3; i++)
-                    {
-                        Vector3 p1 = _vertices[i * 3];
-                        Vector3 p2 = _vertices[i * 3 + 1];
-                        Vector3 p3 = _vertices[i * 3 + 2];
-
-                        Vector3 U = p2 - p1;
-                        Vector3 V = p3 - p1;
-
-                        float Nx = (U.Y * V.Z) - (U.Z * V.Y);
-                        float Ny = (U.Z * V.X) - (U.X * V.Z);
-                        float Nz = (U.X * V.Y) - (U.Y * V.X);
-
-                        Vector3 normal = new Vector3(Nx, Ny, Nz);
-
-                        normal.Normalize();
-
-                        _normals[_vertexIndices[i * 3]] += normal;
-                        _normals[_vertexIndices[i * 3 + 1]] += normal;
-                        _normals[_vertexIndices[i * 3 + 2]] += normal;
-
-                        counts[_vertexIndices[i * 3]]++;
-                        counts[_vertexIndices[i * 3 + 1]]++;
-                        counts[_vertexIndices[i * 3 + 2]]++;
-                    }
-
-                    for (int i = 0; i < _normals.Length; i++)
-                    {
-                        Vector3 n = _normals[i];
-                        n.Normalize();
-                        _normals[i] = n;
-                    }
-                }
-
-                _normalIndices = _vertexIndices;
-            }
-
-            _colors = new Color4[colors.Length];
-            for (int idx = 0; idx < colors.Length; idx++)
-                _colors[idx] = colors[idx];
-        }
-
-        public Model(ref Vector3[] vertices, ref Vector3[] normals, ref uint[] vertexIndices, ref uint[] normalIndices) //fix
-        {
-            _vertexCount = vertices.Length;
-            _vertices = new Vector3[_vertexCount];
-            for (int idx = 0; idx < _vertexCount; idx++)
-                _vertices[idx] = vertices[idx];
             
-            _normalCount = normals.Length;
-            _normals = new Vector3[_normalCount];
-            for (int idx = 0; idx < _normalCount; idx++)
-                _normals[idx] = normals[idx];
-
-            _vertexIndices = new uint[vertexIndices.Length];
-            _vertexIndices = vertexIndices;
-
-            _normalIndices = new uint[normalIndices.Length];
-            _normalIndices = normalIndices;
-
-            Random r = new Random();
-
-            _colors = new Color4[_vertexCount];
-            for(int i=0; i<_vertexCount; i++)
-            {
-                _colors[i] = new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
-            }
         }
 
+        // Valid data consists of at least one vertex, and an elements buffer that has equal or more elements than vertices.
+        // Additionally, if present:  vertices = normals = colors
+        //                            elements = uvs
+
+        private bool ValidateData()
+        {
+            bool valid = false;
+            if(VertexCount > 0)
+            {
+                valid = true;
+
+                if (_modelProperties.HasFlag(ModelProperties.ELEMENTS) && ElementCount >= VertexCount)
+                {
+                    if (_modelProperties.HasFlag(ModelProperties.UVS))
+                    {
+                        if(UVCount == ElementCount)
+                        {
+                            if (valid != false)
+                                valid = true;
+                        }
+                        else
+                        {
+                            valid = false;
+                        }
+                    }
+                }
+                else
+                {
+                    valid = false;
+                }
+
+                if (_modelProperties.HasFlag(ModelProperties.COLORS))
+                {
+                    if (ColorCount == VertexCount)
+                    {
+                        if (valid != false)
+                            valid = true;
+                    }
+                    else
+                    {
+                        valid = false;
+                    }
+                }
+
+                if (_modelProperties.HasFlag(ModelProperties.NORMALS))
+                {
+                    if (NormalCount == VertexCount)
+                    {
+                        if (valid != false)
+                            valid = true;
+                    }
+                    else
+                    {
+                        valid = false;
+                    }
+                }
+            }
+            return valid;
+        }
+
+
+        //***STATICS***\\
 
         public static string GetTemplateName(ModelTemplates template)
         {
@@ -433,39 +289,46 @@ namespace DeeSynk.Core.Components.Models
         /// <returns></returns>
         public static Model CreateTemplatePlaneXZ(ref ComponentModelStatic modelComp)
         {
-            //for now, will not construct normals
+            Model model = new Model();
 
             if (modelComp.ModelProperties.HasFlag(ModelProperties.VERTICES))
             {
-                Vector3[] vertices;
+                Vector4[] vertices;
                 Color4[] colors;
                 Vector2[] uvs;
                 uint[] elements;
+
+                //CreateStaticModelMatrix(ref modelComp, out Matrix4 modelMatrix);
+                //model = new Model(modelMatrix);
 
                 //no error checking since this should almost always be the case, if not we compensate for it by having defaults (1.0f)
                 bool hasDimensionFlag = modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS);
                 float[] WH = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_DIMENSIONS); 
 
                 float width  = (hasDimensionFlag) ? WH[0] : 1.0f;  //X
+                width /= 2.0f;
                 float height = (hasDimensionFlag) ? WH[2] : 1.0f;  //Z
+                height /= 2.0f;
 
-                if (modelComp.ModelProperties.HasFlag(ModelProperties.FACE_ELEMENTS))
+                if (modelComp.ModelProperties.HasFlag(ModelProperties.ELEMENTS))
                 {
                     elements = new uint[6];
 
                     if (modelComp.ModelProperties.HasFlag(ModelProperties.UVS))
                     {
-                        vertices = new Vector3[6];
+                        vertices = new Vector4[6];
                         uvs = new Vector2[6];
-                        //Add vertices
+                        //Add vertices XZ
                         {
-                            vertices[0] = new Vector3(-width, 0, -height);
-                            vertices[1] = new Vector3( width, 0, -height);
-                            vertices[2] = new Vector3( width, 0,  height);
-                            vertices[3] = new Vector3( width, 0,  height);
-                            vertices[4] = new Vector3(-width, 0,  height);
-                            vertices[5] = new Vector3(-width, 0, -height);
+                            vertices[0] = new Vector4(-width, 0, -height, 0);
+                            vertices[1] = new Vector4( width, 0, -height, 0);
+                            vertices[2] = new Vector4( width, 0,  height, 0);
+                            vertices[3] = new Vector4( width, 0,  height, 0);
+                            vertices[4] = new Vector4(-width, 0,  height, 0);
+                            vertices[5] = new Vector4(-width, 0, -height, 0);
                         }
+                        model.Vertices = vertices;
+
                         //Add elements
                         {
                             elements[0] = 0;
@@ -475,6 +338,7 @@ namespace DeeSynk.Core.Components.Models
                             elements[4] = 4;
                             elements[5] = 5;
                         }
+                        model.Elements = elements;
 
                         float offsetU = 0.0f;
                         float offsetV = 0.0f;
@@ -503,21 +367,22 @@ namespace DeeSynk.Core.Components.Models
                             uvs[4] = new Vector2(offsetU         , offsetV + scaleV); //1, 0
                             uvs[5] = new Vector2(offsetU         , offsetV         ); //0, 0
                         }
-
-                        return new Model(vertices, uvs, elements, false, false);
+                        model.UVs = uvs;
                     }
                     else
                     {
-                        vertices = new Vector3[4];
+                        vertices = new Vector4[4];
                         colors = new Color4[4];
                         elements = new uint[6];
-                        //Add vertices
+                        //Add vertices XZ
                         {
-                            vertices[0] = new Vector3(-width, 0, -height);
-                            vertices[1] = new Vector3(width, 0, -height);
-                            vertices[2] = new Vector3(width, 0, height);
-                            vertices[3] = new Vector3(-width, 0, height);
+                            vertices[0] = new Vector4(-width, 0, -height, 1);
+                            vertices[1] = new Vector4( width, 0, -height, 1);
+                            vertices[2] = new Vector4( width, 0,  height, 1);
+                            vertices[3] = new Vector4(-width, 0,  height, 1);
                         }
+                        model.Vertices = vertices;
+
                         //Add elements
                         {
                             elements[0] = 0;
@@ -527,6 +392,8 @@ namespace DeeSynk.Core.Components.Models
                             elements[4] = 3;
                             elements[5] = 0;
                         }
+                        model.Elements = elements;
+
                         //Add colors
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
@@ -538,6 +405,7 @@ namespace DeeSynk.Core.Components.Models
                                 colors[idx] = color;
 
                         }
+
                         //the default return if it doesn't have the property for some reason
                         else
                         {
@@ -547,21 +415,23 @@ namespace DeeSynk.Core.Components.Models
                             colors[3] = Color4.Black;
                         }
 
-                        return new Model(vertices, colors, elements, false, false);
+                        model.Colors = colors;
                     }
                 }
                 else
                 {
-                    vertices = new Vector3[6];
-                    //Add vertices
+                    vertices = new Vector4[6];
+                    //Add vertices XZ
                     {
-                        vertices[0] = new Vector3(-width, 0, -height);
-                        vertices[1] = new Vector3(width, 0, -height);
-                        vertices[2] = new Vector3(width, 0, height);
-                        vertices[3] = new Vector3(width, 0, height);
-                        vertices[4] = new Vector3(-width, 0, height);
-                        vertices[5] = new Vector3(-width, 0, -height);
+                        vertices[0] = new Vector4(-width, 0, -height, 1);
+                        vertices[1] = new Vector4(width, 0, -height, 1);
+                        vertices[2] = new Vector4(width, 0, height, 1);
+                        vertices[3] = new Vector4(width, 0, height, 1);
+                        vertices[4] = new Vector4(-width, 0, height, 1);
+                        vertices[5] = new Vector4(-width, 0, -height, 1);
                     }
+                    model.Vertices = vertices;
+
                     //Add UVs
                     if (modelComp.ModelProperties.HasFlag(ModelProperties.UVS))
                     {
@@ -594,9 +464,9 @@ namespace DeeSynk.Core.Components.Models
                             uvs[4] = new Vector2(offsetU, offsetV + scaleV); //1, 0
                             uvs[5] = new Vector2(offsetU, offsetV); //0, 0
                         }
-
-                        return new Model(vertices, uvs, false, false);
+                        model.UVs = uvs;
                     }
+
                     //Or Add colors
                     else
                     {
@@ -617,12 +487,13 @@ namespace DeeSynk.Core.Components.Models
                             colors[4] = Color4.Black;
                             colors[5] = Color4.LightGreen;
                         }
-
-                        return new Model(vertices, colors, false, false);
+                        model.Colors = colors;
                     }
                 }
+
+                model.SetReadOnly(false, true);
             }
-            return null;
+            return model;
         }
 
         /// <summary>
@@ -632,39 +503,46 @@ namespace DeeSynk.Core.Components.Models
         /// <returns></returns>
         public static Model CreateTemplatePlaneXY(ref ComponentModelStatic modelComp)
         {
-            //for now, will not construct normals
+            Model model = new Model();
 
             if (modelComp.ModelProperties.HasFlag(ModelProperties.VERTICES))
             {
-                Vector3[] vertices;
+                Vector4[] vertices;
                 Color4[] colors;
                 Vector2[] uvs;
                 uint[] elements;
 
+                //CreateStaticModelMatrix(ref modelComp, out Matrix4 modelMatrix);
+                //model = new Model(modelMatrix);
+
                 //no error checking since this should almost always be the case, if not we compensate for it by having defaults (1.0f)
                 bool hasDimensionFlag = modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS);
-                float[] WH = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_DIMENSIONS);
+                float[] WH = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_DIMENSIONS); 
 
-                float width = (hasDimensionFlag) ? WH[0] : 1.0f;  //X
+                float width  = (hasDimensionFlag) ? WH[0] : 1.0f;  //X
+                width /= 2.0f;
                 float height = (hasDimensionFlag) ? WH[1] : 1.0f;  //Y
+                height /= 2.0f;
 
-                if (modelComp.ModelProperties.HasFlag(ModelProperties.FACE_ELEMENTS))
+                if (modelComp.ModelProperties.HasFlag(ModelProperties.ELEMENTS))
                 {
                     elements = new uint[6];
 
                     if (modelComp.ModelProperties.HasFlag(ModelProperties.UVS))
                     {
-                        vertices = new Vector3[6];
+                        vertices = new Vector4[6];
                         uvs = new Vector2[6];
-                        //Add vertices
+                        //Add vertices XY
                         {
-                            vertices[0] = new Vector3(-width, -height, 0);
-                            vertices[1] = new Vector3( width, -height, 0);
-                            vertices[2] = new Vector3( width,  height, 0);
-                            vertices[3] = new Vector3( width,  height, 0);
-                            vertices[4] = new Vector3(-width,  height, 0);
-                            vertices[5] = new Vector3(-width, -height, 0);
+                            vertices[0] = new Vector4(-width, -height, 0, 1);
+                            vertices[1] = new Vector4( width, -height, 0, 1);
+                            vertices[2] = new Vector4( width,  height, 0, 1);
+                            vertices[3] = new Vector4( width,  height, 0, 1);
+                            vertices[4] = new Vector4(-width,  height, 0, 1);
+                            vertices[5] = new Vector4(-width, -height, 0, 1);
                         }
+                        model.Vertices = vertices;
+
                         //Add elements
                         {
                             elements[0] = 0;
@@ -674,6 +552,7 @@ namespace DeeSynk.Core.Components.Models
                             elements[4] = 4;
                             elements[5] = 5;
                         }
+                        model.Elements = elements;
 
                         float offsetU = 0.0f;
                         float offsetV = 0.0f;
@@ -702,21 +581,22 @@ namespace DeeSynk.Core.Components.Models
                             uvs[4] = new Vector2(offsetU         , offsetV + scaleV); //1, 0
                             uvs[5] = new Vector2(offsetU         , offsetV         ); //0, 0
                         }
-
-                        return new Model(vertices, uvs, elements, false, false);
+                        model.UVs = uvs;
                     }
                     else
                     {
-                        vertices = new Vector3[4];
+                        vertices = new Vector4[4];
                         colors = new Color4[4];
                         elements = new uint[6];
-                        //Add vertices
+                        //Add vertices XY
                         {
-                            vertices[0] = new Vector3(-width, -height, 0);
-                            vertices[1] = new Vector3( width, -height, 0);
-                            vertices[2] = new Vector3( width,  height, 0);
-                            vertices[3] = new Vector3(-width,  height, 0);
+                            vertices[0] = new Vector4(-width, -height, 0, 1);
+                            vertices[1] = new Vector4( width, -height, 0, 1);
+                            vertices[2] = new Vector4( width,  height, 0, 1);
+                            vertices[3] = new Vector4(-width,  height, 0, 1);
                         }
+                        model.Vertices = vertices;
+
                         //Add elements
                         {
                             elements[0] = 0;
@@ -726,17 +606,20 @@ namespace DeeSynk.Core.Components.Models
                             elements[4] = 3;
                             elements[5] = 0;
                         }
+                        model.Elements = elements;
+
                         //Add colors
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
 
                             float[] ColorRaw = modelComp.GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(ColorRaw[0], ColorRaw[1], ColorRaw[2], ColorRaw[3]);
+                            Color4 color = new Color4(ColorRaw[0], ColorRaw[1], ColorRaw[2], ColorRaw[3]);         
 
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
 
                         }
+
                         //the default return if it doesn't have the property for some reason
                         else
                         {
@@ -746,21 +629,23 @@ namespace DeeSynk.Core.Components.Models
                             colors[3] = Color4.Black;
                         }
 
-                        return new Model(vertices, colors, elements, false, false);
+                        model.Colors = colors;
                     }
                 }
                 else
                 {
-                    vertices = new Vector3[6];
-                    //Add vertices
+                    vertices = new Vector4[6];
+                    //Add vertices XY
                     {
-                        vertices[0] = new Vector3(-width, -height, 0);
-                        vertices[1] = new Vector3( width, -height, 0);
-                        vertices[2] = new Vector3( width,  height, 0);
-                        vertices[3] = new Vector3( width,  height, 0);
-                        vertices[4] = new Vector3(-width,  height, 0);
-                        vertices[5] = new Vector3(-width, -height, 0);
+                        vertices[0] = new Vector4(-width, -height, 0, 1);
+                        vertices[1] = new Vector4( width, -height, 0, 1);
+                        vertices[2] = new Vector4( width,  height, 0, 1);
+                        vertices[3] = new Vector4( width,  height, 0, 1);
+                        vertices[4] = new Vector4(-width,  height, 0, 1);
+                        vertices[5] = new Vector4(-width, -height, 0, 1);
                     }
+                    model.Vertices = vertices;
+
                     //Add UVs
                     if (modelComp.ModelProperties.HasFlag(ModelProperties.UVS))
                     {
@@ -786,16 +671,16 @@ namespace DeeSynk.Core.Components.Models
 
                         //Add uv data, offset on the UV is not affected by the scaling (dimensions)
                         {
-                            uvs[0] = new Vector2(offsetU         , offsetV         ); //0, 0
-                            uvs[1] = new Vector2(offsetU + scaleU, offsetV         ); //1, 0
+                            uvs[0] = new Vector2(offsetU, offsetV); //0, 0
+                            uvs[1] = new Vector2(offsetU + scaleU, offsetV); //1, 0
                             uvs[2] = new Vector2(offsetU + scaleU, offsetV + scaleV); //1, 1
                             uvs[3] = new Vector2(offsetU + scaleU, offsetV + scaleV); //1, 1
-                            uvs[4] = new Vector2(offsetU         , offsetV + scaleV); //1, 0
-                            uvs[5] = new Vector2(offsetU         , offsetV         ); //0, 0
+                            uvs[4] = new Vector2(offsetU, offsetV + scaleV); //1, 0
+                            uvs[5] = new Vector2(offsetU, offsetV); //0, 0
                         }
-
-                        return new Model(vertices, uvs, false, false);
+                        model.UVs = uvs;
                     }
+
                     //Or Add colors
                     else
                     {
@@ -816,12 +701,13 @@ namespace DeeSynk.Core.Components.Models
                             colors[4] = Color4.Black;
                             colors[5] = Color4.LightGreen;
                         }
-
-                        return new Model(vertices, colors, false, false);
+                        model.Colors = colors;
                     }
                 }
+
+                model.SetReadOnly(false, true);
             }
-            return null;
+            return model;
         }
 
         /// <summary>
@@ -831,39 +717,47 @@ namespace DeeSynk.Core.Components.Models
         /// <returns></returns>
         public static Model CreateTemplatePlaneYZ(ref ComponentModelStatic modelComp)
         {
-            //for now, will not construct normals
+
+            Model model = new Model();
 
             if (modelComp.ModelProperties.HasFlag(ModelProperties.VERTICES))
             {
-                Vector3[] vertices;
+                Vector4[] vertices;
                 Color4[] colors;
                 Vector2[] uvs;
                 uint[] elements;
+
+                //CreateStaticModelMatrix(ref modelComp, out Matrix4 modelMatrix);
+                //model = new Model(modelMatrix);
 
                 //no error checking since this should almost always be the case, if not we compensate for it by having defaults (1.0f)
                 bool hasDimensionFlag = modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS);
                 float[] WH = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_DIMENSIONS);
 
-                float width  = (hasDimensionFlag) ? WH[1] : 1.0f;  //Y
+                float width = (hasDimensionFlag) ? WH[1] : 1.0f;  //Y
+                width /= 2.0f;
                 float height = (hasDimensionFlag) ? WH[2] : 1.0f;  //Z
+                height /= 2.0f;
 
-                if (modelComp.ModelProperties.HasFlag(ModelProperties.FACE_ELEMENTS))
+                if (modelComp.ModelProperties.HasFlag(ModelProperties.ELEMENTS))
                 {
                     elements = new uint[6];
 
                     if (modelComp.ModelProperties.HasFlag(ModelProperties.UVS))
                     {
-                        vertices = new Vector3[6];
+                        vertices = new Vector4[6];
                         uvs = new Vector2[6];
-                        //Add vertices
+                        //Add vertices YZ
                         {
-                            vertices[0] = new Vector3(0, -width, -height);
-                            vertices[1] = new Vector3(0,  width, -height);
-                            vertices[2] = new Vector3(0,  width,  height);
-                            vertices[3] = new Vector3(0,  width,  height);
-                            vertices[4] = new Vector3(0, -width,  height);
-                            vertices[5] = new Vector3(0, -width, -height);
+                            vertices[0] = new Vector4(0, -width, -height, 1);
+                            vertices[1] = new Vector4(0,  width, -height, 1);
+                            vertices[2] = new Vector4(0,  width,  height, 1);
+                            vertices[3] = new Vector4(0,  width,  height, 1);
+                            vertices[4] = new Vector4(0, -width,  height, 1);
+                            vertices[5] = new Vector4(0, -width, -height, 1);
                         }
+                        model.Vertices = vertices;
+
                         //Add elements
                         {
                             elements[0] = 0;
@@ -873,6 +767,7 @@ namespace DeeSynk.Core.Components.Models
                             elements[4] = 4;
                             elements[5] = 5;
                         }
+                        model.Elements = elements;
 
                         float offsetU = 0.0f;
                         float offsetV = 0.0f;
@@ -894,28 +789,29 @@ namespace DeeSynk.Core.Components.Models
 
                         //Add uv data, offset on the UV is not affected by the scaling (dimensions)
                         {
-                            uvs[0] = new Vector2(offsetU         , offsetV         ); //0, 0
-                            uvs[1] = new Vector2(offsetU + scaleU, offsetV         ); //1, 0
+                            uvs[0] = new Vector2(offsetU, offsetV); //0, 0
+                            uvs[1] = new Vector2(offsetU + scaleU, offsetV); //1, 0
                             uvs[2] = new Vector2(offsetU + scaleU, offsetV + scaleV); //1, 1
                             uvs[3] = new Vector2(offsetU + scaleU, offsetV + scaleV); //1, 1
-                            uvs[4] = new Vector2(offsetU         , offsetV + scaleV); //1, 0
-                            uvs[5] = new Vector2(offsetU         , offsetV         ); //0, 0
+                            uvs[4] = new Vector2(offsetU, offsetV + scaleV); //1, 0
+                            uvs[5] = new Vector2(offsetU, offsetV); //0, 0
                         }
-
-                        return new Model(vertices, uvs, elements, false, false);
+                        model.UVs = uvs;
                     }
                     else
                     {
-                        vertices = new Vector3[4];
+                        vertices = new Vector4[4];
                         colors = new Color4[4];
                         elements = new uint[6];
-                        //Add vertices
+                        //Add vertices YZ
                         {
-                            vertices[0] = new Vector3(0, -width, -height);
-                            vertices[1] = new Vector3(0,  width, -height);
-                            vertices[2] = new Vector3(0,  width,  height);
-                            vertices[3] = new Vector3(0, -width,  height);
+                            vertices[0] = new Vector4(0, -width, -height, 1);
+                            vertices[1] = new Vector4(0,  width, -height, 1);
+                            vertices[2] = new Vector4(0,  width,  height, 1);
+                            vertices[3] = new Vector4(0, -width,  height, 1);
                         }
+                        model.Vertices = vertices;
+
                         //Add elements
                         {
                             elements[0] = 0;
@@ -925,6 +821,8 @@ namespace DeeSynk.Core.Components.Models
                             elements[4] = 3;
                             elements[5] = 0;
                         }
+                        model.Elements = elements;
+
                         //Add colors
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
@@ -936,6 +834,7 @@ namespace DeeSynk.Core.Components.Models
                                 colors[idx] = color;
 
                         }
+
                         //the default return if it doesn't have the property for some reason
                         else
                         {
@@ -945,21 +844,23 @@ namespace DeeSynk.Core.Components.Models
                             colors[3] = Color4.Black;
                         }
 
-                        return new Model(vertices, colors, elements, false, false);
+                        model.Colors = colors;
                     }
                 }
                 else
                 {
-                    vertices = new Vector3[6];
-                    //Add vertices
+                    vertices = new Vector4[6];
+                    //Add vertices YZ
                     {
-                        vertices[0] = new Vector3(0, -width, -height);
-                        vertices[1] = new Vector3(0,  width, -height);
-                        vertices[2] = new Vector3(0,  width,  height);
-                        vertices[3] = new Vector3(0,  width,  height);
-                        vertices[4] = new Vector3(0, -width,  height);
-                        vertices[5] = new Vector3(0, -width, -height);
+                        vertices[0] = new Vector4(0, -width, -height, 1);
+                        vertices[1] = new Vector4(0,  width, -height, 1);
+                        vertices[2] = new Vector4(0,  width,  height, 1);
+                        vertices[3] = new Vector4(0,  width,  height, 1);
+                        vertices[4] = new Vector4(0, -width,  height, 1);
+                        vertices[5] = new Vector4(0, -width, -height, 1);
                     }
+                    model.Vertices = vertices;
+
                     //Add UVs
                     if (modelComp.ModelProperties.HasFlag(ModelProperties.UVS))
                     {
@@ -985,16 +886,16 @@ namespace DeeSynk.Core.Components.Models
 
                         //Add uv data, offset on the UV is not affected by the scaling (dimensions)
                         {
-                            uvs[0] = new Vector2(offsetU         , offsetV         ); //0, 0
-                            uvs[1] = new Vector2(offsetU + scaleU, offsetV         ); //1, 0
+                            uvs[0] = new Vector2(offsetU, offsetV); //0, 0
+                            uvs[1] = new Vector2(offsetU + scaleU, offsetV); //1, 0
                             uvs[2] = new Vector2(offsetU + scaleU, offsetV + scaleV); //1, 1
                             uvs[3] = new Vector2(offsetU + scaleU, offsetV + scaleV); //1, 1
-                            uvs[4] = new Vector2(offsetU         , offsetV + scaleV); //1, 0
-                            uvs[5] = new Vector2(offsetU         , offsetV         ); //0, 0
+                            uvs[4] = new Vector2(offsetU, offsetV + scaleV); //1, 0
+                            uvs[5] = new Vector2(offsetU, offsetV); //0, 0
                         }
-
-                        return new Model(vertices, uvs, false, false);
+                        model.UVs = uvs;
                     }
+
                     //Or Add colors
                     else
                     {
@@ -1015,12 +916,76 @@ namespace DeeSynk.Core.Components.Models
                             colors[4] = Color4.Black;
                             colors[5] = Color4.LightGreen;
                         }
-
-                        return new Model(vertices, colors, false, false);
+                        model.Colors = colors;
                     }
                 }
+
+                model.SetReadOnly(false, true);
             }
-            return null;
+            return model;
         }
+
+        /*
+        private static void CreateStaticModelMatrix(ref ComponentModelStatic modelComp, out Matrix4 modelMatrix)
+        {
+            float tau = 6.2831853f;
+            var flags = modelComp.ConstructionFlags;
+
+            Matrix4 rotX = Matrix4.Identity, rotY = Matrix4.Identity, rotZ = Matrix4.Identity, scale = Matrix4.Identity, trns = Matrix4.Identity, trns_Inv = Matrix4.Identity;
+
+            modelMatrix = Matrix4.Identity;
+            bool hasRotation = false;
+            if (flags.HasFlag(ConstructionFlags.FLOAT_ROTATION_X))
+            {
+                modelComp.GetConstructionParameter(ConstructionFlags.FLOAT_ROTATION_X, out float[] data);
+                if(data[0] % tau != 0)
+                {
+                Matrix4.CreateRotationX(data[0], out rotX);
+                Matrix4.Mult(ref rotX, ref modelMatrix, out modelMatrix);
+                hasRotation = true;
+                }
+            }
+            if (flags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Y))
+            {
+                modelComp.GetConstructionParameter(ConstructionFlags.FLOAT_ROTATION_Y, out float[] data);
+                if(data[0] % tau != 0)
+                {
+                    Matrix4.CreateRotationY(data[0], out rotY);
+                    Matrix4.Mult(ref rotY, ref modelMatrix, out modelMatrix);
+                    hasRotation = true;
+                }
+            }
+            if (flags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Z))
+            {
+                modelComp.GetConstructionParameter(ConstructionFlags.FLOAT_ROTATION_Z, out float[] data);
+                if(data[0] % tau != 0)
+                {
+                    Matrix4.CreateRotationZ(data[0], out rotZ);
+                    Matrix4.Mult(ref rotZ, ref modelMatrix, out modelMatrix);
+                    hasRotation = true;
+                }
+
+            }
+            if (flags.HasFlag(ConstructionFlags.VECTOR3_SCALE))
+            {
+                modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_SCALE, out float[] data);
+                Matrix4.CreateScale(data[0], data[1], data[2], out scale);
+                Matrix4.Mult(ref scale, ref modelMatrix, out modelMatrix);
+            }
+            if (flags.HasFlag(ConstructionFlags.VECTOR3_OFFSET))
+            {
+                modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_OFFSET, out float[] data);
+                if (hasRotation)
+                {
+                    Matrix4.CreateTranslation(-data[0], -data[1], -data[2], out trns_Inv);
+                    Matrix4.Mult(ref trns_Inv, ref modelMatrix, out modelMatrix);
+                }
+
+                Matrix4.CreateTranslation(data[0], data[1], data[2], out trns);
+                Matrix4.Mult(ref modelMatrix, ref trns, out modelMatrix);
+            }
+
+            //modelMatrix = trns_Inv * scale * rotX * rotY * rotZ * trns;
+        }*/
     }
 }

@@ -60,6 +60,7 @@ namespace DeeSynk.Core.Systems
         //    7 - MAT4 4
 
         private const int VERTEX_SIZE = 16;
+        private const int NORMAL_SIZE = 12;
         private const int COLOR_SIZE = 16;
         private const int UV_SIZE = 8;
         private const int UINT_SIZE = 4;
@@ -172,7 +173,7 @@ namespace DeeSynk.Core.Systems
                     else if(!bufferMask.HasFlag(Buffers.COLORS) && bufferMask.HasFlag(Buffers.UVS))
                     {
                         AddUVBuffer(start, end);
-                        programID = shaderManager.GetProgram("defaultTextured");
+                        programID = shaderManager.GetProgram("shadowTextured2");
                     }
                     if (bufferMask.HasFlag(Buffers.INSTANCES))
                         AddLocationBuffer(start, end - start + 1, 1);
@@ -203,16 +204,29 @@ namespace DeeSynk.Core.Systems
             
             int vertexCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
-                vertexCount += modelManager.GetModel(ref _staticModelComps[idx]).Vertices.Length;
+            {
+                var model = modelManager.GetModel(ref _staticModelComps[idx]);
+                if (!model.HasValidData)
+                    continue;
+
+                vertexCount += model.VertexCount;
+            }
 
             int kdx = 0;
             Vector4[] vertices = new Vector4[vertexCount];
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                int modelVertexCount = modelManager.GetModel(_staticModelComps[idx].ModelID).Vertices.Length;
+                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                if (!model.HasValidData)
+                    continue;
+
+                int modelVertexCount = modelManager.GetModel(_staticModelComps[idx].ModelID).VertexCount;
+                Matrix4 modelMatrix = _transComps[idx].GetModelMatrix;
+
                 for (int jdx = 0; jdx < modelVertexCount; jdx++)
                 {
-                    vertices[kdx] = new Vector4(modelManager.GetModel(_staticModelComps[idx].ModelID).Vertices[jdx], 1.0f);
+                    //vertices[kdx] = Vector4.Transform(model.Vertices[jdx], modelMatrix);
+                    vertices[kdx] = model.Vertices[jdx];
                     kdx++;
                 }
             }
@@ -234,19 +248,52 @@ namespace DeeSynk.Core.Systems
 
             var modelManager = ModelManager.GetInstance();
 
-            
             int colorCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
-                colorCount += modelManager.GetModel(_staticModelComps[idx].ModelID).Colors.Length;
+            {
+                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                if (model.Properties.HasFlag(ModelProperties.COLORS))
+                    colorCount += model.ColorCount;
+                else if (model.Properties.HasFlag(ModelProperties.VERTICES))
+                {
+                    colorCount += (model.Properties.HasFlag(ModelProperties.ELEMENTS)) ? model.ElementCount : model.VertexCount;
+                }
+            }
+
+
+            Color4[] colors = new Color4[colorCount];
 
             int kdx = 0;
-            Color4[] colors = new Color4[colorCount];
+            int modelColorCount;
+            bool useColorFromComponent;
+            Color4 color = Color4.Black;
+
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                int modelColorCount = modelManager.GetModel(_staticModelComps[idx].ModelID).Colors.Length;
+                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+
+                if (!model.HasValidData)
+                    continue;
+
+                modelColorCount = 0;
+                useColorFromComponent = false;
+                color = Color4.Black;
+
+                if (model.Properties.HasFlag(ModelProperties.COLORS))
+                    modelColorCount = model.ColorCount;
+                else if(model.Properties.HasFlag(ModelProperties.VERTICES))
+                    modelColorCount = (model.Properties.HasFlag(ModelProperties.ELEMENTS)) ? model.ElementCount : model.VertexCount;
+
+                if(!model.Properties.HasFlag(ModelProperties.COLORS))
+                {
+                    _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR, out float[] data);
+                    color = new Color4(data[0], data[1], data[2], data[3]);
+                    useColorFromComponent = true;
+                }
+
                 for (int jdx = 0; jdx < modelColorCount; jdx++)
                 {
-                    colors[kdx] = modelManager.GetModel(_staticModelComps[idx].ModelID).Colors[jdx];
+                    colors[kdx] = (useColorFromComponent) ? color : model.Colors[jdx];
                     kdx++;
                 }
             }
@@ -266,28 +313,32 @@ namespace DeeSynk.Core.Systems
         {
             int tbo = GL.GenBuffer();
 
-            /*
-             * int uvCount = 0;
+            ModelManager modelManager = ModelManager.GetInstance();
+
+            int uvCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
-                uvCount += _textureComps[idx].TextureCount;
+            {
+                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                if (!model.HasValidData)
+                    continue;
+
+                uvCount += model.UVCount;
+            }
 
             int kdx = 0;
             Vector2[] uvCoords = new Vector2[uvCount];
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                for (int jdx = 0; jdx < _textureComps[idx].TextureCount; jdx++)
+                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                if (!model.HasValidData)
+                    continue;
+
+                for (int jdx = 0; jdx < model.UVCount; jdx++)
                 {
-                    uvCoords[kdx] = _textureComps[idx].TextureCoodinates[jdx];
+                    uvCoords[kdx] = model.UVs[jdx];
                     kdx++;
                 }
-            }*/
-
-            ModelManager mm = ModelManager.GetInstance();
-            ComponentModelStatic sm = _staticModelComps[1];
-            var m = mm.GetModel(ref sm);
-
-            int uvCount = m.UVS.Length;
-            Vector2[] uvCoords = m.UVS;
+            }
 
             int dataSize = UV_SIZE * uvCount;
 
@@ -339,28 +390,41 @@ namespace DeeSynk.Core.Systems
 
             int normalCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
-                normalCount += modelManager.GetModel(_staticModelComps[idx].ModelID).Normals.Length;
+            {
+                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                if (!model.HasValidData)
+                    continue;
+
+                normalCount += model.NormalCount;
+            }
 
             int kdx = 0;
-            Vector4[] normals = new Vector4[normalCount];
+            Vector3[] normals = new Vector3[normalCount];
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                int modelNormalCount = modelManager.GetModel(_staticModelComps[idx].ModelID).Normals.Length;
+                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                if (!model.HasValidData)
+                    continue;
+
+                int modelNormalCount = model.NormalCount;
                 for (int jdx = 0; jdx < modelNormalCount; jdx++)
                 {
-                    normals[kdx] = new Vector4(modelManager.GetModel(_staticModelComps[idx].ModelID).Normals[jdx], 1.0f);
+                    //var norm = Vector3.TransformVector(model.Normals[jdx], _transComps[idx].GetModelMatrix);
+                    //norm.Normalize();
+                    //normals[kdx] = norm;
+                    normals[kdx] = model.Normals[jdx];
                     kdx++;
                 }
             }
 
-            int dataSize = VERTEX_SIZE * normalCount;
+            int dataSize = NORMAL_SIZE * normalCount;
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, nbo);
             GL.NamedBufferStorage(nbo, dataSize, normals, BufferStorageFlags.MapReadBit);
 
-            GL.BindVertexBuffer(3, nbo, IntPtr.Zero, VERTEX_SIZE);
+            GL.BindVertexBuffer(3, nbo, IntPtr.Zero, NORMAL_SIZE);
             GL.EnableVertexAttribArray(3);
-            GL.VertexAttribFormat(3, 4, VertexAttribType.Float, false, 0);
+            GL.VertexAttribFormat(3, 3, VertexAttribType.Float, false, 0);
             GL.VertexAttribBinding(3, 3);
         }
 
@@ -373,18 +437,25 @@ namespace DeeSynk.Core.Systems
 
             int indexCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
-                indexCount += modelManager.GetModel(_staticModelComps[idx].ModelID).VertexIndices.Length;
+            {
+                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                if (!model.HasValidData)
+                    continue;
+                indexCount += model.ElementCount;
+            }
 
             uint kdx = 0;
             uint[] indices = new uint[indexCount];
             for(int idx = lowerBound; idx <= upperBound; idx++)
             {
-                uint count = (uint)modelManager.GetModel(_staticModelComps[idx].ModelID).VertexIndices.Length;
-                for (int jdx = 0; jdx < count; jdx++)
+                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                if (!model.HasValidData)
+                    continue;
+                for (int jdx = 0; jdx < model.ElementCount; jdx++)
                 {
-                    indices[kdx + jdx] = kdx + modelManager.GetModel(_staticModelComps[idx].ModelID).VertexIndices[jdx];
+                    indices[kdx + jdx] = kdx + model.Elements[jdx];
                 }
-                kdx += count;
+                kdx += (uint)model.ElementCount;
             }
 
             int dataSize = UINT_SIZE * indexCount;

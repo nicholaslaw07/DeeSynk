@@ -34,9 +34,6 @@ namespace DeeSynk.Core
         private Vector3 V_Up = new Vector3(0.0f, v, 0.0f);
         private Vector3 V_Dn = new Vector3(0.0f, -v, 0.0f);
 
-        private int dx = 0;
-        private int dy = 0;
-
         Point center;
         Point mousePos;
 
@@ -92,9 +89,11 @@ namespace DeeSynk.Core
             //CursorVisible = true;
 
             this.Cursor = MouseCursor.Empty;
-            //this.WindowState = this.WindowState | WindowState.Fullscreen;
+            this.WindowState = this.WindowState | WindowState.Fullscreen;
 
-            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 2000f);
+            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.1f, 200f);
+
+
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();

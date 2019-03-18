@@ -63,7 +63,7 @@ namespace DeeSynk.Core
             _systemTransform.InitLocation();
 
             //TEST START
-            int texID = TextureManager.GetInstance().GetTexture("Ball");
+            int texID = TextureManager.GetInstance().GetTexture("wood");
 
             var uvArr = new Vector2[6];
             uvArr[0] = new Vector2(0.0f, 0.0f);
@@ -78,12 +78,13 @@ namespace DeeSynk.Core
 
             _systemVAO = new SystemVAO(this);
             _systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, 0, true);
-            _systemVAO.InitVAOInRange(Buffers.VERTICES_ELEMENTS | Buffers.UVS | Buffers.INSTANCES, 1, 1, true);
+            _systemVAO.InitVAOInRange(Buffers.VERTICES_ELEMENTS | Buffers.UVS, 1, 1, true);
         }
 
         public void PushCameraRef(ref Camera camera)
         {
             _systemTransform.PushCameraRef(ref camera);
+            _systemRender.PushCameraRef(ref camera);
         }
 
         /// <summary>

@@ -16,24 +16,24 @@ namespace DeeSynk.Core.Components.Types.Render
     public enum ModelProperties
     {
         VERTICES = 1,
-        FACE_ELEMENTS = 1 << 1,
+        ELEMENTS = 1 << 1,
 
         NORMALS = 1 << 2,
         COLORS  = 1 << 3,
         UVS     = 1 << 4,
 
-        VERTICES_ELEMENTS        = VERTICES | FACE_ELEMENTS,
+        VERTICES_ELEMENTS        = VERTICES | ELEMENTS,
         VERTICES_COLORS_ELEMENTS = VERTICES_ELEMENTS | COLORS,
         VERTICES_UVS_ELEMENTS    = VERTICES_ELEMENTS | UVS,
 
         VERTICES_NORMALS          = VERTICES | NORMALS,
-        VERTICES_NORMALS_ELEMENTS = VERTICES_NORMALS| FACE_ELEMENTS,
+        VERTICES_NORMALS_ELEMENTS = VERTICES_NORMALS| ELEMENTS,
 
         VERTICES_NORMALS_COLORS          = VERTICES_NORMALS | COLORS,
-        VERTICES_NORMALS_COLORS_ELEMENTS = VERTICES_NORMALS_COLORS | FACE_ELEMENTS,
+        VERTICES_NORMALS_COLORS_ELEMENTS = VERTICES_NORMALS_COLORS | ELEMENTS,
 
         VERTICES_NORMALS_UVS          = VERTICES_NORMALS | UVS,
-        VERTICES_NORMALS_UVS_ELEMENTS = VERTICES_NORMALS_UVS | FACE_ELEMENTS
+        VERTICES_NORMALS_UVS_ELEMENTS = VERTICES_NORMALS_UVS | ELEMENTS
     }
 
     [Flags]
@@ -321,6 +321,17 @@ namespace DeeSynk.Core.Components.Types.Render
                 data[idx] = _constructionData[idx + offset];
 
             return data;
+        }
+
+        public void GetConstructionParameter(ConstructionFlags flag, out float[] data) //needs error checking or catching mechanism
+        {
+            int offset = ParameterOffset(flag);
+            int size = ParameterSize(flag);
+
+            data = new float[size];
+
+            for (int idx = 0; idx < size; idx++)
+                data[idx] = _constructionData[idx + offset];
         }
 
         public int ParameterOffset(ConstructionFlags flag)

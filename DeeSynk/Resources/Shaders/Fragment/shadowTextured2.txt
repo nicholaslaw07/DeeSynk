@@ -1,0 +1,48 @@
+﻿#version 450 core
+
+in vec2 vs_texCoord;
+in vec4 vs_lightCoord;
+layout(binding=0) uniform sampler2D tex;
+layout(binding=1) uniform sampler2D shadow;
+out vec4 color;
+
+uniform float fallOutDivisor = 5;
+
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float ShadowFactor(vec4 lightCoord)
+{
+	vec3 ProjCoords = lightCoord.xyz / lightCoord.w;
+	vec2 UVCoords;
+	UVCoords.x = 0.5 * (ProjCoords.x) + 0.5;
+	UVCoords.x += rand(vec2(ProjCoords.x, ProjCoords.y)) / 4000;
+	UVCoords.y = 0.5 * (ProjCoords.y) + 0.5;
+	UVCoords.y += rand(vec2(ProjCoords.y, ProjCoords.x)) / 4000;
+	float z = 0.5 * ProjCoords.z + 0.5;
+	float Depth = texture(shadow, UVCoords).x;
+	if(Depth < (z-0.01))
+		return 0.24;
+	else 
+		return 1.0;
+}
+
+float Attenuation(vec4 lightCoord)
+{	
+	vec3 coord = lightCoord.xyz;
+	return 1/pow((length(coord) / fallOutDivisor), 2);
+}
+
+void main(void)
+{
+
+	//vec3 c = texture(tex, vs_texCoord).xyz * ShadowFactor(vs_lightCoord);
+	//color =  vec4(vec3(UVCoords, 0.0), Depth);
+	vec4 c = texture(tex, vs_texCoord) * min(ShadowFactor(vs_lightCoord) , Attenuation(vs_lightCoord));
+	//c.a = SF(vs_lightCoord);
+	c.a = 1;
+	color = c;
+	//if()
+	//color = vec4(z, z, z, Depth);
+}

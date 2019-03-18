@@ -88,17 +88,26 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Fragment\shadowColored.txt" />
+    <Content Include="Resources\Shaders\Fragment\shadowTextured2.txt" />
+    <Content Include="Resources\Shaders\Fragment\shadowTextured.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultTextured_Instanced.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultColored.txt" />
+    <Content Include="Resources\Shaders\Vertex\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Vertex\shadowColored.txt" />
+    <Content Include="Resources\Shaders\Vertex\shadowTextured2.txt" />
+    <Content Include="Resources\Shaders\Vertex\shadowTextured.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultTextured_Instanced.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultColored.txt" />
     <Content Include="Resources\Textures\Ball - Copy.bmp" />
     <Content Include="Resources\Textures\Ball.bmp" />
     <Content Include="Resources\Textures\Ball2.bmp" />
+    <Content Include="Resources\Textures\wood.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

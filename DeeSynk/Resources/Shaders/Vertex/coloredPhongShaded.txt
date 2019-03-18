@@ -1,0 +1,83 @@
+﻿#version 450 core
+
+layout (location = 0) in vec4 position;
+layout (location = 1) in vec4 color;
+layout (location = 2) in vec4 offset;
+layout (location = 3) in vec3 normal;
+layout (location = 4) uniform vec3 cameraLoc;
+layout (location = 5) uniform mat4 model_view;
+layout (location = 9) uniform mat4 light_view;
+layout (location = 13) uniform mat4 modelMat;
+
+out vec4 vs_lightCoord;
+out vec4 vs_color;
+
+out vec3 compA;
+out vec3 compD;
+out vec3 compS;
+
+out float vs_dDot;
+
+
+
+void main(void)
+{
+	vec3 offset = inverse(modelMat)[3].xyz;
+	vec3 light = vec3(-1, 8, 0);
+
+	vec3 iA = color.xyz / 5;
+	vec3 iD = color.xyz;
+	vec3 iS = vec3(1.0, 1.0, 1.0);
+
+	float kA = 0.5;
+	float kD = 1.0;
+	float kS = 1.0;
+
+	float a  = 200;
+
+	vs_lightCoord = light_view * modelMat * position;
+    gl_Position = model_view * modelMat * position;
+
+	vec4 tr = modelMat * (position);
+
+	mat4 mmN = inverse(modelMat);
+	mmN[3] = vec4(0,0,0,1);
+	mmN = inverse(mmN);
+
+	vec3 Lm = normalize(light - tr.xyz );
+	vec3 N  = normalize((mmN * vec4(normal, 1.0)).xyz);
+	vec3 Rm = normalize(2 * (dot(Lm, N)) * N - Lm);
+	vec3 V  = normalize(cameraLoc - tr.xyz);
+
+	float dDot = dot(Lm, N);
+	float sDot = dot(Rm, V);
+
+	vs_dDot = dDot;
+
+	vec3 Ip = kA * iA;
+	compA = kA * iA;
+
+	if(dDot > 0)
+	{
+		Ip += kD * dDot * iD;
+		compD = kD * dDot * iD;
+		//Ip = vec3(1.0 ,1.0, 1.0);
+	}else
+	{
+		compD = vec3(0);
+	}
+
+	if(sDot > 0)
+	{
+		Ip += kS * pow(sDot, a) * iS;
+		compS = kS * pow(sDot, a) * iS;
+		//Ip = vec3(0.0 ,1.0, 0.0);
+	}else
+	{
+		compS = vec3(0);
+	}
+
+	vec3 outColor = Ip;
+	
+	vs_color = vec4(outColor, 1.0);
+}

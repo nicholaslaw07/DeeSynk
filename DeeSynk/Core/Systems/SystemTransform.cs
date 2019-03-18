@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
+using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Components.Types.Transform;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
@@ -25,6 +26,7 @@ namespace DeeSynk.Core.Systems
         private bool[] _monitoredGameObjects;
 
         private ComponentTransform[]    _transComps;
+        private ComponentModelStatic[] _modelCompsStatic;
 
         private Camera _camera;
 
@@ -35,17 +37,7 @@ namespace DeeSynk.Core.Systems
             _monitoredGameObjects = new bool[_world.ObjectMemory];
 
             _transComps = _world.TransComps;
-
-            UpdateMonitoredGameObjects();
-        }
-
-        public SystemTransform(World world, ref Matrix4 view, ref Matrix4 projection)
-        {
-            _world = world;
-
-            _monitoredGameObjects = new bool[_world.ObjectMemory];
-
-            _transComps = _world.TransComps;
+            _modelCompsStatic = _world.StaticModelComps;
 
             UpdateMonitoredGameObjects();
         }
@@ -80,36 +72,34 @@ namespace DeeSynk.Core.Systems
         public void InitLocation()
         {
             //TEST START
-            
-            Random r = new Random();
-            for(int i=0; i < _world.ObjectMemory; i++)
-            {
-                //| Component.ROTATION_X | Component.ROTATION_Y | Component.ROTATION_Z | Component.SCALE
-                _transComps[i] = new ComponentTransform((int)(Component.NONE));
-            }
+            for (int i = 0; i < _world.ObjectMemory; i++)
+                _transComps[i] = new ComponentTransform(ref _modelCompsStatic[i]);
 
-            //TEST END
-        }
+            _transComps[0].RotationXComp.InterpolateRotation(5f, 30f, InterpolationMode.LINEAR);
+            _transComps[0].RotationYComp.InterpolateRotation(2f, 30f, InterpolationMode.LINEAR);
+            _transComps[0].LocationComp.InterpolateTranslation(new Vector3(3, 0, 0), 30, InterpolationMode.LINEAR);
 
-        public void InitLocation(int index)
-        {
-            //TEST START
-
-            Random r = new Random();
-           _transComps[index] = new ComponentTransform((int)(Component.LOCATION), r.Next(-500, 500), r.Next(-500, 500), r.Next(-1000, -300));
+            //_transComps[1].RotationXComp.InterpolateRotation(5f, 5f, InterpolationMode.LINEAR);
+            //_transComps[1].LocationComp.InterpolateTranslation(new Vector3(0, 0, 20), 15, InterpolationMode.LINEAR);
             //TEST END
         }
 
         public void PushMatrixData(int index)
         {
-            Matrix4 m4 = _transComps[index].GetModelView * _camera.ViewProjection; //MVP
-            GL.UniformMatrix4(4, false, ref m4);
+            Matrix4 m4 = _transComps[index].GetModelMatrix * _camera.ViewProjection; //MVP
+            GL.UniformMatrix4(5, false, ref m4);
         }
 
         public void PushMatrixDataNoTransform()
         {
             GL.Uniform3(4, _camera.Location);
             GL.UniformMatrix4(5, false, ref _camera.ViewProjection);
+        }
+
+        public void PushModelMatrix(int index)
+        {
+            Matrix4 m4 = _transComps[index].GetModelMatrix;
+            GL.UniformMatrix4(13, false, ref m4);
         }
     }
 }

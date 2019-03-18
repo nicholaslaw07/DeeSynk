@@ -63,16 +63,17 @@ namespace DeeSynk.Core.Managers
             var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             using (var StreamReader = new StreamReader(fileStream, Encoding.UTF8))
             {
+                Model model = new Model();
                 string file = StreamReader.ReadToEnd();
 
-                Vector3[] vertices;
+                Vector4[] vertices;
 
                 string rs = @"[v] -?\d\.\d* -?\d.\d* -?\d.\d*";
 
                 Regex regex = new Regex(rs);
                 var matches = regex.Matches(file);
 
-                vertices = new Vector3[matches.Count];
+                vertices = new Vector4[matches.Count];
 
                 rs = @"-?\d\.\d+(e-?\d+)?";
                 regex = new Regex(rs);
@@ -86,7 +87,7 @@ namespace DeeSynk.Core.Managers
                     float y = float.Parse(components[1].ToString());
                     float z = float.Parse(components[2].ToString());
 
-                    vertices[idx] = new Vector3(x, y, z);
+                    vertices[idx] = new Vector4(x, y, z, 1);
                     idx++;
                 }
 
@@ -151,7 +152,12 @@ namespace DeeSynk.Core.Managers
                     idx++;
                 }
 
-                _modelLibrary.Add(Path.GetFileNameWithoutExtension(filePath), new Model(ref vertices, ref normals, ref vertexIndices, ref normalIndices));
+                model.Vertices = vertices;
+                model.Normals = normals;
+                model.Elements = vertexIndices;
+                model.SetReadOnly();
+
+                _modelLibrary.Add(Path.GetFileNameWithoutExtension(filePath), model);
             }
         }
 
@@ -162,6 +168,7 @@ namespace DeeSynk.Core.Managers
                 var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
                 using (var StreamReader = new StreamReader(fileStream, Encoding.UTF8))
                 {
+                    Model model = new Model();
                     string file = StreamReader.ReadToEnd();
 
                     //getting header info (we are disregarding the type properties and assuming that we are reading floats)
@@ -208,7 +215,7 @@ namespace DeeSynk.Core.Managers
 
                     string lastVertexElement = "";
 
-                    Vector3[] vertices = new Vector3[vertexElementCount];
+                    Vector4[] vertices = new Vector4[vertexElementCount];
                     {
                         string key = @"-?\d\.\d+(e-?\d+)?";
                         Regex regex = new Regex(key);
@@ -218,12 +225,12 @@ namespace DeeSynk.Core.Managers
                         {
                             for(int idx = 0; idx<vertexElementCount; idx++)
                             {
-                                float scale = 100f;
+                                float scale = 9f;
                                 float x = float.Parse(matches[idx * 3].Value);
                                 float y = float.Parse(matches[idx * 3 + 1].Value);
                                 float z = float.Parse(matches[idx * 3 + 2].Value);
 
-                                vertices[idx] = new Vector3(scale * x, scale * y, scale * z);
+                                vertices[idx] = new Vector4(scale * x, scale * y, scale * z, 1);
                             }
 
                             lastVertexElement = matches[matches.Count - 1].Value;
@@ -251,8 +258,11 @@ namespace DeeSynk.Core.Managers
                             }
                         }
                     }
+                    model.Vertices = vertices;
+                    model.Elements = faceIndices;
+                    model.SetReadOnly(true, true);
 
-                    _modelLibrary.Add(Path.GetFileNameWithoutExtension(filePath), new Model(vertices, faceIndices, true, true));
+                    _modelLibrary.Add(Path.GetFileNameWithoutExtension(filePath), model);
                     Console.WriteLine("Loaded model {0}: {1} vertices, {2} faces", Path.GetFileNameWithoutExtension(filePath), vertexElementCount, faceElementCount);
                 }
             }
@@ -261,32 +271,43 @@ namespace DeeSynk.Core.Managers
                 Console.Error.WriteLine(e.ToString());
             }
         }
+        
+        public void InitModel(ref ComponentModelStatic modelComp)
+        {
+            if (modelComp.ModelReferenceType == ModelReferenceType.TEMPLATE)
+            {
+                CreateModelFromTemplate(ref modelComp);
+            }
+        }
 
         public Model GetModel(string name)
         {
             Model value;
-            _modelLibrary.TryGetValue(name, out value);
-            return value;
+            var success = _modelLibrary.TryGetValue(name, out value);
+            if (success)
+                return value;
+            else
+                return null;
         }
 
         public Model GetModel(ref ComponentModelStatic modelComp)
         {
-            if (modelComp.ModelReferenceType == ModelReferenceType.DISCRETE)
-                return GetModel(modelComp.ModelID);
-            else if(modelComp.ModelReferenceType == ModelReferenceType.TEMPLATE)
+            if(modelComp.ModelReferenceType == ModelReferenceType.TEMPLATE)
             {
-                CreateModelFromTemplate(ref modelComp);
-                return GetModel(modelComp.ModelID);
+                if (!ModelExists(modelComp.ModelID))
+                {
+                    CreateModelFromTemplate(ref modelComp);
+                }
             }
 
-            return null;
+            return GetModel(modelComp.ModelID);
         }
 
         private void CreateModelFromTemplate(ref ComponentModelStatic modelComp)
         {
             Model model = GetModelFromTemplate(ref modelComp);
 
-            string name = GetValidNameForTemplate(Model.GetTemplateName(modelComp.TemplateID));
+            string name = GetValidNameForModel(Model.GetTemplateName(modelComp.TemplateID));
             modelComp.ModelID = name;
             if (model != null)
                 _modelLibrary.Add(name, model);
@@ -307,7 +328,7 @@ namespace DeeSynk.Core.Managers
             return null;
         }
 
-        private string GetValidNameForTemplate(string keyName)
+        private string GetValidNameForModel(string keyName)
         {
             string testName = "";
             int superIndex = 0;

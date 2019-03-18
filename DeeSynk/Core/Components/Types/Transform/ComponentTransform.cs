@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using DeeSynk.Core.Components.Types.Render;
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,12 +21,26 @@ namespace DeeSynk.Core.Components.Types.Transform
         Z = 3,
     }
 
+    [Flags]
+    public enum TransformComponents: byte
+    {
+        NONE =        0,
+        TRANSLATION = 1,
+        ROTATION_X =  1 << 1,
+        ROTATION_Y =  1 << 2,
+        ROTATION_Z =  1 << 3,
+        SCALE =       1 << 4,
+
+        ROTATION_XYZ = ROTATION_X | ROTATION_Y | ROTATION_Z,
+
+    }
+
     public class ComponentTransform : IComponent
     {
         public int BitMaskID => (int)Component.TRANSFORM;
 
-        private int _transformComponentsMask;
-        public int TransformComponentsMask { get => _transformComponentsMask; }
+        private TransformComponents _transformComponents;
+        public  TransformComponents TransformComponents { get => _transformComponents; }
 
         private ComponentLocation _location;
         private ComponentRotation _rotationX,
@@ -33,134 +48,224 @@ namespace DeeSynk.Core.Components.Types.Transform
                                   _rotationZ;
         private ComponentScale    _scale;
 
-        public ref ComponentLocation LocationComp  { get => ref _location; }
-        public ref ComponentRotation RotationXComp { get => ref _rotationX; }
-        public ref ComponentRotation RotationYComp { get => ref _rotationY; }
-        public ref ComponentRotation RotationZComp { get => ref _rotationZ; }
-        public ref ComponentScale    ScaleComp     { get => ref _scale; }
+        public ref ComponentLocation LocationComp
+        {
+            get
+            {
+                if (_location == null)
+                {
+                    _location = new ComponentLocation(false);
+                    _transformComponents |= TransformComponents.TRANSLATION;
+                }
+                return ref _location;
+            }
+        }
+        public ref ComponentRotation RotationXComp
+        {
+            get
+            {
+                if (_rotationX == null)
+                {
+                    _rotationX = new ComponentRotation(RotationAxes.X);
+                    _transformComponents |= TransformComponents.ROTATION_X;
+                }
+                return ref _rotationX;
+            }
+        }
+        public ref ComponentRotation RotationYComp
+        {
+            get
+            {
+                if (_rotationY == null)
+                {
+                    _rotationY = new ComponentRotation(RotationAxes.Y);
+                    _transformComponents |= TransformComponents.ROTATION_Y;
+                }
+                return ref _rotationY;
+            }
+        }
+        public ref ComponentRotation RotationZComp
+        {
+            get
+            {
+                if (_rotationZ == null)
+                {
+                    _rotationZ = new ComponentRotation(RotationAxes.Z);
+                    _transformComponents |= TransformComponents.ROTATION_Z;
+                }
+                return ref _rotationZ;
+            }
+        }
+        public ref ComponentScale    ScaleComp
+        {
+            get
+            {
+                if (_scale == null)
+                {
+                    _scale = new ComponentScale();
+                    _transformComponents |= TransformComponents.SCALE;
+                }
+                return ref _scale;
+            }
+        }
 
-        private Matrix4 _modelView;
+        private Matrix4 _model;
 
-        public ref Matrix4 GetModelView { get => ref _modelView; }
+        public ref Matrix4 GetModelMatrix { get => ref _model; }
 
-        public ComponentTransform(int transformComponentsMask, 
+        public ComponentTransform(TransformComponents transformComponents, bool includeNormalsMatrix,
                                   float locX = 0f, float locY = 0f, float locZ = 0f, 
                                   float rotX = 0f, float rotY = 0f, float rotZ = 0f, 
                                   float sclX = 1f, float sclY = 1f, float sclZ = 1f)
         {
-            _transformComponentsMask = transformComponentsMask;
+            _transformComponents = transformComponents;
 
-            if ((_transformComponentsMask & (int)Component.LOCATION) != 0)
+            if (_transformComponents.HasFlag(TransformComponents.TRANSLATION))
             {
                 bool doOrigin = false;
-                if ((_transformComponentsMask & ((int)Component.ROTATION_XYZ)) != 0)
+                if (_transformComponents.HasFlag(TransformComponents.ROTATION_X) ||
+                    _transformComponents.HasFlag(TransformComponents.ROTATION_Y) ||
+                    _transformComponents.HasFlag(TransformComponents.ROTATION_Z))
+
                     doOrigin = true;
 
                 _location = new ComponentLocation(doOrigin, locX, locY, locZ);
             }
 
-            if ((_transformComponentsMask & (int)Component.ROTATION_X) != 0)
+            if (_transformComponents.HasFlag(TransformComponents.ROTATION_X))
                 _rotationX = new ComponentRotation(RotationAxes.X, rotX);
 
-            if ((_transformComponentsMask & (int)Component.ROTATION_Y) != 0)
+            if (_transformComponents.HasFlag(TransformComponents.ROTATION_Y))
                 _rotationX = new ComponentRotation(RotationAxes.Y, rotY);
 
-            if ((_transformComponentsMask & (int)Component.ROTATION_Z) != 0)
+            if (_transformComponents.HasFlag(TransformComponents.ROTATION_Z))
                 _rotationX = new ComponentRotation(RotationAxes.Z, rotZ);
 
-            if ((_transformComponentsMask & (int)Component.SCALE) != 0)
+            if (_transformComponents.HasFlag(TransformComponents.SCALE))
                 _scale = new ComponentScale(sclX, sclY, sclZ);
 
-            _modelView = Matrix4.Identity;
+            _model = Matrix4.Identity;
+
+            ComputeModelProduct();
         }
 
-        public void ComputeModelViewProduct()
+        public ComponentTransform(ref ComponentModelStatic modelComp)
         {
-            if((_transformComponentsMask & ((int)Component.ROTATION_XYZ)) != 0)
+            var flags = modelComp.ConstructionFlags;
+            _transformComponents = TransformComponents.NONE;
+            if (flags.HasFlag(ConstructionFlags.VECTOR3_OFFSET))
+            {
+                _transformComponents |= TransformComponents.TRANSLATION;
+                bool doOrigin = false;
+                
+                if (flags.HasFlag(ConstructionFlags.FLOAT_ROTATION_X) || flags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Y) || flags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Z))
+                    doOrigin = true;
+
+                modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_OFFSET, out float[] data);
+                    
+                _location = new ComponentLocation(doOrigin, data[0], data[1], data[2]);
+            }
+
+            if (flags.HasFlag(ConstructionFlags.FLOAT_ROTATION_X))
+            {
+                _transformComponents |= TransformComponents.ROTATION_X;
+                modelComp.GetConstructionParameter(ConstructionFlags.FLOAT_ROTATION_X, out float[] data);
+                _rotationX = new ComponentRotation(RotationAxes.X, data[0]);
+            }
+
+            if (flags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Y))
+            {
+                _transformComponents |= TransformComponents.ROTATION_Y;
+                modelComp.GetConstructionParameter(ConstructionFlags.FLOAT_ROTATION_Y, out float[] data);
+                _rotationY = new ComponentRotation(RotationAxes.Y, data[0]);
+            }
+
+            if (flags.HasFlag(ConstructionFlags.FLOAT_ROTATION_Z))
+            {
+                _transformComponents |= TransformComponents.ROTATION_Z;
+                modelComp.GetConstructionParameter(ConstructionFlags.FLOAT_ROTATION_Z, out float[] data);
+                _rotationZ = new ComponentRotation(RotationAxes.Z, data[0]);
+            }
+
+            if (flags.HasFlag(ConstructionFlags.VECTOR3_SCALE))
+            {
+                _transformComponents |= TransformComponents.SCALE;
+                modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_SCALE, out float[] data);
+                _scale = new ComponentScale(data[0], data[1], data[2]);
+            }
+
+            _model = Matrix4.Identity;
+
+            ComputeModelProduct();
+        }
+
+        /// <summary>
+        /// Constructs the model transformation matrix only with those matrices that exist.
+        /// </summary>
+        public void ComputeModelProduct()
+        {
+            if(_transformComponents.HasFlag(TransformComponents.ROTATION_X) || _transformComponents.HasFlag(TransformComponents.ROTATION_Y) || _transformComponents.HasFlag(TransformComponents.ROTATION_Z))
             {
                 Matrix4 rotMats = Matrix4.Identity;
-                if ((_transformComponentsMask & (int)Component.ROTATION_X) != 0)
+                if (_transformComponents.HasFlag(TransformComponents.ROTATION_X))
                     Matrix4.Mult(ref rotMats, ref _rotationX.Matrix, out rotMats);
-                if ((_transformComponentsMask & (int)Component.ROTATION_Y) != 0)
+                if (_transformComponents.HasFlag(TransformComponents.ROTATION_Y))
                     Matrix4.Mult(ref rotMats, ref _rotationY.Matrix, out rotMats);
-                if ((_transformComponentsMask & (int)Component.ROTATION_Z) != 0)
+                if (_transformComponents.HasFlag(TransformComponents.ROTATION_Z))
                     Matrix4.Mult(ref rotMats, ref _rotationZ.Matrix, out rotMats);
 
-                if (((_transformComponentsMask & (int)Component.LOCATION) != 0) && ((_transformComponentsMask & (int)Component.SCALE) != 0))
+                if (_transformComponents.HasFlag(TransformComponents.TRANSLATION) && _transformComponents.HasFlag(TransformComponents.SCALE))
                 {
-                    Matrix4.Mult(ref rotMats, ref _location.Matrix, out _modelView);
-                    Matrix4.Mult(ref _scale.Matrix, ref _modelView, out _modelView);
-                    Matrix4.Mult(ref _location.Matrix_Origin, ref _modelView, out _modelView);
-
-                    //TEST START 
-                    Matrix4 l = _location.Matrix;
-                    Matrix4 s = _scale.Matrix;
-                    Matrix4 lo = _location.Matrix_Origin;
-
-                    var m = lo * s * rotMats * l;
-                    //TEST END
+                    Matrix4.Mult(ref rotMats, ref _location.Matrix, out _model);
+                    Matrix4.Mult(ref _scale.Matrix, ref _model, out _model);
                 }
-                else if ((_transformComponentsMask & (int)Component.LOCATION) != 0)
+                else if (_transformComponents.HasFlag(TransformComponents.TRANSLATION))
                 {
-                    Matrix4.Mult(ref rotMats, ref _location.Matrix, out _modelView);
-                    Matrix4.Mult(ref _location.Matrix_Origin, ref _modelView, out _modelView);
+                    Matrix4.Mult(ref rotMats, ref _location.Matrix, out _model);
                 }
-                else if ((_transformComponentsMask & (int)Component.SCALE) != 0)
+                else if (_transformComponents.HasFlag(TransformComponents.SCALE))
                 {
-                    Matrix4.Mult(ref rotMats, ref _location.Matrix, out _modelView);
-                    Matrix4.Mult(ref _scale.Matrix, ref _modelView, out _modelView);
+                    Matrix4.Mult(ref _scale.Matrix, ref rotMats, out _model);
                 }
                 else
-                    _modelView = rotMats;
+                    _model = rotMats;
             }
             else
             {
-                if (((_transformComponentsMask & (int)Component.LOCATION) != 0) && ((_transformComponentsMask & (int)Component.SCALE) != 0))
-                    Matrix4.Mult(ref _scale.Matrix, ref _location.Matrix, out _modelView);
-                else if ((_transformComponentsMask & (int)Component.LOCATION) != 0)
-                    _modelView = _location.Matrix;
-                else if ((_transformComponentsMask & (int)Component.SCALE) != 0)
-                    _modelView = _scale.Matrix;
+                if (_transformComponents.HasFlag(TransformComponents.TRANSLATION) && _transformComponents.HasFlag(TransformComponents.SCALE))
+                    Matrix4.Mult(ref _scale.Matrix, ref _location.Matrix, out _model);
+
+                else if (_transformComponents.HasFlag(TransformComponents.TRANSLATION))
+                    _model = _location.Matrix;
+
+                else if (_transformComponents.HasFlag(TransformComponents.SCALE))
+                    _model = _scale.Matrix;
+
                 else
-                    _modelView = Matrix4.Identity;
+                    _model = Matrix4.Identity;
             }
         }
 
         public void Update(float time)
         {
             bool recomputeProduct = false;
-            if ((_transformComponentsMask & (int)Component.LOCATION) != 0)
-            {
-                _location.Update(time);
-                recomputeProduct |= _location.ValueUpdated;
-            }
+            if (_transformComponents.HasFlag(TransformComponents.TRANSLATION))
+                recomputeProduct |= _location.Update(time);
 
-            if ((_transformComponentsMask & (int)Component.ROTATION_X) != 0)
-            {
-                _rotationX.Update(time);
-                recomputeProduct |= _rotationX.ValueUpdated;
-            }
+            if (_transformComponents.HasFlag(TransformComponents.ROTATION_X))
+                recomputeProduct |= _rotationX.Update(time);
 
-            if ((_transformComponentsMask & (int)Component.ROTATION_Y) != 0)
-            {
-                _rotationY.Update(time);
-                recomputeProduct |= _rotationY.ValueUpdated;
-            }
+            if (_transformComponents.HasFlag(TransformComponents.ROTATION_Y))
+                recomputeProduct |= _rotationY.Update(time);
 
-            if ((_transformComponentsMask & (int)Component.ROTATION_Z) != 0)
-            {
-                _rotationZ.Update(time);
-                recomputeProduct |= _rotationZ.ValueUpdated;
-            }
+            if (_transformComponents.HasFlag(TransformComponents.ROTATION_Z))
+                recomputeProduct |= _rotationZ.Update(time);
 
-            if ((_transformComponentsMask & (int)Component.SCALE) != 0)
-            {
-                _scale.Update(time);
-                recomputeProduct |= _scale.ValueUpdated;
-            }
+            if (_transformComponents.HasFlag(TransformComponents.SCALE))
+                recomputeProduct |= _scale.Update(time);
 
             if (recomputeProduct)
-                ComputeModelViewProduct();
+                ComputeModelProduct();
         }
 
         public class ComponentLocation
@@ -256,8 +361,8 @@ namespace DeeSynk.Core.Components.Types.Transform
 
             public ComponentLocation(bool constructOriginTranslation)
             {
-                _isUpdateAllowed = false;
-                _valueUpdated = false;
+                _isUpdateAllowed = true;
+                _valueUpdated = true;
 
                 _location = Vector3.Zero;
                 _velocity = Vector3.Zero;
@@ -276,8 +381,8 @@ namespace DeeSynk.Core.Components.Types.Transform
             }
             public ComponentLocation(bool constructOriginTranslation, float x, float y, float z)
             {
-                _isUpdateAllowed = false;
-                _valueUpdated = false;
+                _isUpdateAllowed = true;
+                _valueUpdated = true;
 
                 _location = new Vector3(x, y, z);
                 _velocity = Vector3.Zero;
@@ -296,7 +401,7 @@ namespace DeeSynk.Core.Components.Types.Transform
 
             private void BuildMatrix()
             {
-                Matrix4.CreateTranslation(ref _location, out _translateMat4);
+                _translateMat4 = Matrix4.CreateTranslation(_location.X, _location.Y, _location.Z);
                 if (_constructOriginTranslation)
                     Matrix4.CreateTranslation(-_location.X, -_location.Y, -_location.Z, out _translateMat4_Origin);
             }
@@ -314,7 +419,6 @@ namespace DeeSynk.Core.Components.Types.Transform
 
                         _dX = deltaLocation;
                         _dT = interpolationTime;
-                        //VELOCITY = DX/DT
                         _isInterpolating = true;
                     }
                     else
@@ -327,14 +431,14 @@ namespace DeeSynk.Core.Components.Types.Transform
                 }
             }
 
-            public void Update(float time)
+            public bool Update(float time)
             {
                 if (_isInterpolating)  //future add switch statement for interp types
                 {
                     if (time < _dT)
                     {
                         Vector3 locStep = _dX * (time / _dT);
-                        _location += locStep;
+                        _translateMat4.Row3 += new Vector4(locStep);
                         _dT -= time;
                         _dX -= locStep;
                     }
@@ -348,7 +452,13 @@ namespace DeeSynk.Core.Components.Types.Transform
                 }
 
                 if (_valueUpdated)
-                    BuildMatrix();
+                {
+                    //BuildMatrix();
+                    _valueUpdated = false;
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -525,7 +635,7 @@ namespace DeeSynk.Core.Components.Types.Transform
                 }
             }
 
-            public void Update(float time)
+            public bool Update(float time)
             {
                 if (_isInterpolating)  //future add switch statement for interp types
                 {
@@ -535,6 +645,7 @@ namespace DeeSynk.Core.Components.Types.Transform
                         _angle += rotStep;
                         _dT -= time;
                         _dR -= rotStep;
+                        _valueUpdated = true;
                     }
                     else if(time >= _dT)
                     {
@@ -542,6 +653,7 @@ namespace DeeSynk.Core.Components.Types.Transform
                         _dR = 0f;
                         _dT = 0f;
                         _isInterpolating = false;
+                        _valueUpdated = true;
                     }
                 }
 
@@ -557,7 +669,12 @@ namespace DeeSynk.Core.Components.Types.Transform
                         _acceleration %= TAO;
 
                     BuildMatrix();
+
+                    _valueUpdated = false;
+                    return true;
                 }
+
+                return false;
             }
         }
 
@@ -668,7 +785,7 @@ namespace DeeSynk.Core.Components.Types.Transform
                 }
             }
 
-            public void Update(float time)
+            public bool Update(float time)
             {
                 if (_isInterpolating)  //future add switch statement for interp types
                 {
@@ -689,7 +806,14 @@ namespace DeeSynk.Core.Components.Types.Transform
                 }
 
                 if (_valueUpdated)
+                {
                     BuildMatrix();
+
+                    _valueUpdated = false;
+                    return true;
+                }
+
+                return false;
             }
         }
     }
