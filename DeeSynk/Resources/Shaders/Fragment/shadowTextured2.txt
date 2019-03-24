@@ -20,12 +20,12 @@ float ShadowFactor(vec4 lightCoord)
 	UVCoords.x += rand(vec2(ProjCoords.x, ProjCoords.y)) / 4000;
 	UVCoords.y = 0.5 * (ProjCoords.y) + 0.5;
 	UVCoords.y += rand(vec2(ProjCoords.y, ProjCoords.x)) / 4000;
-	float z = 0.5 * ProjCoords.z + 0.5;
+	float z = ProjCoords.z;
 	float Depth = texture(shadow, UVCoords).x;
 	if(Depth < (z-0.01))
 		return 0.24;
 	else 
-		return 1.0;
+		return 0.7;
 }
 
 float Attenuation(vec4 lightCoord)

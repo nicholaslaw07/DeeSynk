@@ -29,7 +29,7 @@ namespace DeeSynk.Core.Systems
         private ComponentTexture[] _textureComps;
 
         //SHADOW START
-        private Vector3 _lightLocation = new Vector3(-1, 8, 0);
+        private Vector3 _lightLocation = new Vector3(0, 2, 6);
         private Vector3 _lightLookAt = new Vector3(0);
         private Vector3 _lightUp = new Vector3(0, 1, 0);
         private Matrix4 _lightView;
@@ -40,8 +40,8 @@ namespace DeeSynk.Core.Systems
         private int _fbo;      //Frame Buffer (Depth)
         private int _depthMap; //Texture
 
-        private int _width = 10000;
-        private int _height = 10000;
+        private int _width = 8192;
+        private int _height = 8192;
 
         //SHADOW END
 
@@ -81,9 +81,10 @@ namespace DeeSynk.Core.Systems
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
             _lightView = Matrix4.LookAt(_lightLocation, _lightLookAt, _lightUp);
-             _lightOrtho = Matrix4.CreatePerspectiveFieldOfView(1.0f, _width/(float)_height, 5f, 15f);
+             _lightOrtho = Matrix4.CreatePerspectiveFieldOfView(1.0f, _width/(float)_height, 5f, 11f);
             //_lightOrtho = Matrix4.CreateOrthographic(12f, 8f, 10f, 25f);
             _lightView *= _lightOrtho;
+
             //SHADOW END
         }
 
@@ -158,13 +159,6 @@ namespace DeeSynk.Core.Systems
         {
             GL.Viewport(0, 0, _width, _height);
             BindFBO();
-            GL.Clear(ClearBufferMask.DepthBufferBit);
-            Bind(0);
-            GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
-            GL.UniformMatrix4(5, false, ref _lightView);
-            systemTransform.PushModelMatrix(0);
-            int x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).ElementCount * 10;
-            GL.DrawElements(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero);
 
             Bind(1);
             GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
@@ -173,6 +167,13 @@ namespace DeeSynk.Core.Systems
             int y = ModelManager.GetInstance().GetModel(_staticModelComps[1].ModelID).ElementCount;
             GL.DrawElementsInstanced(PrimitiveType.Triangles, y, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);
 
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+            Bind(0);
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
+            GL.UniformMatrix4(5, false, ref _lightView);
+            systemTransform.PushModelMatrix(0);
+            int x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).ElementCount * 10;
+            GL.DrawElements(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero);
             UnBindFBO();
             GL.Viewport(0, 0, (int)_camera.Width, (int)_camera.Height);
         }
@@ -184,6 +185,7 @@ namespace DeeSynk.Core.Systems
         public void RenderInstanced(ref SystemTransform systemTransform, int renderIdx)
         {
             RenderDepthMap(ref systemTransform);
+
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -208,10 +210,11 @@ namespace DeeSynk.Core.Systems
             systemTransform.PushModelMatrix(1);
             GL.ActiveTexture(TextureUnit.Texture0);
             _textureComps[1].BindTexture();
-            //GL.BindTexture(TextureTarget.Texture2D, _depthMap);
             BindDepthMap();
             int y = ModelManager.GetInstance().GetModel(_staticModelComps[1].ModelID).ElementCount;
             GL.DrawElementsInstanced(PrimitiveType.Triangles, y, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);
+
+
         }
     }
 }

@@ -7,29 +7,75 @@ in vec3 compA;
 in vec3 compD;
 in vec3 compS;
 in float vs_dDot;
+in float vs_sDot;
+
+in vec3 vs_N;
 
 layout(binding=1) uniform sampler2D shadow;
 out vec4 color;
 
 uniform float fallOutDivisor = 5;
-uniform float shadowBrightness = 0.24;
+uniform float shadowBrightness = 0.2;
 uniform float nonShadowBrightness = 1.0;
+uniform float dR = 1/ 8192;
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
+float GetSF(vec2 uv, float z)
+{
+	float Depth = texture(shadow, uv).x;
+	if(Depth < (z+0.0001))
+		return shadowBrightness;
+	else 
+		return nonShadowBrightness;
+}
+
+float SF(vec4 lightCoord)
+{
+	vec3 ProjCoords = lightCoord.xyz / lightCoord.w;
+	vec2 UVCoords;
+	UVCoords.x = 0.5 * ProjCoords.x + 0.5;
+	UVCoords.y = 0.5 * ProjCoords.y + 0.5;
+	float z = ProjCoords.z + 0.0001;
+	float Depth = texture(shadow, UVCoords).x;
+	float dr = 1/8192;
+	float DepthA = texture(shadow, vec2(UVCoords.x + dr, 0)).x;
+	float DepthB = texture(shadow, vec2(UVCoords.x - dr, 0)).x;
+	float DepthC = texture(shadow, vec2(0, UVCoords.y + dr)).x;
+	float DepthD = texture(shadow, vec2(0, UVCoords.y - dr)).x;
+
+	float D1 = mix(Depth, DepthA, DepthB);
+	float D2 = mix(Depth, DepthC, DepthD);
+	float D3 = mix(D1, D2, Depth);
+
+	//return 1.4 * pow(D3 - z, 2) + 0.001;
+	return pow(D3 - z, 2);
+}
 float ShadowFactor(vec4 lightCoord)
 {
 	vec3 ProjCoords = lightCoord.xyz / lightCoord.w;
 	vec2 UVCoords;
 	UVCoords.x = 0.5 * (ProjCoords.x) + 0.5;
-	UVCoords.x += rand(vec2(ProjCoords.x, ProjCoords.y)) / 4000;
 	UVCoords.y = 0.5 * (ProjCoords.y) + 0.5;
-	UVCoords.y += rand(vec2(ProjCoords.y, ProjCoords.x)) / 4000;
-	float z = 0.5 * ProjCoords.z + 0.5;
+	float z = ProjCoords.z;
+
+	//float Depth = GetSF(UVCoords, z);
+	//float dA = GetSF(UVCoords + vec2(dR, 0), z);
+	//float dB = GetSF(UVCoords + vec2(-dR, 0), z);
+	//float dAB = mix(dA, dB, Depth);
+
+	//float lI = GetSF(UVCoords + vec2(0, dR), z);
+	//float lT = GetSF(UVCoords + vec2(0, -dR), z);
+	//float lIT = mix(lI, lT, Depth);
+
+	//float dABlIT = mix (dAB, lIT, Depth);
+	
+	//return dABlIT * (1-min(vs_dDot, 0));
+
 	float Depth = texture(shadow, UVCoords).x;
-	if(Depth < (z-0.01))
+	if(Depth < (z+0.0001))
 		return shadowBrightness;
 	else 
 		return nonShadowBrightness;
@@ -41,37 +87,31 @@ float Attenuation(vec4 lightCoord)
 	return 1/pow((length(coord) / fallOutDivisor), 2);
 }
 
-float SF(vec4 lightCoord)
-{
-	vec3 ProjCoords = lightCoord.xyz / lightCoord.w;
-	vec2 UVCoords;
-	UVCoords.x = 0.5 * ProjCoords.x + 0.5;
-	UVCoords.y = 0.5 * ProjCoords.y + 0.5;
-	float z = 0.5 * ProjCoords.z + 0.5;
-	float Depth = texture(shadow, UVCoords).x;
-	return Depth - z;
-}
 
 void main(void)
 {
 	vec3 Ip = compA;
-	float sF = ShadowFactor(vs_lightCoord);
-	if(sF == nonShadowBrightness)
+
+	float sF = 1;
+	if(vs_dDot < 0)
 	{
-		Ip += compS + compD;
+		sF = ShadowFactor(vs_lightCoord);
 	}
+	//if(vs_dDot > 0 && sF == 1)
 
-	vec4 col = vec4(Ip, 1.0);
+    Ip += compD * (pow(vs_dDot - 0.5, 3) + 0.5);
 
-	float factor = 1;
+	float trns = SF(vs_lightCoord);
+	//trns = (log(trns*10)) + rand(vs_lightCoord.xy) / 40;
+	//trns = pow(trns, 0.5) + rand(vs_lightCoord.xy) / 40;
+	trns = 0.5 * atan(3.1 * (trns - 0.5)) + 0.5 + rand(vs_lightCoord.xy) / 40;
+	Ip *= trns;
+	if((vs_sDot > 0 && vs_dDot > 0))
+		Ip += compS;
+	color = vec4(Ip, 1.0) ;
 
-	if(vs_dDot > 0)
-		factor = 1;
-	else{
-		factor = 0.24;
-	}
-
-	vec4 c = col * min(sF , Attenuation(vs_lightCoord)); 
-	c.a = 1;
-	color = c;
 }
+
+	//float factor = 1;
+	//vec4 c = col * min(sF , Attenuation(vs_lightCoord)); 
+	//float val = (trns) * 4 + max(vs_dDot, 0.1);

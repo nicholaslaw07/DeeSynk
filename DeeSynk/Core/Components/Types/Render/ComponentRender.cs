@@ -12,9 +12,6 @@ namespace DeeSynk.Core.Components.Types.Render
     {
         public int BitMaskID => (int)Component.RENDER;
 
-        private Buffers _vaoBitMask;
-        public Buffers VAOBitMask { get => _vaoBitMask; }
-
         private bool _init;
         public bool Initialized { get => _init; }
 
@@ -41,7 +38,7 @@ namespace DeeSynk.Core.Components.Types.Render
             get => _iboID;
             set
             {
-                if(_vaoBitMask.HasFlag(Buffers.FACE_ELEMENTS))
+                if(_bufferFlags.HasFlag(Buffers.FACE_ELEMENTS))
                 {
                     if (GL.IsBuffer(value))
                         _iboID = value;
@@ -66,25 +63,37 @@ namespace DeeSynk.Core.Components.Types.Render
             }
         }
 
-        private int _objectCount;
+
+
+        private bool _isLoadedIntoVAO;
         /// <summary>
-        /// The number of objects that this VAO contains (not necessarily the number of triangles).
+        /// Whether or not the model data for this ComponentModel has been loaded into a VAO yet.
         /// </summary>
-        public int OBJECT_COUNT
-        {
-            get => _objectCount;
-            set
-            {
-                if(value >= 0)
-                {
-                    _objectCount = value;
-                }
-                else
-                {
-                    _objectCount = 0;
-                }
-            }
-        }
+        public bool IsLoadedIntoVAO { get => _isLoadedIntoVAO; }
+
+        private int[] _bufferIDs;
+        /// <summary>
+        /// List of buffers used to store this model's data.
+        /// </summary>
+        public int[] BufferIDs { get => _bufferIDs; }
+
+        private Buffers _bufferFlags;
+        /// <summary>
+        /// A bit mask used to indicate which buffers the BufferIDs property holds.  Their order corresponds to the order of the enumerated types.
+        /// </summary>
+        public Buffers BufferFlags { get => _bufferFlags; }
+
+        private int[] _baseBufferIndices;
+        /// <summary>
+        /// An array of the offset indices that point to the data in each of the buffers used by this model.
+        /// </summary>
+        public int[] BaseBufferIndices { get => _baseBufferIndices; }
+
+        private int[] _lengthsInMemory;
+        /// <summary>
+        /// An array of the number of the indices that the data in each of the buffers used by this model occupies (sequentially, of course).
+        /// </summary>
+        public int[] LengthsInMemory { get => _lengthsInMemory; }
 
         //Render Layer
         //Render method (2D or 3D)
@@ -93,9 +102,9 @@ namespace DeeSynk.Core.Components.Types.Render
         //Position in vao if not unique
         //Must also store cbo id somewhere
 
-        public ComponentRender(Buffers vaoBitMask)
+        public ComponentRender(Buffers bufferFlags)
         {
-            _vaoBitMask = vaoBitMask;
+            _bufferFlags = bufferFlags;
 
             _vaoID = 0;
             _iboID = 0;
@@ -104,12 +113,11 @@ namespace DeeSynk.Core.Components.Types.Render
             _init = false;
         }
 
-        public void AddVAOData(int vaoID, int iboID, int programID, int objectCount)
+        public void AddVAOData(int vaoID, int iboID, int programID)
         {
             VAO_ID = vaoID;
             IBO_ID = iboID;
             PROGRAM_ID = programID;
-            OBJECT_COUNT = objectCount;
         }
 
         /// <summary>
@@ -120,9 +128,9 @@ namespace DeeSynk.Core.Components.Types.Render
         {
             if(GL.IsVertexArray(_vaoID) && 
                GL.IsProgram(_programID) &&
-               (_vaoBitMask.HasFlag(Buffers.COLORS) ^ _vaoBitMask.HasFlag(Buffers.UVS)))
+               (_bufferFlags.HasFlag(Buffers.COLORS) ^ _bufferFlags.HasFlag(Buffers.UVS)))
             {
-                if(_vaoBitMask.HasFlag(Buffers.FACE_ELEMENTS))
+                if(_bufferFlags.HasFlag(Buffers.FACE_ELEMENTS))
                 {
                     if(GL.IsBuffer(_iboID))
                     {
@@ -153,7 +161,7 @@ namespace DeeSynk.Core.Components.Types.Render
                 if (data != _vaoID)
                     GL.BindVertexArray(_vaoID);
                 GL.BindVertexArray(_vaoID);  //binds this object's VAO
-                if (_vaoBitMask.HasFlag(Buffers.FACE_ELEMENTS))
+                if (_bufferFlags.HasFlag(Buffers.FACE_ELEMENTS))
                 {
                     data = 0;
                     GL.GetInteger(GetPName.ElementArrayBufferBinding, out data);

@@ -100,19 +100,11 @@ namespace DeeSynk.Core.Systems
 
             int texID = TextureManager.GetInstance().GetTexture("Ball");
 
-            var uvArr = new Vector2[6];
-            uvArr[0] = new Vector2(0.0f, 0.0f);
-            uvArr[1] = new Vector2(1.0f, 0.0f);
-            uvArr[2] = new Vector2(1.0f, 1.0f);
-            uvArr[3] = new Vector2(1.0f, 1.0f);
-            uvArr[4] = new Vector2(0.0f, 1.0f);
-            uvArr[5] = new Vector2(0.0f, 0.0f);
-
             for (int i = 0; i < _world.ObjectMemory; i++)
             {
                 //_staticModelComps[i] = new ComponentModelStatic(4f, 4f, true);
                 //_colorComps[i] = new ComponentColor(color4Arr);
-                _textureComps[i] = new ComponentTexture(ref uvArr, texID);
+                //_textureComps[i] = new ComponentTexture(ref uvArr, texID);
             }
         }
 
@@ -188,7 +180,7 @@ namespace DeeSynk.Core.Systems
                     for (int idx= start; idx <= start; idx++)
                     {
                         _renderComps[idx] = new ComponentRender(bufferMask);
-                        _renderComps[idx].AddVAOData(vao, ibo, programID, end - start + 1);
+                        _renderComps[idx].AddVAOData(vao, ibo, programID);
                         bool result = _renderComps[idx].ValidateData();
                     }
                 }

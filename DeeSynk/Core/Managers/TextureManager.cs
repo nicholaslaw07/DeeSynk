@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeeSynk.Core.Components;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
@@ -17,6 +18,8 @@ namespace DeeSynk.Core.Managers
     class TextureManager : IManager
     {
         // _B stands for the variable representing the number of bytes for said variable (name before)
+        private const int MAX_TEXTURE_COUNT = 2048;
+
         private const string TEXTURE_PATH = @"..\..\Resources\Textures\";
         private const string FILE_TYPE = ".bmp";
 
@@ -41,6 +44,8 @@ namespace DeeSynk.Core.Managers
         private static TextureManager _textureManager;
 
         private Dictionary<string, int> loadedTextures;
+        private Texture[] _loadedTextures;
+        private int _loadedTextureCount;
 
         /// <summary>
         /// Constructor instantiating the dictionary where loaded textures will be stored.
@@ -48,6 +53,8 @@ namespace DeeSynk.Core.Managers
         private TextureManager()
         {
             loadedTextures = new Dictionary<string, int>();
+            _loadedTextures = new Texture[MAX_TEXTURE_COUNT];
+            _loadedTextureCount = 0;
         }
         
         /// <summary>
@@ -128,7 +135,11 @@ namespace DeeSynk.Core.Managers
 
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
+            Texture tex = new Texture(texture, width, height, 1);
+
             loadedTextures.Add(fileName, texture);
+            _loadedTextures[_loadedTextureCount] = tex;
+            _loadedTextureCount++;
         }
 
         /// <summary>
@@ -188,6 +199,13 @@ namespace DeeSynk.Core.Managers
                 return textureID;
             else
                 return textureID;
+        }
+
+        public Texture GetTexture(int id)
+        {
+            if(_loadedTextures[id] != null)
+                return _loadedTextures[id];
+            return null;
         }
         
         /// <summary>

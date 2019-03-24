@@ -120,39 +120,6 @@ namespace DeeSynk.Core.Components.Types.Render
             }
         }
 
-        //+++
-        /*
-        private bool _isLoadedIntoVAO;
-        /// <summary>
-        /// Whether or not the model data for this ComponentModel has been loaded into a VAO yet.
-        /// </summary>
-        public bool IsLoadedIntoVAO { get => _isLoadedIntoVAO; }
-
-        private int[] _bufferIDs;
-        /// <summary>
-        /// List of buffers used to store this model's data.
-        /// </summary>
-        public int[] BufferIDs { get => _bufferIDs; }
-
-        private Buffers _bufferFlags;
-        /// <summary>
-        /// A bit mask used to indicate which buffers the BufferIDs property holds.  Their order corresponds to the order of the enumerated types.
-        /// </summary>
-        public Buffers BufferFlags { get => _bufferFlags; }
-
-        private int[] _baseBufferIndices;
-        /// <summary>
-        /// An array of the offset indices that point to the data in each of the buffers used by this model.
-        /// </summary>
-        public int[] BaseBufferIndices { get => _baseBufferIndices; }
-
-        //private int[] _lengthsInMemory;
-        /// <summary>
-        /// An array of the number of the indices that the data in each of the buffers used by this model occupies (sequentially, of course).
-        /// </summary>
-        //public int[] LengthsInMemory { get => _lengthsInMemory; }
-        */
-
         public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID,
                             ConstructionFlags parameterFlags, params object[] constructionData)
         {

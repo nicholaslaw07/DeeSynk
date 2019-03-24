@@ -14,6 +14,62 @@ namespace DeeSynk.Core.Managers
 {
     using Model = DeeSynk.Core.Components.Models.Model;
 
+    public enum PlyProperties : byte
+    {
+        UNKNOWN = 0,
+
+        CHAR    = 1,
+        UCHAR   = 2,
+        SHORT   = 3,
+        USHORT  = 4,
+        INT     = 5,
+        UINT    = 6,
+        FLOAT   = 7,
+        DOUBLE  = 8,
+
+        X = 10,
+        Y = 11,
+        Z = 12,
+
+        R = 20,
+        G = 21,
+        B = 22,
+
+        VERTEX_INDEX = 30
+    }
+
+    public struct PlyPropertySimple
+    {
+        public readonly PlyProperties DataType;
+        public readonly PlyProperties DataContent;
+        public readonly int Stride;
+
+        public PlyPropertySimple(PlyProperties dataType, PlyProperties dataContent, int stride)
+        {
+            DataType = dataType;
+            DataContent = dataContent;
+            Stride = stride;
+        }
+    }
+
+    public struct PlyPropertyList
+    {
+        public readonly PlyProperties DataType1;
+        public readonly PlyProperties DataType2;
+        public readonly PlyProperties DataContent;
+        public readonly int Stride1;
+        public readonly int Stride2;
+
+        public PlyPropertyList(PlyProperties dataType1, PlyProperties dataType2, PlyProperties dataContent, int stride1, int stride2)
+        {
+            DataType1 = dataType1;
+            DataType2 = dataType2;
+            DataContent = dataContent;
+            Stride1 = stride1;
+            Stride2 = stride2;
+        }
+    }
+
     public class ModelManager : IManager
     {
         private const string FILE_PATH = @"..\..\Resources\Models\";
@@ -169,53 +225,139 @@ namespace DeeSynk.Core.Managers
                 using (var StreamReader = new StreamReader(fileStream, Encoding.UTF8))
                 {
                     Model model = new Model();
+
                     string file = StreamReader.ReadToEnd();
+                    Console.WriteLine("Loaded .ply model file at path: {0}", filePath);
 
-                    //getting header info (we are disregarding the type properties and assuming that we are reading floats)
-                    //vertexCount
+                    string endHeaderKeyword = "end_header";
+                    int dataIndex = file.IndexOf(endHeaderKeyword) + endHeaderKeyword.Length;
+                    string header = file.Substring(0, dataIndex);
+                    string data = file.Remove(0, dataIndex);
+
+                    //Format Specification
+                    string format = "ascii"; //default
+                    string version = "1.0";  //default
+                    {
+                        string key = @"format\s(ascii|binary)\w*\s(\d+(\.{1}\d+)?)";
+                        Regex regex = new Regex(key);
+                        var matches = regex.Matches(header);
+                        if(matches.Count == 1)
+                        {
+                            string captureFormat = matches[0].Value;
+
+                            key = @"(ascii|binary)\w*";
+                            regex = new Regex(key);
+                            matches = regex.Matches(captureFormat);
+                            format = matches[0].Value;
+
+                            key = @"(\d+(\.{1}\d+)?)";
+                            regex = new Regex(key);
+                            matches = regex.Matches(captureFormat);
+                            version = matches[0].Value;
+                        }
+                    }
+
+                    Console.WriteLine("Parsing using format: {0} {1}...", format, version);
+
+                    //Vertex Specification
                     int vertexElementCount = 0;
+                    List<PlyPropertySimple> vertexProperties = new List<PlyPropertySimple>(); 
                     {
-                        string key = @"element vertex \d+";
+                        string key = @"element\svertex\s\d+\s*(\nproperty ([^l]\w+)\s(?:property|\w+))+";
                         Regex regex = new Regex(key);
-                        var matches = regex.Matches(file); //there should be only one match
-
-                        if (matches.Count == 1)
+                        var matches = regex.Matches(header);
+                        if(matches.Count == 1)
                         {
-                            key = @"\d+";
+                            string vertexHeader = matches[0].Value;
+
+                            //Vertex count
+                            key = @"(\d+)";
                             regex = new Regex(key);
-                            matches = regex.Matches(matches[0].Value);
+                            matches = regex.Matches(vertexHeader); //there should be only one match
                             vertexElementCount = int.Parse(matches[0].Value);
+
+                            //Vertex properties
+                            key = @"property ([^l]\w+)\s(?:property|\w+)";
+                            regex = new Regex(key);
+                            matches = regex.Matches(vertexHeader); //retrieving the simple properties from the header
+
+                            if (matches.Count > 0)
+                            {
+                                key = @"\w+";
+                                regex = new Regex(key);            //now that the properties have been found, we will add them to a list
+                                foreach (var match in matches)
+                                {
+                                    matches = regex.Matches(match.ToString());
+                                    var dataType = PlyStringToProperty(matches[1].Value);
+                                    var dataContent = PlyStringToProperty(matches[2].Value);
+                                    vertexProperties.Add(new PlyPropertySimple(
+                                                                dataType,
+                                                                dataContent,
+                                                                GetStride(dataType)));
+                                }
+                            }
+                            else
+                                throw new FileLoadException("Invalid .ply file format: could not find any vertex properties");
                         }
                         else
-                            throw new FileLoadException("Invalid .ply file format: duplicate header property - element vertex");
+                            throw new FileLoadException("Parsing error: null or duplicate vertex specification");
                     }
 
-                    //faceCount
+                    bool hasColor = vertexProperties.Where((PlyPropertySimple p) => p.DataContent == PlyProperties.R ||
+                                                                                    p.DataContent == PlyProperties.G ||
+                                                                                    p.DataContent == PlyProperties.B)
+                                                                                    .Count() == 3;
+                    //Face Specification
                     int faceElementCount = 0;
+                    PlyPropertyList faceList = new PlyPropertyList(PlyProperties.UNKNOWN, PlyProperties.UNKNOWN, PlyProperties.UNKNOWN, 0, 0);
                     {
-                        string key = @"element face \d+";
+                        string key = @"element\sface\s\d+\s*(\nproperty\slist(\s\w+){3}){1}";
                         Regex regex = new Regex(key);
-                        var matches = regex.Matches(file);
+                        var matches = regex.Matches(header);
                         if (matches.Count == 1)
                         {
+                            string faceHeader = matches[0].Value;
+
                             key = @"\d+";
                             regex = new Regex(key);
-                            matches = regex.Matches(matches[0].Value);
+                            matches = regex.Matches(faceHeader); //There should only be one match
                             faceElementCount = int.Parse(matches[0].Value);
+
+                            key = @"property\slist(\s\w+){3}";
+                            regex = new Regex(key);
+                            matches = regex.Matches(faceHeader);
+                            if(matches.Count == 1)
+                            {
+                                string faceListCapture = matches[0].Value;
+
+                                key = @"\w+";
+                                regex = new Regex(key);
+                                matches = regex.Matches(faceListCapture);
+                                if(matches.Count == 5 && matches[0].Value == "property" && matches[1].Value == "list")
+                                {
+                                    var dataType1 = PlyStringToProperty(matches[2].Value);
+                                    var dataType2 = PlyStringToProperty(matches[3].Value);
+                                    var dataContent = PlyStringToProperty(matches[4].Value);
+                                    faceList = new PlyPropertyList(dataType1,
+                                                                   dataType2,
+                                                                   dataContent,
+                                                                   GetStride(dataType1),
+                                                                   GetStride(dataType2));
+                                }
+                            }
                         }
                         else
-                            throw new FileLoadException("Invalid .ply file format: duplicate header property - element face");
+                            throw new FileLoadException("Parsing error: null or duplicate face specification");
                     }
-
 
                     //moving on to the data section
-                    string endHeaderKeyword = "end_header";
-                    int index = file.IndexOf(endHeaderKeyword);
-                    string data = file.Substring(index + endHeaderKeyword.Length);
-
                     string lastVertexElement = "";
 
+
                     Vector4[] vertices = new Vector4[vertexElementCount];
+                    Color4[] colors = new Color4[vertexElementCount];
+                    uint[] faceIndices = new uint[faceElementCount * 3];
+                    if (format.Contains("ascii"))
                     {
                         string key = @"-?\d\.\d+(e-?\d+)?";
                         Regex regex = new Regex(key);
@@ -223,38 +365,209 @@ namespace DeeSynk.Core.Managers
                         Console.WriteLine(matches.Count);
                         if (matches.Count == vertexElementCount * 3)
                         {
-                            for(int idx = 0; idx<vertexElementCount; idx++)
+                            for (int idx = 0; idx < vertexElementCount; idx++)
                             {
-                                float scale = 9f;
                                 float x = float.Parse(matches[idx * 3].Value);
                                 float y = float.Parse(matches[idx * 3 + 1].Value);
                                 float z = float.Parse(matches[idx * 3 + 2].Value);
 
-                                vertices[idx] = new Vector4(scale * x, scale * y, scale * z, 1);
+                                vertices[idx] = new Vector4(x, y, z, 1);
                             }
 
                             lastVertexElement = matches[matches.Count - 1].Value;
                         }
                         else
                             throw new FileLoadException("Invalid .ply file format: incomplete or incorrectly formatted vertex data");
-                    }
 
-                    int lastElementIndex = data.LastIndexOf(lastVertexElement);
-                    data = data.Substring(lastElementIndex + lastVertexElement.Length);
+                        int lastElementIndex = data.LastIndexOf(lastVertexElement);
+                        data = data.Substring(lastElementIndex + lastVertexElement.Length);
 
-                    uint[] faceIndices = new uint[faceElementCount * 3];
-                    {
-                        string key = @"\d+";
-                        Regex regex = new Regex(key);
-                        var matches = regex.Matches(data);
+                        key = @"\d+";
+                        regex = new Regex(key);
+                        matches = regex.Matches(data);
 
-                        if(matches.Count == faceElementCount * 4)
+                        if (matches.Count == faceElementCount * 4)
                         {
-                            for(int idx = 0; idx < faceElementCount; idx++)
+                            for (int idx = 0; idx < faceElementCount; idx++)
                             {
                                 faceIndices[idx * 3] = uint.Parse(matches[idx * 4 + 1].Value);
                                 faceIndices[idx * 3 + 1] = uint.Parse(matches[idx * 4 + 2].Value);
                                 faceIndices[idx * 3 + 2] = uint.Parse(matches[idx * 4 + 3].Value);
+                            }
+                        }
+                    }
+                    else if (format.Contains("binary"))
+                    {
+                        byte[] bytes = null;
+                        FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                        BinaryReader br = new BinaryReader(fs);
+                        bytes = br.ReadBytes((int)(new FileInfo(filePath).Length));
+                        byte[] endHeader = Encoding.ASCII.GetBytes(endHeaderKeyword);
+                        int indexOfEnd = 0;
+                        bool works = false;
+                        for(int i=0; i<bytes.Length - endHeader.Length; i++)
+                        {
+                            works = true;
+                            for(int j=0; j<endHeader.Length; j++)
+                            {
+                                if (bytes[i + j] != endHeader[j])
+                                {
+                                    works = false;
+                                    break;
+                                }
+                            }
+                            if (works)
+                            {
+                                indexOfEnd = i + endHeader.Length + 1;
+                                break;
+                            }
+                        }
+
+                        Console.WriteLine(header);
+                        if (BitConverter.IsLittleEndian)
+                            bytes.Reverse();
+                        bytes.Reverse();
+                        int totalStride = vertexProperties.Sum(p => p.Stride);
+
+                        Console.WriteLine(bytes.Length);
+                        Console.WriteLine(vertexElementCount);
+                        Console.WriteLine(faceElementCount);
+
+                        float[] parsedValues = new float[vertexProperties.Count];
+
+                        int k = indexOfEnd; //offset in byte array
+                        for(int i=0; i<vertexElementCount; i++)
+                        {
+                            for(int j=0; j<parsedValues.Length; j++)
+                            {
+
+
+                                //Console.WriteLine(bytes[k]);
+                                //Console.WriteLine(bytes[k + 1]);
+                                //Console.WriteLine(bytes[k + 2]);
+                                //Console.WriteLine(bytes[k + 3]);
+                                //Console.WriteLine(System.BitConverter.ToSingle(bytes, k));
+
+                                int stride = vertexProperties[j].Stride;
+                                float parsedValue = 0.0f;
+                                switch (vertexProperties[j].DataType)
+                                {
+                                    case (PlyProperties.CHAR):
+                                        parsedValue = System.BitConverter.ToChar(bytes, k);
+                                        k += stride;
+                                        break;
+                                    case (PlyProperties.UCHAR):
+                                        parsedValue = System.BitConverter.ToChar(bytes, k);
+                                        k += stride;
+                                        break;
+                                    case (PlyProperties.SHORT):
+                                        parsedValue = System.BitConverter.ToInt16(bytes, k);
+                                        k += stride;
+                                        break;
+                                    case (PlyProperties.USHORT):
+                                        parsedValue = System.BitConverter.ToUInt16(bytes, k);
+                                        k += stride;
+                                        break;
+                                    case (PlyProperties.INT):
+                                        parsedValue = System.BitConverter.ToInt32(bytes, k);
+                                        k += stride;
+                                        break;
+                                    case (PlyProperties.UINT):
+                                        parsedValue = System.BitConverter.ToUInt32(bytes, k);
+                                        k += stride;
+                                        break;
+                                    case (PlyProperties.FLOAT):
+                                        parsedValue = System.BitConverter.ToSingle(bytes, k);
+                                        k += stride;
+                                        break;
+                                    case (PlyProperties.DOUBLE):
+                                        parsedValue = (float)System.BitConverter.ToDouble(bytes, k);
+                                        k += stride;
+                                        break;
+                                }
+
+                                parsedValues[j] = parsedValue;
+                            }
+                            var value = vertexProperties.Where((PlyPropertySimple p) => p.DataContent == PlyProperties.X);
+                            float x = (value.Count() == 1) ? parsedValues[vertexProperties.IndexOf(value.First())] : 0.0f;
+
+                            value = vertexProperties.Where((PlyPropertySimple p) => p.DataContent == PlyProperties.Y);
+                            float y = (value.Count() == 1) ? parsedValues[vertexProperties.IndexOf(value.First())] : 0.0f;
+
+                            value = vertexProperties.Where((PlyPropertySimple p) => p.DataContent == PlyProperties.Z);
+                            float z = (value.Count() == 1) ? parsedValues[vertexProperties.IndexOf(value.First())] : 0.0f;
+
+
+
+                            vertices[i] = new Vector4(x, y, z, 1);
+
+                            if (hasColor)
+                            {
+                                value = vertexProperties.Where((PlyPropertySimple p) => p.DataContent == PlyProperties.R);
+                                float r = (value.Count() == 1) ? parsedValues[vertexProperties.IndexOf(value.First())] : 0.0f;
+
+                                value = vertexProperties.Where((PlyPropertySimple p) => p.DataContent == PlyProperties.G);
+                                float g = (value.Count() == 1) ? parsedValues[vertexProperties.IndexOf(value.First())] : 0.0f;
+
+                                value = vertexProperties.Where((PlyPropertySimple p) => p.DataContent == PlyProperties.B);
+                                float b = (value.Count() == 1) ? parsedValues[vertexProperties.IndexOf(value.First())] : 0.0f;
+
+                                colors[i] = new Color4(r, g, b, 1);
+                            }
+                        }
+
+                        int stride1 = faceList.Stride1;
+                        int stride2 = faceList.Stride2;
+                        for(int i=0; i<faceElementCount; i++)
+                        {
+                            //Console.WriteLine(bytes[k]);
+                            //Console.WriteLine("{0} {1} {2} {3}", bytes[k + 1], bytes[k + 2], bytes[k + 3], bytes[k + 4]);
+                            //Console.WriteLine("{0} {1} {2} {3}", bytes[k + 5], bytes[k + 6], bytes[k + 7], bytes[k + 8]);
+                            //Console.WriteLine("{0} {1} {2} {3}", bytes[k + 9], bytes[k + 10], bytes[k + 11], bytes[k + 12]);
+                            int count = 3; //we assume that everything is triangles here, not necessarily always the case though
+                            int counters = System.BitConverter.ToChar(bytes, k);
+                            k += stride1;
+                            for (int j=0; j<count; j++)
+                            {
+                                uint index = 0;
+                                switch (faceList.DataType2)
+                                {
+                                    case (PlyProperties.CHAR):
+                                        index = System.BitConverter.ToChar(bytes, k);
+                                        k += stride2;
+                                        break;
+                                    case (PlyProperties.UCHAR):
+                                        index = System.BitConverter.ToChar(bytes, k);
+                                        k += stride2;
+                                        break;
+                                    case (PlyProperties.SHORT):
+                                        index = (uint)System.BitConverter.ToInt16(bytes, k);
+                                        k += stride2;
+                                        break;
+                                    case (PlyProperties.USHORT):
+                                        index = System.BitConverter.ToUInt16(bytes, k);
+                                        k += stride2;
+                                        break;
+                                    case (PlyProperties.INT):
+                                        index = (uint)System.BitConverter.ToInt32(bytes, k);
+                                        k += stride2;
+                                        break;
+                                    case (PlyProperties.UINT):
+                                        index = System.BitConverter.ToUInt32(bytes, k);
+                                        k += stride2;
+                                        break;
+                                    case (PlyProperties.FLOAT):
+                                        index = (uint)System.BitConverter.ToSingle(bytes, k);
+                                        k += stride2;
+                                        break;
+                                    case (PlyProperties.DOUBLE):
+                                        index = (uint)System.BitConverter.ToDouble(bytes, k);
+                                        k += stride2;
+                                        break;
+                                }
+                                if (index > vertexElementCount)
+                                    index = 0;
+                                faceIndices[i * 3 + j] = index;
                             }
                         }
                     }
@@ -269,6 +582,50 @@ namespace DeeSynk.Core.Managers
             catch(Exception e)
             {
                 Console.Error.WriteLine(e.ToString());
+            }
+        }
+
+        private PlyProperties PlyStringToProperty(string s)
+        {
+            switch (s)
+            {
+                case ("uchar"):  return PlyProperties.UCHAR;
+                case ("char"):   return PlyProperties.CHAR;
+                case ("ushort"): return PlyProperties.USHORT;
+                case ("short"):  return PlyProperties.SHORT;
+                case ("uint"):   return PlyProperties.UINT;
+                case ("int"):    return PlyProperties.INT;
+                case ("float"):  return PlyProperties.FLOAT;
+                case ("double"): return PlyProperties.DOUBLE;
+
+                case ("x"): return PlyProperties.X;
+                case ("y"): return PlyProperties.Y;
+                case ("z"): return PlyProperties.Z;
+
+                case ("red"): return PlyProperties.R;
+                case ("green"): return PlyProperties.G;
+                case ("blue"): return PlyProperties.B;
+
+                case ("vertex_indices"): return PlyProperties.VERTEX_INDEX;
+                case ("vertex_index"): return PlyProperties.VERTEX_INDEX;
+
+                default: return PlyProperties.UNKNOWN;
+            }
+        }
+
+        private int GetStride(PlyProperties p)
+        {
+            switch (p)
+            {
+                case (PlyProperties.CHAR): return 1;
+                case (PlyProperties.UCHAR): return 1;
+                case (PlyProperties.SHORT): return 2;
+                case (PlyProperties.USHORT): return 2;
+                case (PlyProperties.INT): return 4;
+                case (PlyProperties.UINT): return 4;
+                case (PlyProperties.FLOAT): return 4;
+                case (PlyProperties.DOUBLE): return 8;
+                default: return 4;
             }
         }
         
@@ -297,7 +654,7 @@ namespace DeeSynk.Core.Managers
                 if (!ModelExists(modelComp.ModelID))
                 {
                     CreateModelFromTemplate(ref modelComp);
-                }
+                } 
             }
 
             return GetModel(modelComp.ModelID);

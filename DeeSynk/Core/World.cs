@@ -65,20 +65,12 @@ namespace DeeSynk.Core
             //TEST START
             int texID = TextureManager.GetInstance().GetTexture("wood");
 
-            var uvArr = new Vector2[6];
-            uvArr[0] = new Vector2(0.0f, 0.0f);
-            uvArr[1] = new Vector2(1.0f, 0.0f);
-            uvArr[2] = new Vector2(1.0f, 1.0f);
-            uvArr[3] = new Vector2(1.0f, 1.0f);
-            uvArr[4] = new Vector2(0.0f, 1.0f);
-            uvArr[5] = new Vector2(0.0f, 0.0f);
-
-            _textureComps[1] = new ComponentTexture(ref uvArr, texID);
-            //TEST END
+            _textureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture(3), 0);
 
             _systemVAO = new SystemVAO(this);
             _systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, 0, true);
             _systemVAO.InitVAOInRange(Buffers.VERTICES_ELEMENTS | Buffers.UVS, 1, 1, true);
+            //TEST END
         }
 
         public void PushCameraRef(ref Camera camera)
@@ -147,11 +139,6 @@ namespace DeeSynk.Core
             {
                 throw new InvalidOperationException("Non-existent GameObject requested.");
             }
-        }
-
-        public void InitializeComponents(ref GameObject obj, Vector3 location, Vector4 velocity, float rotX, float rotY, float rotZ, Vector3 scale)
-        {
-
         }
 
         public void Update(float time)

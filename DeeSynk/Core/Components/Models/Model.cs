@@ -185,11 +185,14 @@ namespace DeeSynk.Core.Components.Models
 
                         Vector3 normal = new Vector3(Nx, Ny, Nz);
 
-                        normal.Normalize();
-
-                        _normals[_elements[i * 3]] += normal;
-                        _normals[_elements[i * 3 + 1]] += normal;
-                        _normals[_elements[i * 3 + 2]] += normal;
+                        for(int j=0; j<3; j++)
+                        {
+                            var d = _normals[_elements[i * 3 + j]];
+                            if (_normals[_elements[i * 3 + j]] == Vector3.Zero)
+                                _normals[_elements[i * 3 + j]] = normal;
+                            else
+                                _normals[_elements[i * 3 + j]] = (d != -normal) ? Vector3.Lerp(d, normal, 1f/ (counts[_elements[i * 3 + j]] + 1)): Vector3.Zero;
+                        }
 
                         counts[_elements[i * 3]]++;
                         counts[_elements[i * 3 + 1]]++;

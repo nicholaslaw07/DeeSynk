@@ -12,35 +12,41 @@ namespace DeeSynk.Core.Components.Types.Render
     {
         public int BitMaskID => (int)Component.TEXTURE;
 
-        private Vector2[] _texCoords;
-        public Vector2[] TextureCoodinates { get => _texCoords; }
+        public const TextureUnit DEFAULT_TEXTURE_UNIT = TextureUnit.Texture0;
 
-        private int _texCount;
-        public int TextureCount { get => _texCount; }
-
-        private int _texID;
-        public int TextureID { get => _texID; }
-
-        public ComponentTexture()
+        private int _subTextureLocationIndex;
+        public int SubTextureLocationIndex
         {
-            _texCoords = new Vector2[0];
-            _texCount = 0;
-            _texID = 0;
+            get => _subTextureLocationIndex;
+            set
+            {
+                if (_texture.ValidSubLocation(value))
+                    _subTextureLocationIndex = value;
+            }
         }
 
-        public ComponentTexture(ref Vector2[] texCoords, int texID)
+        private Texture _texture;
+        public ref Texture Texture { get => ref _texture; }
+
+        public ComponentTexture(Texture texture, int subTextureLocationIndex)
         {
-            _texCoords = texCoords;
-            _texCount = _texCoords.Length;
-            _texID = texID;
+            _texture = texture;
+            _subTextureLocationIndex = (_texture.ValidSubLocation(subTextureLocationIndex)) ? subTextureLocationIndex : 0; //default is 0
+        }
+
+        public ComponentTexture(string textureName)
+        {
+            //Look up texture from manager and feed into here?
         }
 
         public void BindTexture()
         {
-            int data = 0;
-            GL.GetInteger(GetPName.ActiveTexture, out data);
-            if (data != _texID)
-                GL.BindTexture(TextureTarget.Texture2D, _texID);
+            _texture.Bind(DEFAULT_TEXTURE_UNIT);
+        }
+
+        public void BindTexture(TextureUnit textureUnit)
+        {
+            _texture.Bind(textureUnit);
         }
 
         public void Update(float time)

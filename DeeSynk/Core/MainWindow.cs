@@ -25,7 +25,7 @@ namespace DeeSynk.Core
 
         private Camera _camera = new Camera();
 
-        private const float v = 10f;
+        private const float v = 1f;
 
         private Vector3 V_W = new Vector3(0.0f, 0.0f, -v);
         private Vector3 V_S = new Vector3(0.0f, 0.0f, v);
@@ -55,7 +55,7 @@ namespace DeeSynk.Core
                                     GraphicsContextFlags.ForwardCompatible)
         {
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
-            VSync = VSyncMode.Off;
+            //VSync = VSyncMode.Off;
             center = new Point(Width / 2, Height / 2);
             mousePos = PointToScreen(center);
             msPrevious = Mouse.GetState();
@@ -83,6 +83,7 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
+            GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
             GL.Enable(EnableCap.DepthTest);
 
             _game = new Game();
@@ -91,9 +92,7 @@ namespace DeeSynk.Core
             this.Cursor = MouseCursor.Empty;
             this.WindowState = this.WindowState | WindowState.Fullscreen;
 
-            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.1f, 200f);
-
-
+            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 200f);
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();

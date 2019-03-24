@@ -30,6 +30,20 @@ namespace DeeSynk.Core.Systems
             _staticModelComps = _world.StaticModelComps;
         }
 
+        public void UpdateMonitoredGameObjects()
+        {
+            for (int i = 0; i < _world.ObjectMemory; i++)
+            {
+                if (_world.ExistingGameObjects[i])
+                {
+                    if ((_world.GameObjects[i].Components | MonitoredComponents) == MonitoredComponents)
+                    {
+                        _monitoredGameObjects[i] = true;
+                    }
+                }
+            }
+        }
+
         //TEST START
         public void InitModel()
         {
@@ -47,25 +61,25 @@ namespace DeeSynk.Core.Systems
             var v01 = new Vector3(5f, 5f, 5f);
             var v02 = new Vector2(0.0f, 0.0f);
             var v03 = new Vector2(1.0f, 1.0f);
-            var v21 = Color4.BlanchedAlmond;
+            var v21 = Color4.Chartreuse;
 
             Random r = new Random();
 
 
             _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "dragon_vripPLY",
-                                        ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.COLOR4_COLOR,
-                                        new Vector3(-1, 0, -3), v21);
+                                        ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.COLOR4_COLOR | ConstructionFlags.VECTOR3_SCALE,
+                                        new Vector3(0, -0.5f, -2), new Vector3(10f, 10f, 10f), v21);
 
 
-            var v10 = new Vector3(0, -1, 0);
-            var v11 = new Vector3(9f, 10f, 16f);
+            var v10 = new Vector3(-1, -1, -2);
+            var v11 = new Vector3(16f, 10f, 9f);
             var v12 = new Vector2(0.0f, 0.0f);
             var v13 = new Vector2(1.0f, 1.0f);
             _staticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.TemplatePlaneXZ,
-                                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X |
+                                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_Y |
                                                             ConstructionFlags.VECTOR3_DIMENSIONS |
                                                             ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
-                                                            v10, 0.0f, v11, v12, v13);
+                                                            v10, 3.1415927f / 2f, v11, v12, v13);
         }
 
         //TEST END
