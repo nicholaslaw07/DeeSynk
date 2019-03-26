@@ -65,7 +65,7 @@ namespace DeeSynk.Core
             //TEST START
             int texID = TextureManager.GetInstance().GetTexture("wood");
 
-            _textureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture(3), 0);
+            _textureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture(0), 0);
 
             _systemVAO = new SystemVAO(this);
             _systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, 0, true);

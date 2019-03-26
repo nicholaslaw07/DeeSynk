@@ -359,22 +359,22 @@ namespace DeeSynk.Core.Managers
         /// </summary>
         public void Load()
         {
-            /*
+            
             string[] fileNames = Directory.GetFiles(TEXTURE_PATH)
                          .Select(Path.GetFileNameWithoutExtension)
                          .ToArray();
             foreach(string fileName in fileNames)
             {
                 InitTexture(TEXTURE_PATH, fileName, FILE_TYPE);
-            }*/
+            }
 
-            string[] subFolders = Directory.GetDirectories(TEXTURE_PATH);
+            /*string[] subFolders = Directory.GetDirectories(TEXTURE_PATH);
             foreach(string folder in subFolders)
             {
                 int fileCount = Directory.GetFiles(folder).Count();
                 if (Directory.GetDirectories(folder).Count() == 0 && fileCount > 1)
                     InitTextureAtlas(TEXTURE_PATH, folder, fileCount);
-            }
+            }*/
 
         }
 
