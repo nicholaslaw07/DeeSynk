@@ -87,7 +87,9 @@
     <None Include="Resources\Temp\dragon_vrip.obj" />
     <None Include="Resources\Models\dragon_vripPLY.ply" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Core\Components\Models\Templates\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
@@ -105,10 +107,10 @@
     <Content Include="Resources\Shaders\Vertex\defaultTextured_Instanced.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultColored.txt" />
-    <Content Include="Resources\Textures\Ball - Copy.bmp" />
-    <Content Include="Resources\Textures\Ball.bmp" />
-    <Content Include="Resources\Textures\Ball2.bmp" />
-    <Content Include="Resources\Textures\wood.bmp" />
+    <Content Include="Resources\Textures\Atlas_0\Ball - Copy.bmp" />
+    <Content Include="Resources\Textures\Atlas_0\Ball.bmp" />
+    <Content Include="Resources\Textures\Atlas_0\Ball2.bmp" />
+    <Content Include="Resources\Textures\Atlas_1\wood.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

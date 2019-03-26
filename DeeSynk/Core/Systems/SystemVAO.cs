@@ -88,39 +88,6 @@ namespace DeeSynk.Core.Systems
             _transComps = _world.TransComps;
         }
 
-        public void InitModels()
-        {
-            /*
-            var color4Arr = new Color4[4];
-            color4Arr[0] = Color4.Red;
-            color4Arr[1] = Color4.Green;
-            color4Arr[2] = Color4.Blue;
-            color4Arr[3] = Color4.Yellow;
-            */
-
-            int texID = TextureManager.GetInstance().GetTexture("Ball");
-
-            for (int i = 0; i < _world.ObjectMemory; i++)
-            {
-                //_staticModelComps[i] = new ComponentModelStatic(4f, 4f, true);
-                //_colorComps[i] = new ComponentColor(color4Arr);
-                //_textureComps[i] = new ComponentTexture(ref uvArr, texID);
-            }
-        }
-
-        public void InitModels(int idx)
-        {
-            /*
-            var color4Arr = new Color4[4];
-            color4Arr[0] = Color4.Red;
-            color4Arr[1] = Color4.Green;
-            color4Arr[2] = Color4.Blue;
-            color4Arr[3] = Color4.Yellow;
-            */
-
-
-        }
-
         /// <summary>
         /// Initializes a VAO or VAOs for all objects within a specified range with a specified configuration.
         /// </summary>
