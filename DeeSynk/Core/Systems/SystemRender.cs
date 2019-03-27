@@ -210,6 +210,7 @@ namespace DeeSynk.Core.Systems
             systemTransform.PushModelMatrix(1);
             GL.ActiveTexture(TextureUnit.Texture0);
             _textureComps[1].BindTexture();
+            GL.BindTexture(TextureTarget.Texture2D, _depthMap);
             BindDepthMap();
             int y = ModelManager.GetInstance().GetModel(_staticModelComps[1].ModelID).ElementCount;
             GL.DrawElementsInstanced(PrimitiveType.Triangles, y, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);

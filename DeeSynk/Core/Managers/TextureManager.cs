@@ -120,7 +120,7 @@ namespace DeeSynk.Core.Managers
             if (p1.X == p2.X)
             {
                 _sharedAxis = Axis.X;
-                if(p1.X < p2.X)
+                if(p1.Y < p2.Y)
                 {
                     _p1 = p1;
                     _p2 = p2;
@@ -136,7 +136,7 @@ namespace DeeSynk.Core.Managers
             else
             {
                 _sharedAxis = Axis.Y;
-                if (p1.Y < p2.Y)
+                if (p1.X < p2.X)
                 {
                     _p1 = p1;
                     _p2 = p2;
@@ -223,14 +223,14 @@ namespace DeeSynk.Core.Managers
             {
                 if(_sharedAxis == Axis.X)
                 {
-                    if ((edge._p1.X <= SharedCoordinate && edge._p2.X >= SharedCoordinate) &&
-                       (edge._p1.Y >= _p1.Y && edge._p2.Y >= _p1.Y) && (edge._p1.Y <= _p2.Y && edge._p2.Y <= _p2.Y))
+                    if ((edge._p1.X < SharedCoordinate && edge._p2.X > SharedCoordinate) &&
+                       (edge.SharedCoordinate > _p1.Y) && (edge.SharedCoordinate < _p2.Y))
                         return true;
                 }
                 else
                 {
-                    if ((edge._p1.Y <= SharedCoordinate && edge._p2.Y >= SharedCoordinate) &&
-                       (edge._p1.X >= _p1.X && edge._p2.X >= _p1.X) && (edge._p1.X <= _p2.X && edge._p2.X <= _p2.X))
+                    if ((edge._p1.Y < SharedCoordinate && edge._p2.Y > SharedCoordinate) &&
+                       (edge.SharedCoordinate > _p1.X) && (edge.SharedCoordinate < _p2.X))
                         return true;
                 }
             }
@@ -294,6 +294,8 @@ namespace DeeSynk.Core.Managers
     {
         // _B stands for the variable representing the number of bytes for said variable (name before)
         private const int MAX_TEXTURE_COUNT = 2048;
+
+        private static int callCount = 0;
 
         private const string TEXTURE_PATH = @"..\..\Resources\Textures\";
         private const string FILE_TYPE = ".bmp";
@@ -368,13 +370,13 @@ namespace DeeSynk.Core.Managers
                 InitTexture(TEXTURE_PATH, fileName, FILE_TYPE);
             }
 
-            /*string[] subFolders = Directory.GetDirectories(TEXTURE_PATH);
+            string[] subFolders = Directory.GetDirectories(TEXTURE_PATH);
             foreach(string folder in subFolders)
             {
                 int fileCount = Directory.GetFiles(folder).Count();
                 if (Directory.GetDirectories(folder).Count() == 0 && fileCount > 1)
                     InitTextureAtlas(TEXTURE_PATH, folder, fileCount);
-            }*/
+            }
 
         }
 
@@ -498,10 +500,11 @@ namespace DeeSynk.Core.Managers
             imgDims.Add(new Rectangle(0, 0, 100, 100));
             imgDims.Add(new Rectangle(0, 0, 100, 100));
             imgDims.Add(new Rectangle(0, 0, 150, 200));
+            imgDims.Add(new Rectangle(0, 0, 210, 15));
             //TEST END
 
             List<Rectangle> bestArrangment = FindBestArrangment(imgDims);
-            int x = 0;
+             int x = 0;
         }
 
         private List<Rectangle> FindBestArrangment(List<Rectangle> rectangles)
@@ -779,66 +782,44 @@ namespace DeeSynk.Core.Managers
             foreach(AttachmentPoint aP in attachmentPoints)
             {
                 AttachmentLocks locks = aP.AttachmentLocks;
-                bool isValidPoint = true;
-                int validRectangles = testRectangles.Count();
 
                 if (!locks.HasFlag(AttachmentLocks.UP_L))
                 {
-                    int valids = validRectangles;
+                    bool valid = false;
                     foreach(Rectangle r in testRectangles)
-                    {
-                        if (!IsValidPositionForRectangle(rectangles, StapleToPoint(r, Corners.C11, aP.Point)))
-                        {
-                            valids--;
-                        }
-                    }
+                        valid |= IsValidPositionForRectangle(rectangles, StapleToPoint(r, Corners.C11, aP.Point));
 
-                    if (valids == 0)
+                    if (!valid)
                         locks |= AttachmentLocks.UP_L;
                 }
 
                 if (!locks.HasFlag(AttachmentLocks.UP_R))
                 {
-                    int valids = validRectangles;
+                    bool valid = false;
                     foreach (Rectangle r in testRectangles)
-                    {
-                        if (!IsValidPositionForRectangle(rectangles, StapleToPoint(r, Corners.C01, aP.Point)))
-                        {
-                            valids--;
-                        }
-                    }
+                        valid |= IsValidPositionForRectangle(rectangles, StapleToPoint(r, Corners.C01, aP.Point));
 
-                    if (valids == 0)
+                    if (!valid)
                         locks |= AttachmentLocks.UP_R;
                 }
 
                 if (!locks.HasFlag(AttachmentLocks.DOWN_L))
                 {
-                    int valids = validRectangles;
+                    bool valid = false;
                     foreach (Rectangle r in testRectangles)
-                    {
-                        if (!IsValidPositionForRectangle(rectangles, StapleToPoint(r, Corners.C10, aP.Point)))
-                        {
-                            valids--;
-                        }
-                    }
+                        valid |= IsValidPositionForRectangle(rectangles, StapleToPoint(r, Corners.C10, aP.Point));
 
-                    if (valids == 0)
+                    if (!valid)
                         locks |= AttachmentLocks.DOWN_L;
                 }
 
                 if (!locks.HasFlag(AttachmentLocks.DOWN_R))
                 {
-                    int valids = validRectangles;
+                    bool valid = false;
                     foreach (Rectangle r in testRectangles)
-                    {
-                        if (!IsValidPositionForRectangle(rectangles, StapleToPoint(r, Corners.C00, aP.Point)))
-                        {
-                            valids--;
-                        }
-                    }
+                        valid |= IsValidPositionForRectangle(rectangles, StapleToPoint(r, Corners.C00, aP.Point));
 
-                    if (valids == 0)
+                    if (!valid)
                         locks |= AttachmentLocks.DOWN_R;
                 }
 
@@ -902,7 +883,10 @@ namespace DeeSynk.Core.Managers
                         // |      I       |   or   |    O         |
                         // |      I       |        |              |
                         // +------O-------+        +--------------+
-
+                        if (testR.X == 50 && testR.Y == 0)
+                        {
+                            int aaa = 1;
+                        }
                         if (testEdges[idx].ContainsPoint(staticEdges[jdx].P1, true))
                         {
                             if (testEdges[(idx + 2) % 4].ContainsPoint(staticEdges[jdx].P2, true) || RectangleContainsPoint(r, staticEdges[jdx].P2))
@@ -1028,14 +1012,20 @@ namespace DeeSynk.Core.Managers
 
         }
 
+        //    C00     UP     C10
+        //       0----------1
+        //  LEFT |          | RIGHT
+        //       2----------3
+        //    C01    DOWN    C11
+
         private List<Edge> GetEdges(Rectangle rectangle)
         {
             List<Edge> edges = new List<Edge>(4);
             var corners = GetCorners(rectangle);
             edges.Add(new Edge(corners[0], corners[1], EdgeNormals.UP));
             edges.Add(new Edge(corners[0], corners[2], EdgeNormals.LEFT));
-            edges.Add(new Edge(corners[1], corners[3], EdgeNormals.RIGHT));
             edges.Add(new Edge(corners[2], corners[3], EdgeNormals.DOWN));
+            edges.Add(new Edge(corners[1], corners[3], EdgeNormals.RIGHT));
 
             return edges;
         }
@@ -1048,8 +1038,8 @@ namespace DeeSynk.Core.Managers
                 var corners = GetCorners(r);
                 edges.Add(new Edge(corners[0], corners[1], EdgeNormals.UP));
                 edges.Add(new Edge(corners[0], corners[2], EdgeNormals.LEFT));
-                edges.Add(new Edge(corners[1], corners[3], EdgeNormals.RIGHT));
                 edges.Add(new Edge(corners[2], corners[3], EdgeNormals.DOWN));
+                edges.Add(new Edge(corners[1], corners[3], EdgeNormals.RIGHT));
             }
 
             return edges;
