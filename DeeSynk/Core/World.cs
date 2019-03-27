@@ -63,7 +63,7 @@ namespace DeeSynk.Core
             _systemTransform.InitLocation();
 
             //TEST START
-            int texID = TextureManager.GetInstance().GetTexture("wood");
+            int texID = TextureManager.GetInstance().GetTexture("testing");
 
             _textureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture(0), 0);
 

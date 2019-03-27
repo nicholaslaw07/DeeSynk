@@ -505,6 +505,65 @@ namespace DeeSynk.Core.Managers
 
             List<Rectangle> bestArrangment = FindBestArrangment(imgDims);
              int x = 0;
+
+            int width = bestArrangment.Max(r => r.X + r.Width);
+            int height = bestArrangment.Max(r => r.Y + r.Height);
+
+            var data = new float[4 * width * height];
+
+            var edges = GetEdges(bestArrangment);
+
+            for(int jdx = 0; jdx < height; jdx++)
+            {
+                for(int idx = 0; idx < width; idx++)
+                {
+                    foreach(Edge edge in edges)
+                    {
+                        if(edge.ContainsPoint(new Point(idx, jdx), false))
+                        {
+                            data[jdx * 4 * width + 4 * idx] = 1.0f;
+                            data[jdx * 4 * width + 4 * idx + 1] = 0.0f;
+                            data[jdx * 4 * width + 4 * idx + 2] = 0.0f;
+                            data[jdx * 4 * width + 4 * idx + 3] = 1.0f;
+
+                            break;
+                        }
+                        else
+                        {
+                            data[jdx * 4 * width + 4 * idx] = 1.0f;
+                            data[jdx * 4 * width + 4 * idx + 1] = 1.0f;
+                            data[jdx * 4 * width + 4 * idx + 2] = 1.0f;
+                            data[jdx * 4 * width + 4 * idx + 3] = 1.0f;
+                        }
+                    }
+                    foreach(Rectangle r in bestArrangment)
+                    {
+                        if(RectangleContainsPoint(r, new Point(idx, jdx)))
+                        {
+                            data[jdx * 4 * width + 4 * idx] = 1.0f;
+                            data[jdx * 4 * width + 4 * idx + 1] = 0.0f;
+                            data[jdx * 4 * width + 4 * idx + 2] = 0.5f;
+                            data[jdx * 4 * width + 4 * idx + 3] = 1.0f;
+                        }
+                    }
+                }
+            }
+
+            int texture = GL.GenTexture();
+
+            GL.BindTexture(TextureTarget.Texture2D, texture);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
+            GL.TextureSubImage2D(texture, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.Float, data);
+            GL.Enable(EnableCap.Texture2D);
+
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear); // defines sampling behavior when scaling image down
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear); // defines sampling behavior when scaling image up
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the x directions
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the y directions
+
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+
+            loadedTextures.Add("testing", texture);
         }
 
         private List<Rectangle> FindBestArrangment(List<Rectangle> rectangles)
@@ -765,7 +824,7 @@ namespace DeeSynk.Core.Managers
                 }
 
                 //checking if this point is against an axis boundary, which would lead to an invalid position
-                if(p.X == 0)
+                if (p.X == 0)
                     aLocks |= AttachmentLocks.UP_L | AttachmentLocks.DOWN_L;
                 if (p.Y == 0)
                     aLocks |= AttachmentLocks.UP_L | AttachmentLocks.UP_R;
@@ -960,20 +1019,20 @@ namespace DeeSynk.Core.Managers
             {
                 switch (corner)
                 {
-                    case (Corners.C00): return new Point(rectangle.X                  , rectangle.Y                   );
-                    case (Corners.C10): return new Point(rectangle.X + rectangle.Width, rectangle.Y                   );
-                    case (Corners.C01): return new Point(rectangle.X                  , rectangle.Y + rectangle.Height);
-                    case (Corners.C11): return new Point(rectangle.X + rectangle.Width, rectangle.Y + rectangle.Height);
+                    case (Corners.C00): return new Point(rectangle.X                      , rectangle.Y                      );
+                    case (Corners.C10): return new Point(rectangle.X + rectangle.Width - 1, rectangle.Y                      );
+                    case (Corners.C01): return new Point(rectangle.X                      , rectangle.Y + rectangle.Height - 1);
+                    case (Corners.C11): return new Point(rectangle.X + rectangle.Width - 1, rectangle.Y + rectangle.Height - 1);
                 }
             }
             else
             {
                 switch (corner)
                 {
-                    case (Corners.C00): return new Point(0              , 0               );
-                    case (Corners.C10): return new Point(rectangle.Width, 0               );
-                    case (Corners.C01): return new Point(0              , rectangle.Height);
-                    case (Corners.C11): return new Point(rectangle.Width, rectangle.Height);
+                    case (Corners.C00): return new Point(0                  , 0                   );
+                    case (Corners.C10): return new Point(rectangle.Width - 1, 0                   );
+                    case (Corners.C01): return new Point(0                  , rectangle.Height - 1);
+                    case (Corners.C11): return new Point(rectangle.Width - 1, rectangle.Height - 1);
                 }
             }
 
@@ -986,10 +1045,10 @@ namespace DeeSynk.Core.Managers
 
             var l= rectangle.Location;
             var s = new Point(rectangle.Size);
-            corners.Add(new Point(l.X      , l.Y      )); //Corners.C00  //UpLeft
-            corners.Add(new Point(l.X + s.X, l.Y      )); //Corners.C10  //UpRight
-            corners.Add(new Point(l.X      , l.Y + s.Y)); //Corners.C01  //DownLeft
-            corners.Add(new Point(l.X + s.X, l.Y + s.Y)); //Corners.C11  //DownRight
+            corners.Add(new Point(l.X          , l.Y          )); //Corners.C00  //UpLeft
+            corners.Add(new Point(l.X + s.X - 1, l.Y          )); //Corners.C10  //UpRight
+            corners.Add(new Point(l.X          , l.Y + s.Y - 1)); //Corners.C01  //DownLeft
+            corners.Add(new Point(l.X + s.X - 1, l.Y + s.Y - 1)); //Corners.C11  //DownRight
 
             return corners;
         }
@@ -1002,10 +1061,10 @@ namespace DeeSynk.Core.Managers
             {
                 var l = r.Location;
                 var s = new Point(r.Size);
-                corners.Add(new Point(l.X      , l.Y      )); //Corners.C00  //UpLeft
-                corners.Add(new Point(l.X + s.X, l.Y      )); //Corners.C10  //UpRight
-                corners.Add(new Point(l.X      , l.Y + s.Y)); //Corners.C01  //DownLeft
-                corners.Add(new Point(l.X + s.X, l.Y + s.Y)); //Corners.C11  //DownRight
+                corners.Add(new Point(l.X          , l.Y      )); //Corners.C00  //UpLeft
+                corners.Add(new Point(l.X + s.X - 1, l.Y      )); //Corners.C10  //UpRight
+                corners.Add(new Point(l.X          , l.Y + s.Y - 1)); //Corners.C01  //DownLeft
+                corners.Add(new Point(l.X + s.X - 1, l.Y + s.Y - 1)); //Corners.C11  //DownRight
             }
 
             return corners;

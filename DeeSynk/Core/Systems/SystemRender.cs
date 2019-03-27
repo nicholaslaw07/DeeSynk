@@ -203,14 +203,14 @@ namespace DeeSynk.Core.Systems
 
             Bind(1);
             
-            GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured2"));
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("defaultTextured"));
             systemTransform.PushMatrixDataNoTransform();
             //GL.UniformMatrix4(5, false, ref _lightView);
             GL.UniformMatrix4(9, false, ref _lightView);
             systemTransform.PushModelMatrix(1);
             GL.ActiveTexture(TextureUnit.Texture0);
             _textureComps[1].BindTexture();
-            GL.BindTexture(TextureTarget.Texture2D, _depthMap);
+            GL.BindTexture(TextureTarget.Texture2D, TextureManager.GetInstance().GetTexture("testing"));
             BindDepthMap();
             int y = ModelManager.GetInstance().GetModel(_staticModelComps[1].ModelID).ElementCount;
             GL.DrawElementsInstanced(PrimitiveType.Triangles, y, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);
