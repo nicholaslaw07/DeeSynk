@@ -199,7 +199,7 @@ namespace DeeSynk.Core.Systems
             _textureComps[1].BindTexture();
             BindDepthMap();
             int x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).ElementCount;
-            GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);
+            //GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);
 
             Bind(1);
             

@@ -112,19 +112,6 @@ namespace DeeSynk.Core.Algorithms
             return new Rectangle(p.X, p.Y, p.X + r.X1_Base, p.Y + r.Y1_Base);
         }
 
-        
-        /*public static bool EitherContain(Rectangle rA, Rectangle rB)
-        {
-            return rA.ContainsPoint(rB.C00) ||
-                   rA.ContainsPoint(rB.C01) ||
-                   rA.ContainsPoint(rB.C10) ||
-                   rA.ContainsPoint(rB.C11) ||
-                   rB.ContainsPoint(rA.C00) ||
-                   rB.ContainsPoint(rA.C01) ||
-                   rB.ContainsPoint(rA.C10) ||
-                   rB.ContainsPoint(rA.C11);
-        }*/
-
         public static bool EitherContain(Rectangle rA, Rectangle rB)
         {
             int totalWidths = rA.w + rB.w;
@@ -257,62 +244,52 @@ namespace DeeSynk.Core.Algorithms
         private Rectangle[] rectangles;
         private int rectangleCount;
         private bool[] pinnedRectangles;
-        private int numberPinned;
+        private int[] pinDiff;
+        private int pinDiffCount;
+        private int numberUnpinned;
+
         private AttachmentPoint[] attachmentPoints;
+        private int[] aPIndices;
+        private int availableAPs;
         private int aPCount;
         private bool[] activeAPs;
+
         private ConfigurationPoint[] bestResult;
         private float bestScore;
+        private Stopwatch sw;
 
         private int count = 0;
-
-        public AlgorithmRectangleCompaction(Rectangle[] rects)
-        {
-            rectangleCount = rects.Length;
-            rectangles = new Rectangle[rectangleCount];
-            numberPinned = 0;
-            pinnedRectangles = new bool[rectangleCount];
-            for(int idx = 0; idx < rectangleCount; idx++)
-            {
-                rectangles[idx] = Rectangle.Reset(rects[idx]);
-                pinnedRectangles[idx] = false;
-            }
-
-            aPCount = 12 * rectangleCount;
-            attachmentPoints = new AttachmentPoint[12 * rectangleCount];
-            activeAPs = new bool[12 * rectangleCount];
-
-            bestResult = new ConfigurationPoint[rectangleCount];
-            bestScore = 0.0f;
-        }
 
         public AlgorithmRectangleCompaction(List<System.Drawing.Rectangle> rects)
         {
             rectangleCount = rects.Count();
             rectangles = new Rectangle[rectangleCount];
-            numberPinned = 0;
+            pinDiff = new int[rectangleCount];
+            pinDiffCount = 0;
             pinnedRectangles = new bool[rectangleCount];
             for (int idx = 0; idx < rectangleCount; idx++)
             {
                 rectangles[idx] = new Rectangle(0, 0, rects[idx].Width - 1, rects[idx].Height - 1);
                 pinnedRectangles[idx] = false;
+                pinDiff[idx] = -1;
             }
 
             aPCount = 12 * rectangleCount;
             attachmentPoints = new AttachmentPoint[12 * rectangleCount];
+            aPIndices = new int[aPCount];
+            availableAPs = 0;
             activeAPs = new bool[12 * rectangleCount];
 
             bestResult = new ConfigurationPoint[rectangleCount];
             bestScore = 0.0f;
+
+            sw = new Stopwatch();
         }
 
         public Rectangle[] FindBestConfiguration()
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
             BestConfiguration();
-            sw.Stop();
-            Console.WriteLine(sw.ElapsedMilliseconds);
+            //Console.WriteLine(count);
             for (int idx = 0; idx < rectangleCount; idx++)
             {
                 rectangles[idx] = Rectangle.Reset(rectangles[idx]);
@@ -324,11 +301,11 @@ namespace DeeSynk.Core.Algorithms
 
         private void BestConfiguration()
         {
-            count++;
-            if(count % 100000 == 0)
-            {
-                Console.WriteLine(count);
-            }
+            //count++;
+            //if(count % 100000 == 0)
+            //{
+            //    Console.WriteLine(count);
+            //}
             if (NumberPinned() == rectangleCount)
             {
                 ScoreAndStore();
@@ -343,9 +320,17 @@ namespace DeeSynk.Core.Algorithms
                 {
                     if (NumberPinned() == 0)
                     {
+                        //sw.Start();
+                        //Console.WriteLine(idx);
+
+
                         Pin(idx);
                         BestConfiguration();
                         UnPin(idx);
+
+
+                        //sw.Stop();
+                        //Console.WriteLine(sw.ElapsedMilliseconds);
                     }
                     else
                     {
@@ -407,19 +392,53 @@ namespace DeeSynk.Core.Algorithms
         private bool IsValidPinLocation(int rectIndex, int apIndex)
         {
             Rectangle testPin = Rectangle.StapleTo(rectangles[rectIndex], attachmentPoints[apIndex]);
-            bool isValid = true;
-            for(int idx = 0; idx < rectangleCount; idx++)
+            bool isValid = !testPin.OutOfBounds();
+            for (int idx = 0; idx < rectangleCount; idx++)
             {
+                if (!isValid)
+                    break;
                 if (pinnedRectangles[idx])
-                    isValid &= !testPin.OutOfBounds() && !Rectangle.EitherContain(testPin, rectangles[idx]);
+                    isValid &= !Rectangle.EitherContain(testPin, rectangles[idx]);
             }
-
             return isValid;
         }
 
         //C00-0  C01-1  C10-2  C11-3
         private void BuildAttachmentPoints()
         {
+            /*for(int jdx=0; jdx < pinDiffCount - 1; jdx ++)
+            {
+                int idx = pinDiff[jdx];
+                Rectangle currentRect = rectangles[idx];
+                //C00
+                {
+                    Point c = currentRect.C00;
+                    attachmentPoints[12 * idx + 0] = new AttachmentPoint(Point.Shift(c, 0).X, Point.Shift(c, 0).Y, 1);
+                    attachmentPoints[12 * idx + 1] = new AttachmentPoint(Point.Shift(c, 1).X, Point.Shift(c, 1).Y, 3);
+                    attachmentPoints[12 * idx + 2] = new AttachmentPoint(Point.Shift(c, 2).X, Point.Shift(c, 2).Y, 2);
+                }
+                //C01
+                {
+                    Point c = currentRect.C01;
+                    attachmentPoints[12 * idx + 3] = new AttachmentPoint(Point.Shift(c, 3).X, Point.Shift(c, 3).Y, 3);
+                    attachmentPoints[12 * idx + 4] = new AttachmentPoint(Point.Shift(c, 4).X, Point.Shift(c, 4).Y, 2);
+                    attachmentPoints[12 * idx + 5] = new AttachmentPoint(Point.Shift(c, 5).X, Point.Shift(c, 5).Y, 0);
+                }
+                //C10
+                {
+                    Point c = currentRect.C11;
+                    attachmentPoints[12 * idx + 6] = new AttachmentPoint(Point.Shift(c, 6).X, Point.Shift(c, 6).Y, 2);
+                    attachmentPoints[12 * idx + 7] = new AttachmentPoint(Point.Shift(c, 7).X, Point.Shift(c, 7).Y, 0);
+                    attachmentPoints[12 * idx + 8] = new AttachmentPoint(Point.Shift(c, 8).X, Point.Shift(c, 8).Y, 1);
+                }
+                //C11
+                {
+                    Point c = currentRect.C10;
+                    attachmentPoints[12 * idx + 9] = new AttachmentPoint(Point.Shift(c, 9).X, Point.Shift(c, 9).Y, 0);
+                    attachmentPoints[12 * idx + 10] = new AttachmentPoint(Point.Shift(c, 10).X, Point.Shift(c, 10).Y, 1);
+                    attachmentPoints[12 * idx + 11] = new AttachmentPoint(Point.Shift(c, 11).X, Point.Shift(c, 11).Y, 3);
+                }
+            }*/
             for(int idx=0; idx < rectangleCount; idx++)
             {
                 if (pinnedRectangles[idx])
@@ -449,11 +468,12 @@ namespace DeeSynk.Core.Algorithms
                     //C11
                     {
                         Point c = currentRect.C10;
-                        attachmentPoints[12 * idx +  9] = new AttachmentPoint(Point.Shift(c,  9).X, Point.Shift(c,  9).Y, 0);
+                        attachmentPoints[12 * idx + 9] = new AttachmentPoint(Point.Shift(c, 9).X, Point.Shift(c, 9).Y, 0);
                         attachmentPoints[12 * idx + 10] = new AttachmentPoint(Point.Shift(c, 10).X, Point.Shift(c, 10).Y, 1);
                         attachmentPoints[12 * idx + 11] = new AttachmentPoint(Point.Shift(c, 11).X, Point.Shift(c, 11).Y, 3);
                     }
                 }
+
                 for(int jdx = 0; jdx < 12; jdx++)
                 {
                     for(int kdx = 0; kdx < rectangleCount; kdx++)
@@ -464,8 +484,7 @@ namespace DeeSynk.Core.Algorithms
                 }
             }
 
-            
-            for(int idx=0; idx < aPCount; idx++)
+            for (int idx=0; idx < aPCount; idx++)
             {
                 if (activeAPs[idx])
                 {
@@ -489,26 +508,22 @@ namespace DeeSynk.Core.Algorithms
                         else
                         {
                             Rectangle testPin = Rectangle.StapleTo(rectangles[jdx], attachmentPoints[idx]);
+                            isEntirelyBlocked &= testPin.OutOfBounds();
                             for (int kdx=0; kdx < rectangleCount; kdx++)
                             {
                                 if (pinnedRectangles[kdx])
                                 {
-                                    isEntirelyBlocked &= (testPin.OutOfBounds() || Rectangle.EitherContain(rectangles[kdx], testPin));
+                                    isEntirelyBlocked &= Rectangle.EitherContain(rectangles[kdx], testPin);
                                 }
+
+                                if (!isEntirelyBlocked)
+                                    break;
                             }
                         }
                     }
 
                     if (isEntirelyBlocked)
                         activeAPs[idx] = false;
-                }
-            }
-
-            for(int idx = 0; idx < aPCount; idx++)
-            {
-                if (!activeAPs[idx])
-                {
-                    attachmentPoints[idx] = new AttachmentPoint();
                 }
             }
         }
@@ -524,18 +539,27 @@ namespace DeeSynk.Core.Algorithms
         private void Pin(int idx)
         {
             pinnedRectangles[idx] = true;
+            pinDiff[pinDiffCount] = idx;
+            pinDiffCount++;
         }
 
         private void Pin(int rectIndex, int apIndex)
         {
             rectangles[rectIndex] = Rectangle.StapleTo(rectangles[rectIndex], attachmentPoints[apIndex]);
             pinnedRectangles[rectIndex] = true;
+            pinDiff[pinDiffCount] = rectIndex;
+            pinDiffCount++;
         }
 
         private void UnPin(int idx)
         {
             rectangles[idx] = Rectangle.Reset(rectangles[idx]);
             pinnedRectangles[idx] = false;
+            pinDiff[--pinDiffCount] = -1;
+            for(int jdx = 0; jdx < 12; jdx++)
+            {
+                activeAPs[12 * idx + jdx] = false;
+            }
         }
 
 
