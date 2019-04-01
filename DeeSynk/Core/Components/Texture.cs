@@ -87,7 +87,7 @@ namespace DeeSynk.Core.Components
             int placementIndex = 0;
             for(placementIndex = 0; placementIndex < _subTextureCount; placementIndex++)
             {
-                if(_subTextureLocations[placementIndex].UVOffset == null && _subTextureLocations[placementIndex].UVScale == null)
+                if(_subTextureLocations[placementIndex].UVScale == Vector2.Zero)
                 {
                     _subTextureLocations[placementIndex] = subTextureLocation;
                     _availableSubLocations++;

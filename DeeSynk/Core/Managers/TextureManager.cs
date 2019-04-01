@@ -101,7 +101,7 @@ namespace DeeSynk.Core.Managers
             {
                 int fileCount = Directory.GetFiles(folder).Count();
                 if (Directory.GetDirectories(folder).Count() == 0 && fileCount > 1)
-                    InitTextureAtlas(TEXTURE_PATH, folder, fileCount);
+                    InitTextureAtlas(TEXTURE_PATH, folder + @"\", fileCount);
             }
 
         }
@@ -216,137 +216,38 @@ namespace DeeSynk.Core.Managers
         private void InitTextureAtlas(string folderPath, string groupFolder, int textureCount)
         {
             var filePaths = Directory.GetFiles(folderPath + groupFolder);
-            List<Rectangle> imgDims = new List<Rectangle>(textureCount);
-            foreach (string path in filePaths)
-                imgDims.Add(new Rectangle(new Point(0, 0), GetImageDimensions(path))); //Add rectangle representing image to list
+            var fileName = Directory.GetFiles(folderPath + groupFolder).Select(Path.GetFileNameWithoutExtension);
+            List<Tuple<int, Rectangle>> imgDims = new List<Tuple<int, Rectangle>>(filePaths.Count());
+
+            for(int idx = 0; idx < textureCount; idx++)
+                imgDims.Add(new Tuple<int, Rectangle>(idx, new Rectangle(new Point(0, 0), GetImageDimensions(filePaths[idx])))); //Add rectangle representing image to list
             imgDims.Sort(CompareByArea); //Sort by descending area
 
-            //TEST START
-            imgDims = new List<Rectangle>();
-            imgDims.Add(new Rectangle(0, 0, 100, 100));
-            imgDims.Add(new Rectangle(0, 0, 100, 100));
-            imgDims.Add(new Rectangle(0, 0, 150, 200));
-            imgDims.Add(new Rectangle(0, 0, 210, 15));
-            imgDims.Add(new Rectangle(0, 0, 100, 100));
-            imgDims.Add(new Rectangle(0, 0, 150, 90));
-            Stopwatch sw = new Stopwatch();
-            //sw.Start();
-            //List<Rectangle> bestArrangment = FindBestArrangment(imgDims);
-            //sw.Stop();
-            //Console.WriteLine(sw.ElapsedMilliseconds / 1000f);
-            //sw.Reset();
-            sw.Start();
-            var rects = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims).FindBestConfiguration();
-            sw.Stop();
-            Console.WriteLine(sw.ElapsedMilliseconds / 1000f);
-            /*
-            imgDims = new List<Rectangle>();
-            imgDims.Add(new Rectangle(0, 0, 100, 100));
-            imgDims.Add(new Rectangle(0, 0, 100, 100));
-            imgDims.Add(new Rectangle(0, 0, 150, 200));
-            imgDims.Add(new Rectangle(0, 0, 210, 15));
-            imgDims.Add(new Rectangle(0, 0, 100, 100));
-            imgDims.Add(new Rectangle(0, 0, 150, 90));
-            imgDims.Add(new Rectangle(0, 0, 50, 50));
-            imgDims.Add(new Rectangle(0, 0, 120, 100));
-            imgDims.Add(new Rectangle(0, 0, 30, 100));
-            imgDims.Add(new Rectangle(0, 0, 21, 21));
-            imgDims.Add(new Rectangle(0, 0, 170, 140));
-            imgDims.Add(new Rectangle(0, 0, 300, 100));
-            imgDims.Add(new Rectangle(0, 0, 90, 40));
-            imgDims.Add(new Rectangle(0, 0, 70, 60));
-            imgDims.Add(new Rectangle(0, 0, 30, 100));
-            imgDims.Add(new Rectangle(0, 0, 100, 100));
-            //imgDims.Add(new Rectangle(0, 0, 100, 100));
-            imgDims.Sort(CompareByArea); //Sort by descending area
+            var indices = imgDims.Select(t => t.Item1).ToArray();
+            var rects = new Algorithms.AlgorithmRectangleCompaction(imgDims.Select(t => t.Item2).ToList()).FindBestConfiguration();
 
-            //TEST END
-            Stopwatch sw = new Stopwatch();
-            //sw.Start();
-            //List<Rectangle> bestArrangment = FindBestArrangment(imgDims);
-            //sw.Stop();
-            //Console.WriteLine(sw.ElapsedMilliseconds / 1000f);
-            //sw.Reset();
-            sw.Start();
-            var rects1 = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims.GetRange(0, 4)).FindBestConfiguration();
-            var rects2 = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims.GetRange(4, 4)).FindBestConfiguration();
-            var rects3 = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims.GetRange(8, 4)).FindBestConfiguration();
-            var rects4 = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims.GetRange(12, 4)).FindBestConfiguration();
-            imgDims.Clear();
-            imgDims.Add(new Rectangle(0, 0, rects1.Max(rc => rc.X1 + 1), rects1.Max(rc => rc.Y1 + 1)));
-            imgDims.Add(new Rectangle(0, 0, rects2.Max(rc => rc.X1 + 1), rects2.Max(rc => rc.Y1 + 1)));
-            imgDims.Add(new Rectangle(0, 0, rects3.Max(rc => rc.X1 + 1), rects3.Max(rc => rc.Y1 + 1)));
-            imgDims.Add(new Rectangle(0, 0, rects4.Max(rc => rc.X1 + 1), rects4.Max(rc => rc.Y1 + 1)));
-            var rectsF = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims.GetRange(0, 4)).FindBestConfiguration();
-
-            DeeSynk.Core.Algorithms.Rectangle[] rects = new DeeSynk.Core.Algorithms.Rectangle[rects1.Length + rects2.Length + rects3.Length + rects4.Length];
-            for(int idx = 0; idx < 4; idx++)
-                rects[idx] = rects1[idx];
-            for (int idx = 4; idx < 8; idx++)
-                rects[idx] = rects2[idx - 4];
-            for (int idx = 8; idx < 12; idx++)
-                rects[idx] = rects3[idx - 8];
-            for (int idx = 12; idx < 16; idx++)
-                rects[idx] = rects4[idx - 12];
-
-            for(int idx = 0; idx < 4; idx++)
-            {
-                var p = rectsF[idx].C00;
-                rects[4 * idx + 0] = rects[4 * idx + 0] + p;
-                rects[4 * idx + 1] = rects[4 * idx + 1] + p;
-                rects[4 * idx + 2] = rects[4 * idx + 2] + p;
-                rects[4 * idx + 3] = rects[4 * idx + 3] + p;
-            }
-
-            sw.Stop();
-            Console.WriteLine(sw.ElapsedMilliseconds / 1000f);
-            */
-            int x = 0;
-
-            int width = rects.Max(r => r.C11.X);
-            width++;
-            int height = rects.Max(r => r.C11.Y);
-            height++;
-
-            var data = new float[4 * width * height];
-
-            for(int jdx = 0; jdx < height; jdx++)
-            {
-                for(int idx = 0; idx < width; idx++)
-                {
-                    data[jdx * width * 4 + idx * 4 + 0] = 1.0f;
-                    data[jdx * width * 4 + idx * 4 + 1] = 1.0f;
-                    data[jdx * width * 4 + idx * 4 + 2] = 1.0f;
-                    data[jdx * width * 4 + idx * 4 + 3] = 1.0f;
-
-                    for(int kdx = 0; kdx < rects.Length; kdx++)
-                    {
-                        if(rects[kdx].ContainsPoint(new Algorithms.Point(idx, jdx)))
-                        {
-                            if(rects[kdx].IsEdgePoint(new Algorithms.Point(idx, jdx)))
-                            {
-                                data[jdx * width * 4 + idx * 4 + 0] = 0.0f;
-                                data[jdx * width * 4 + idx * 4 + 1] = 1.0f;
-                                data[jdx * width * 4 + idx * 4 + 2] = 0.0f;
-                                data[jdx * width * 4 + idx * 4 + 3] = 1.0f;
-                            }
-                            else
-                            {
-                                data[jdx * width * 4 + idx * 4 + 0] = 1.0f;
-                                data[jdx * width * 4 + idx * 4 + 1] = 0.0f;
-                                data[jdx * width * 4 + idx * 4 + 2] = 1.0f;
-                                data[jdx * width * 4 + idx * 4 + 3] = 1.0f;
-                            }
-                        }
-                    }
-                }
-            }
+            int width = rects.Max(r => r.C11.X) + 1;
+            int height = rects.Max(r => r.C11.Y) + 1;
 
             int texture = GL.GenTexture();
-
             GL.BindTexture(TextureTarget.Texture2D, texture);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
-            GL.TextureSubImage2D(texture, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.Float, data);
+            _loadedTextures[_loadedTextureCount] = new Texture(texture, width, height, textureCount);
+
+            for(int idx = 0; idx < textureCount; idx++)
+            {
+                var data = LoadTexture(folderPath + groupFolder, Path.GetFileNameWithoutExtension(filePaths[indices[idx]]), ".bmp", out int subW, out int subH);
+                int offsetX = rects[idx].X0;
+                int offsetY = rects[idx].Y0;
+                GL.TextureSubImage2D(texture, 0, offsetX, offsetY, subW, subH, PixelFormat.Bgra, PixelType.Float, data);
+                bool valid = _loadedTextures[_loadedTextureCount].AddSubTextureLocation(new SubTextureLocation(
+                                                                                new Vector2((float)offsetX / ((float)width - 1), (float)offsetY / ((float)height - 1)),
+                                                                                new Vector2(subW / (float)width, subH / (float)height)
+                                                                           ));
+                if (!valid)
+                    Console.WriteLine("Oopsie Doopsie");
+            }
+
             GL.Enable(EnableCap.Texture2D);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear); // defines sampling behavior when scaling image down
@@ -376,10 +277,10 @@ namespace DeeSynk.Core.Managers
             return new Size(width, height);
         }
 
-        private static int CompareByArea(Rectangle a, Rectangle b)
+        private static int CompareByArea(Tuple<int, Rectangle> a, Tuple<int, Rectangle> b)
         {
-            int areaA = a.Width * a.Height;
-            int areaB = b.Width * b.Height;
+            int areaA = a.Item2.Width * a.Item2.Height;
+            int areaB = b.Item2.Width * b.Item2.Height;
             if (areaA == areaB)
                 return 0;
             else if (areaA > areaB)
@@ -417,3 +318,119 @@ namespace DeeSynk.Core.Managers
         }
     }
 }
+
+//THIS IS OLD TEST CODE
+
+//TEST START
+/*
+Random rand = new Random();
+imgDims = new List<Rectangle>();
+for (int idx = 0; idx < 32; idx++)
+    imgDims.Add(new Rectangle(0, 0, rand.Next(16, 256), rand.Next(16, 256)));
+
+imgDims.Sort(CompareByArea); //Sort by descending area
+Stopwatch sw = new Stopwatch();
+sw.Start();
+var rects = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims).FindBestConfiguration();
+sw.Stop();
+Console.WriteLine(sw.ElapsedMilliseconds / 1000f);
+imgDims = new List<Rectangle>();
+imgDims.Add(new Rectangle(0, 0, 100, 100));
+imgDims.Add(new Rectangle(0, 0, 100, 100));
+imgDims.Add(new Rectangle(0, 0, 150, 200));
+imgDims.Add(new Rectangle(0, 0, 210, 15));
+imgDims.Add(new Rectangle(0, 0, 100, 100));
+imgDims.Add(new Rectangle(0, 0, 150, 90));
+imgDims.Add(new Rectangle(0, 0, 50, 50));
+imgDims.Add(new Rectangle(0, 0, 120, 100));
+imgDims.Add(new Rectangle(0, 0, 30, 100));
+imgDims.Add(new Rectangle(0, 0, 21, 21));
+imgDims.Add(new Rectangle(0, 0, 170, 140));
+imgDims.Add(new Rectangle(0, 0, 300, 100));
+imgDims.Add(new Rectangle(0, 0, 90, 40));
+imgDims.Add(new Rectangle(0, 0, 70, 60));
+imgDims.Add(new Rectangle(0, 0, 30, 100));
+imgDims.Add(new Rectangle(0, 0, 100, 100));
+//imgDims.Add(new Rectangle(0, 0, 100, 100));
+imgDims.Sort(CompareByArea); //Sort by descending area
+
+//TEST END
+Stopwatch sw = new Stopwatch();
+//sw.Start();
+//List<Rectangle> bestArrangment = FindBestArrangment(imgDims);
+//sw.Stop();
+//Console.WriteLine(sw.ElapsedMilliseconds / 1000f);
+//sw.Reset();
+sw.Start();
+var rects1 = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims.GetRange(0, 4)).FindBestConfiguration();
+var rects2 = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims.GetRange(4, 4)).FindBestConfiguration();
+var rects3 = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims.GetRange(8, 4)).FindBestConfiguration();
+var rects4 = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims.GetRange(12, 4)).FindBestConfiguration();
+imgDims.Clear();
+imgDims.Add(new Rectangle(0, 0, rects1.Max(rc => rc.X1 + 1), rects1.Max(rc => rc.Y1 + 1)));
+imgDims.Add(new Rectangle(0, 0, rects2.Max(rc => rc.X1 + 1), rects2.Max(rc => rc.Y1 + 1)));
+imgDims.Add(new Rectangle(0, 0, rects3.Max(rc => rc.X1 + 1), rects3.Max(rc => rc.Y1 + 1)));
+imgDims.Add(new Rectangle(0, 0, rects4.Max(rc => rc.X1 + 1), rects4.Max(rc => rc.Y1 + 1)));
+var rectsF = new DeeSynk.Core.Algorithms.AlgorithmRectangleCompaction(imgDims.GetRange(0, 4)).FindBestConfiguration();
+
+DeeSynk.Core.Algorithms.Rectangle[] rects = new DeeSynk.Core.Algorithms.Rectangle[rects1.Length + rects2.Length + rects3.Length + rects4.Length];
+for(int idx = 0; idx < 4; idx++)
+    rects[idx] = rects1[idx];
+for (int idx = 4; idx < 8; idx++)
+    rects[idx] = rects2[idx - 4];
+for (int idx = 8; idx < 12; idx++)
+    rects[idx] = rects3[idx - 8];
+for (int idx = 12; idx < 16; idx++)
+    rects[idx] = rects4[idx - 12];
+
+for(int idx = 0; idx < 4; idx++)
+{
+    var p = rectsF[idx].C00;
+    rects[4 * idx + 0] = rects[4 * idx + 0] + p;
+    rects[4 * idx + 1] = rects[4 * idx + 1] + p;
+    rects[4 * idx + 2] = rects[4 * idx + 2] + p;
+    rects[4 * idx + 3] = rects[4 * idx + 3] + p;
+}
+
+sw.Stop();
+Console.WriteLine(sw.ElapsedMilliseconds / 1000f);
+
+
+int width = rects.Max(r => r.C11.X);
+width++;
+int height = rects.Max(r => r.C11.Y);
+height++;
+
+var data = new float[4 * width * height];
+
+for(int jdx = 0; jdx < height; jdx++)
+{
+    for(int idx = 0; idx < width; idx++)
+    {
+        data[jdx * width * 4 + idx * 4 + 0] = 1.0f;
+        data[jdx * width * 4 + idx * 4 + 1] = 1.0f;
+        data[jdx * width * 4 + idx * 4 + 2] = 1.0f;
+        data[jdx * width * 4 + idx * 4 + 3] = 1.0f;
+
+        for(int kdx = 0; kdx < rects.Length; kdx++)
+        {
+            if(rects[kdx].ContainsPoint(new Algorithms.Point(idx, jdx)))
+            {
+                if(rects[kdx].IsEdgePoint(new Algorithms.Point(idx, jdx)))
+                {
+                    data[jdx * width * 4 + idx * 4 + 0] = 0.0f;
+                    data[jdx * width * 4 + idx * 4 + 1] = 1.0f;
+                    data[jdx * width * 4 + idx * 4 + 2] = 0.0f;
+                    data[jdx * width * 4 + idx * 4 + 3] = 1.0f;
+                }
+                else
+                {
+                    data[jdx * width * 4 + idx * 4 + 0] = 1.0f;
+                    data[jdx * width * 4 + idx * 4 + 1] = 0.0f;
+                    data[jdx * width * 4 + idx * 4 + 2] = 1.0f;
+                    data[jdx * width * 4 + idx * 4 + 3] = 1.0f;
+                }
+            }
+        }
+    }
+}*/

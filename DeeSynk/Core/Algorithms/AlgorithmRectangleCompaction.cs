@@ -246,19 +246,14 @@ namespace DeeSynk.Core.Algorithms
         private bool[] pinnedRectangles;
         private int[] pinDiff;
         private int pinDiffCount;
-        private int numberUnpinned;
 
         private AttachmentPoint[] attachmentPoints;
         private int[] aPIndices;
-        private int availableAPs;
         private int aPCount;
         private bool[] activeAPs;
 
         private ConfigurationPoint[] bestResult;
         private float bestScore;
-        private Stopwatch sw;
-
-        private int count = 0;
 
         public AlgorithmRectangleCompaction(List<System.Drawing.Rectangle> rects)
         {
@@ -277,19 +272,16 @@ namespace DeeSynk.Core.Algorithms
             aPCount = 12 * rectangleCount;
             attachmentPoints = new AttachmentPoint[12 * rectangleCount];
             aPIndices = new int[aPCount];
-            availableAPs = 0;
             activeAPs = new bool[12 * rectangleCount];
 
             bestResult = new ConfigurationPoint[rectangleCount];
             bestScore = 0.0f;
-
-            sw = new Stopwatch();
         }
 
         public Rectangle[] FindBestConfiguration()
         {
             BestConfiguration();
-            //Console.WriteLine(count);
+            Console.WriteLine("Best Score: " + bestScore);
             for (int idx = 0; idx < rectangleCount; idx++)
             {
                 rectangles[idx] = Rectangle.Reset(rectangles[idx]);
@@ -301,11 +293,13 @@ namespace DeeSynk.Core.Algorithms
 
         private void BestConfiguration()
         {
-            //count++;
-            //if(count % 100000 == 0)
-            //{
-            //    Console.WriteLine(count);
-            //}
+
+            if (rectangleCount > 4 && rectangleCount <= 8 && bestScore >= 0.9)
+                return;
+
+            else if (bestScore >= 0.6 && rectangleCount > 8)
+                return;
+
             if (NumberPinned() == rectangleCount)
             {
                 ScoreAndStore();
