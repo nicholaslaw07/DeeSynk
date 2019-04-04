@@ -8,6 +8,6 @@ namespace DeeSynk.Core.Components.Types
 {
     public interface IComponent
     {
-        int BitMaskID { get; }
+        Component BitMaskID { get; }
     }
 }

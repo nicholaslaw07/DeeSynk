@@ -37,7 +37,7 @@ namespace DeeSynk.Core.Components.Types.Transform
 
     public class ComponentTransform : IComponent
     {
-        public int BitMaskID => (int)Component.TRANSFORM;
+        public Component BitMaskID => Component.TRANSFORM;
 
         private TransformComponents _transformComponents;
         public  TransformComponents TransformComponents { get => _transformComponents; }

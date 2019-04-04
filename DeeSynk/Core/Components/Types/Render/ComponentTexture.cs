@@ -10,7 +10,7 @@ namespace DeeSynk.Core.Components.Types.Render
 {
     public class ComponentTexture : IComponent
     {
-        public int BitMaskID => (int)Component.TEXTURE;
+        public Component BitMaskID => Component.TEXTURE;
 
         public const TextureUnit DEFAULT_TEXTURE_UNIT = TextureUnit.Texture0;
 
@@ -27,6 +27,12 @@ namespace DeeSynk.Core.Components.Types.Render
 
         private Texture _texture;
         public ref Texture Texture { get => ref _texture; }
+
+        public ComponentTexture(Texture texture)
+        {
+            _texture = texture;
+            _subTextureLocationIndex = 0;
+        }
 
         public ComponentTexture(Texture texture, int subTextureLocationIndex)
         {

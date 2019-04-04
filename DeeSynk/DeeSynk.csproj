@@ -90,7 +90,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Core\Components\Models\Templates\" />
-    <Folder Include="Resources\Textures\Atlas_1\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
@@ -109,10 +108,10 @@
     <Content Include="Resources\Shaders\Vertex\defaultTextured_Instanced.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultColored.txt" />
-    <Content Include="Resources\Textures\Atlas_0\Ball - Copy.bmp" />
-    <Content Include="Resources\Textures\Atlas_0\Ball.bmp" />
-    <Content Include="Resources\Textures\Atlas_0\Ball2.bmp" />
-    <Content Include="Resources\Textures\wood.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_0\Ball - Copy.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_0\Ball.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_0\Ball2.bmp" />
+    <Content Include="Resources\Textures\Single_Textures\wood.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

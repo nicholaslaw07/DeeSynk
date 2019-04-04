@@ -63,7 +63,7 @@ namespace DeeSynk.Core.Components.Types.Render
 
     public class ComponentModelStatic : IComponent
     {
-        public int BitMaskID => (int)Component.MODEL_STATIC;
+        public Component BitMaskID => Component.MODEL_STATIC;
 
         public const int FLOAT   = 1;
         public const int VECTOR2 = 2;
@@ -404,16 +404,5 @@ namespace DeeSynk.Core.Components.Types.Render
             throw new NotImplementedException();
         }
         */
-    }
-
-    public class ComponentModelDyanmic : IComponent
-    {
-        public int BitMaskID => (int)Component.MODEL_DYNAMIC;
-
-
-        public void Update(float time)
-        {
-            //throw new NotImplementedException();
-        }
     }
 }

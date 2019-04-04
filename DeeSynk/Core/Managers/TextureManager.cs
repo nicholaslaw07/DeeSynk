@@ -23,7 +23,8 @@ namespace DeeSynk.Core.Managers
 
         private static int callCount = 0;
 
-        private const string TEXTURE_PATH = @"..\..\Resources\Textures\";
+        private const string TEXTURE_PATH = @"..\..\Resources\Textures\Single_Textures\";  //Location of individual texture files
+        private const string ATLAS_PATH = @"..\..\Resources\Textures\Atlases\"; //Location of atlas group folders
         private const string FILE_TYPE = ".bmp";
 
         #region BitmapHeaderOffsets
@@ -96,42 +97,15 @@ namespace DeeSynk.Core.Managers
                 InitTexture(TEXTURE_PATH, fileName, FILE_TYPE);
             }
 
-            string[] subFolders = Directory.GetDirectories(TEXTURE_PATH);
+            string[] subFolders = Directory.GetDirectories(ATLAS_PATH).Select(s => s + "\\").ToArray();
+
             foreach(string folder in subFolders)
             {
                 int fileCount = Directory.GetFiles(folder).Count();
                 if (Directory.GetDirectories(folder).Count() == 0 && fileCount > 1)
-                    InitTextureAtlas(TEXTURE_PATH, folder + @"\", fileCount);
+                    InitTextureAtlas(folder, fileCount);
             }
 
-        }
-
-        /// <summary>
-        /// Loads a texture from a file, binds it to the current GL context, specifies some GL parameters,
-        /// generates a mipmap, and adds the generated texture's id to the loadedTextures dictionary.  Outputs the width and height of the image.
-        /// </summary>
-        private void InitTexture(string folderPath, string fileName, string fileType, out int w, out int h)
-        {
-            int width, height;
-            var data = LoadTexture(folderPath, fileName, fileType, out width, out height);
-            int texture = GL.GenTexture();
-
-            GL.BindTexture(TextureTarget.Texture2D, texture);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
-            GL.TextureSubImage2D(texture, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.Float, data);
-            GL.Enable(EnableCap.Texture2D);
-
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear); // defines sampling behavior when scaling image down
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear); // defines sampling behavior when scaling image up
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the x directions
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the y directions
-
-            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-
-            w = width;  //not used currently, but may be used to store as object size if needed?
-            h = height;
-
-            loadedTextures.Add(fileName, texture);
         }
 
         /// <summary>
@@ -158,9 +132,62 @@ namespace DeeSynk.Core.Managers
 
             Texture tex = new Texture(texture, width, height, 1);
 
-            loadedTextures.Add(fileName, texture);
+            loadedTextures.Add(fileName, _loadedTextureCount);
+
             _loadedTextures[_loadedTextureCount] = tex;
             _loadedTextureCount++;
+        }
+
+
+        private void InitTextureAtlas(string folderPath, int textureCount)
+        {
+            var filePaths = Directory.GetFiles(folderPath);
+            var fileName = Directory.GetFiles(folderPath).Select(Path.GetFileNameWithoutExtension);
+            List<Tuple<int, Rectangle>> imgDims = new List<Tuple<int, Rectangle>>(filePaths.Count());
+
+            int folderStartIdx = folderPath.IndexOf("Atlas_");
+            int folderEndIdx = folderPath.LastIndexOf("\\");
+            string groupFolder = folderPath.Substring(folderStartIdx, folderEndIdx - folderStartIdx);
+
+            for (int idx = 0; idx < textureCount; idx++)
+                imgDims.Add(new Tuple<int, Rectangle>(idx, new Rectangle(new Point(0, 0), GetImageDimensions(filePaths[idx])))); //Add rectangle representing image to list
+            imgDims.Sort(CompareByArea); //Sort by descending area
+
+            var indices = imgDims.Select(t => t.Item1).ToArray();
+            var rects = new Algorithms.AlgorithmRectangleCompaction(imgDims.Select(t => t.Item2).ToList()).FindBestConfiguration();
+
+            int width = rects.Max(r => r.C11.X) + 1;
+            int height = rects.Max(r => r.C11.Y) + 1;
+
+            int texture = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, texture);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
+            loadedTextures.Add(groupFolder, _loadedTextureCount);
+            _loadedTextures[_loadedTextureCount] = new Texture(texture, width, height, textureCount);
+
+            for(int idx = 0; idx < textureCount; idx++)
+            {
+                var data = LoadTexture(folderPath, Path.GetFileNameWithoutExtension(filePaths[indices[idx]]), ".bmp", out int subW, out int subH);
+                int offsetX = rects[idx].X0;
+                int offsetY = rects[idx].Y0;
+                GL.TextureSubImage2D(texture, 0, offsetX, offsetY, subW, subH, PixelFormat.Bgra, PixelType.Float, data);
+
+                Vector2 uvOffset = new Vector2((float)offsetX / ((float)width - 1), (float)offsetY / ((float)height - 1));
+                Vector2 uvScale = new Vector2(subW / (float)width, subH / (float)height);
+                if(!_loadedTextures[_loadedTextureCount].AddSubTextureLocation(new SubTextureLocation(uvOffset, uvScale)))
+                    throw new ArgumentException("Invalid texture atlas.");
+            }
+
+            _loadedTextureCount++;
+
+            GL.Enable(EnableCap.Texture2D);
+
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.NearestMipmapNearest); // defines sampling behavior when scaling image down
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest); // defines sampling behavior when scaling image up
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the x directions
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the y directions
+
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         }
 
         /// <summary>
@@ -213,53 +240,6 @@ namespace DeeSynk.Core.Managers
             return values;
         }
 
-        private void InitTextureAtlas(string folderPath, string groupFolder, int textureCount)
-        {
-            var filePaths = Directory.GetFiles(folderPath + groupFolder);
-            var fileName = Directory.GetFiles(folderPath + groupFolder).Select(Path.GetFileNameWithoutExtension);
-            List<Tuple<int, Rectangle>> imgDims = new List<Tuple<int, Rectangle>>(filePaths.Count());
-
-            for(int idx = 0; idx < textureCount; idx++)
-                imgDims.Add(new Tuple<int, Rectangle>(idx, new Rectangle(new Point(0, 0), GetImageDimensions(filePaths[idx])))); //Add rectangle representing image to list
-            imgDims.Sort(CompareByArea); //Sort by descending area
-
-            var indices = imgDims.Select(t => t.Item1).ToArray();
-            var rects = new Algorithms.AlgorithmRectangleCompaction(imgDims.Select(t => t.Item2).ToList()).FindBestConfiguration();
-
-            int width = rects.Max(r => r.C11.X) + 1;
-            int height = rects.Max(r => r.C11.Y) + 1;
-
-            int texture = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, texture);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
-            _loadedTextures[_loadedTextureCount] = new Texture(texture, width, height, textureCount);
-
-            for(int idx = 0; idx < textureCount; idx++)
-            {
-                var data = LoadTexture(folderPath + groupFolder, Path.GetFileNameWithoutExtension(filePaths[indices[idx]]), ".bmp", out int subW, out int subH);
-                int offsetX = rects[idx].X0;
-                int offsetY = rects[idx].Y0;
-                GL.TextureSubImage2D(texture, 0, offsetX, offsetY, subW, subH, PixelFormat.Bgra, PixelType.Float, data);
-                bool valid = _loadedTextures[_loadedTextureCount].AddSubTextureLocation(new SubTextureLocation(
-                                                                                new Vector2((float)offsetX / ((float)width - 1), (float)offsetY / ((float)height - 1)),
-                                                                                new Vector2(subW / (float)width, subH / (float)height)
-                                                                           ));
-                if (!valid)
-                    Console.WriteLine("Oopsie Doopsie");
-            }
-
-            GL.Enable(EnableCap.Texture2D);
-
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear); // defines sampling behavior when scaling image down
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear); // defines sampling behavior when scaling image up
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the x directions
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the y directions
-
-            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-
-            loadedTextures.Add("testing", texture);
-        }
-
         private Size GetImageDimensions(string filePath)
         {
             int width = 0;
@@ -289,13 +269,13 @@ namespace DeeSynk.Core.Managers
                 return 1;
         }
 
-        public int GetTexture(string name)
+        public Texture GetTexture(string name)
         {
             int textureID = -1;
             if (loadedTextures.TryGetValue(name, out textureID))
-                return textureID;
+                return _loadedTextures[textureID];
             else
-                return textureID;
+                return null;
         }
 
         public Texture GetTexture(int id)

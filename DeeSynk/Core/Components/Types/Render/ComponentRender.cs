@@ -10,7 +10,7 @@ namespace DeeSynk.Core.Components.Types.Render
 {
     public class ComponentRender : IComponent
     {
-        public int BitMaskID => (int)Component.RENDER;
+        public Component BitMaskID => Component.RENDER;
 
         private bool _init;
         public bool Initialized { get => _init; }
