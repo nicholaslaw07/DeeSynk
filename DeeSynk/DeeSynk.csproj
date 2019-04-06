@@ -64,6 +64,7 @@
     <Compile Include="Core\Components\Collections\DataGroup.cs" />
     <Compile Include="Core\Components\Types\IComponent.cs" />
     <Compile Include="Core\Components\Models\Model.cs" />
+    <Compile Include="Core\Components\VAO.cs" />
     <Compile Include="Core\Game.cs" />
     <Compile Include="Core\MainWindow.cs" />
     <Compile Include="Core\Managers\ModelManager.cs" />
@@ -111,6 +112,9 @@
     <Content Include="Resources\Textures\Atlases\Atlas_0\Ball - Copy.bmp" />
     <Content Include="Resources\Textures\Atlases\Atlas_0\Ball.bmp" />
     <Content Include="Resources\Textures\Atlases\Atlas_0\Ball2.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_1\Test1.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_1\Test2.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_1\Test3.bmp" />
     <Content Include="Resources\Textures\Single_Textures\wood.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

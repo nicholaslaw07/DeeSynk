@@ -172,8 +172,8 @@ namespace DeeSynk.Core.Managers
                 int offsetY = rects[idx].Y0;
                 GL.TextureSubImage2D(texture, 0, offsetX, offsetY, subW, subH, PixelFormat.Bgra, PixelType.Float, data);
 
-                Vector2 uvOffset = new Vector2((float)offsetX / ((float)width - 1), (float)offsetY / ((float)height - 1));
-                Vector2 uvScale = new Vector2(subW / (float)width, subH / (float)height);
+                Vector2 uvOffset = new Vector2(((float)offsetX) / ((float)width), ((float)offsetY) / ((float)height));
+                Vector2 uvScale = new Vector2((subW) / (float)width, (subH) / (float)height);
                 if(!_loadedTextures[_loadedTextureCount].AddSubTextureLocation(new SubTextureLocation(uvOffset, uvScale)))
                     throw new ArgumentException("Invalid texture atlas.");
             }

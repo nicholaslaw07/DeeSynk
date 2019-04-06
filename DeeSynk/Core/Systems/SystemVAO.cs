@@ -14,36 +14,15 @@ using DeeSynk.Core.Components.Models;
 
 namespace DeeSynk.Core.Systems
 {
-    [Flags]
-    public enum Buffers
-    {
-        NONE = 0,
-        VERTICES = 1,
-        FACE_ELEMENTS = 1 << 1,
-        NORMALS = 1 << 2,
-        COLORS = 1 << 3,
-        UVS = 1 << 4,
-        INSTANCES = 1 << 5,
 
-        VERTICES_ELEMENTS = VERTICES | FACE_ELEMENTS,
-
-        VERTICES_NORMALS = VERTICES | NORMALS,
-        VERTICES_NORMALS_ELEMENTS = VERTICES_NORMALS | FACE_ELEMENTS,
-
-        VERTICES_NORMALS_COLORS = VERTICES_NORMALS | COLORS,
-        VERTICES_NORMALS_COLORS_ELEMENTS = VERTICES_NORMALS_COLORS | FACE_ELEMENTS,
-
-        VERTICES_NORMALS_UVS = VERTICES_NORMALS | UVS,
-        VERTICES_NORMALS_UVS_ELEMENTS = VERTICES_NORMALS_UVS | FACE_ELEMENTS
-    }
 
     class SystemVAO : ISystem
     {
-        public int MonitoredComponents => (int)Component.COLOR  | 
-                                          (int)Component.MODEL_STATIC  |
+        public int MonitoredComponents => (int)Component.COLOR |
+                                          (int)Component.MODEL_STATIC |
                                           (int)Component.MODEL_DYNAMIC |
-                                          (int)Component.RENDER | 
-                                          (int)Component.TEXTURE|
+                                          (int)Component.RENDER |
+                                          (int)Component.TEXTURE |
                                           (int)Component.TRANSFORM;  //will also probably include at the very least Transform for instanced rendering
 
         //purpose: used for the creation of VAO's to organize like rendered objects into groups
@@ -88,6 +67,11 @@ namespace DeeSynk.Core.Systems
             _transComps = _world.TransComps;
         }
 
+        public void InitAll()
+        {
+
+        }
+
         /// <summary>
         /// Initializes a VAO or VAOs for all objects within a specified range with a specified configuration.
         /// </summary>
@@ -107,8 +91,12 @@ namespace DeeSynk.Core.Systems
                 int ibo = 0;
                 int programID = 0;
 
+
                 var shaderManager = ShaderManager.GetInstance();
                 var modelManager = ModelManager.GetInstance();
+
+                for (int idx = start; idx <= start; idx++)
+                    _renderComps[idx] = new ComponentRender(bufferMask);
 
                 if (groupTogether)
                 {
@@ -146,7 +134,6 @@ namespace DeeSynk.Core.Systems
 
                     for (int idx= start; idx <= start; idx++)
                     {
-                        _renderComps[idx] = new ComponentRender(bufferMask);
                         _renderComps[idx].AddVAOData(vao, ibo, programID);
                         bool result = _renderComps[idx].ValidateData();
                     }
@@ -423,7 +410,7 @@ namespace DeeSynk.Core.Systems
             GL.NamedBufferStorage(ibo, dataSize, indices, BufferStorageFlags.MapReadBit);
         }
 
-        public void Update(float time)  //this would include vertex data updates (vertice animations) and such
+        public void Update(float time)
         {
             throw new NotImplementedException();
         }

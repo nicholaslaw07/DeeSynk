@@ -13,7 +13,7 @@ namespace DeeSynk.Core
     using SystemTransform = Systems.SystemTransform;
     using SystemVAO = Systems.SystemVAO;
     using SystemModel = Systems.SystemModel;
-    using Buffers = Systems.Buffers;
+    using Buffers = Components.Buffers;
 
     public class World
     {

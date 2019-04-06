@@ -197,7 +197,6 @@ namespace DeeSynk.Core.Systems
             BindDepthMap();
             int x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).ElementCount;
             GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);
-
             Bind(1);
             
             GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured2"));
