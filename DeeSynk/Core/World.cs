@@ -13,7 +13,7 @@ namespace DeeSynk.Core
     using SystemTransform = Systems.SystemTransform;
     using SystemVAO = Systems.SystemVAO;
     using SystemModel = Systems.SystemModel;
-    using Buffers = Components.Buffers;
+    using Buffers = Systems.Buffers;
 
     public class World
     {
@@ -66,8 +66,10 @@ namespace DeeSynk.Core
             _textureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("Atlas_0"), 0);
 
             _systemVAO = new SystemVAO(this);
-            _systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, 0, true);
+            _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS, 0, 0);
+
             _systemVAO.InitVAOInRange(Buffers.VERTICES_ELEMENTS | Buffers.UVS, 1, 1, true);
+            //_systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, 0, true);
             //TEST END
         }
 

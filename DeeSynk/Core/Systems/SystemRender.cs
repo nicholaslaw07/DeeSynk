@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
+using DeeSynk.Core.Components.Models;
 using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Managers;
 using OpenTK;
@@ -42,6 +43,8 @@ namespace DeeSynk.Core.Systems
 
         private int _width = 8192;
         private int _height = 8192;
+
+        private int ubo = 0;
 
         //SHADOW END
 
@@ -85,12 +88,44 @@ namespace DeeSynk.Core.Systems
             //_lightOrtho = Matrix4.CreateOrthographic(12f, 8f, 10f, 25f);
             _lightView *= _lightOrtho;
 
+            ubo = GL.GenBuffer();
+
             //SHADOW END
         }
 
         public void PushCameraRef(ref Camera camera)
         {
             _camera = camera;
+            BuildUBO();
+        }
+
+        public void BuildUBO()
+        {
+            GL.BindBuffer(BufferTarget.UniformBuffer, ubo);
+            float[] data = new float[16];
+            data[0] = _camera.Projection.Column0.X;
+            data[1] = _camera.Projection.Column0.Y;
+            data[2] = _camera.Projection.Column0.Z;
+            data[3] = _camera.Projection.Column0.W;
+            data[4] = _camera.Projection.Column1.X;
+            data[5] = _camera.Projection.Column1.Y;
+            data[6] = _camera.Projection.Column1.Z;
+            data[7] = _camera.Projection.Column1.W;
+            data[8] = _camera.Projection.Column2.X;
+            data[9] = _camera.Projection.Column2.Y;
+            data[10] = _camera.Projection.Column2.Z;
+            data[11] = _camera.Projection.Column2.W;
+            data[12] = _camera.Projection.Column3.X;
+            data[13] = _camera.Projection.Column3.Y;
+            data[14] = _camera.Projection.Column3.Z;
+            data[15] = _camera.Projection.Column3.W;
+            //data[16] = _camera.Location.X;
+            //data[17] = _camera.Location.Y;
+            //data[18] = _camera.Location.Z;
+            Matrix4[] matrices = new Matrix4[1];
+            matrices[0] = _camera.ViewProjection;
+            GL.BufferData(BufferTarget.UniformBuffer, 64, matrices, BufferUsageHint.DynamicDraw | BufferUsageHint.DynamicRead);
+            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, 17, ubo, IntPtr.Zero, 64);
         }
 
         public void UpdateMonitoredGameObjects()
@@ -165,16 +200,17 @@ namespace DeeSynk.Core.Systems
             GL.UniformMatrix4(5, false, ref _lightView);
             systemTransform.PushModelMatrix(1);
             int y = ModelManager.GetInstance().GetModel(_staticModelComps[1].ModelID).ElementCount;
-            GL.DrawElementsInstanced(PrimitiveType.Triangles, y, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);
+            GL.DrawElements(PrimitiveType.Triangles, y, DrawElementsType.UnsignedInt, IntPtr.Zero);
 
             GL.Clear(ClearBufferMask.DepthBufferBit);
             Bind(0);
             GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
             GL.UniformMatrix4(5, false, ref _lightView);
             systemTransform.PushModelMatrix(0);
-            int x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).ElementCount * 10;
+            int x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).ElementCount;
             GL.DrawElements(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero);
             UnBindFBO();
+
             GL.Viewport(0, 0, (int)_camera.Width, (int)_camera.Height);
         }
 
@@ -186,19 +222,29 @@ namespace DeeSynk.Core.Systems
         {
             RenderDepthMap(ref systemTransform);
 
-
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
             Bind(0);
             GL.UseProgram(ShaderManager.GetInstance().GetProgram("coloredPhongShaded"));
             systemTransform.PushMatrixDataNoTransform();
+            Matrix4[] matrices = new Matrix4[1];
+            matrices[0] = _camera.ViewProjection;
+            GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 64, matrices);
+
+            //GL.BindBuffer(BufferTarget.UniformBuffer, ubo);
+            //var ptr = GL.MapBuffer(BufferTarget.UniformBuffer, BufferAccess.ReadWrite);
+            //GL.GetBufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 64, ptr);
+            //GL.BindBufferRange(BufferRangeTarget.UniformBuffer, 17, ubo, IntPtr.Zero, 64);
+            int loc = GL.GetUniformLocation(GL.GetInteger(GetPName.CurrentProgram), "color");
+            var colorArr = _staticModelComps[0].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
+            Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
+            GL.Uniform4(loc, color);
             GL.UniformMatrix4(9, false, ref _lightView);
             systemTransform.PushModelMatrix(0);
             BindDepthMap();
             int x = ModelManager.GetInstance().GetModel(_staticModelComps[0].ModelID).ElementCount;
             GL.DrawElementsInstanced(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero, 1);
             Bind(1);
-            
+
             GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured2"));
             systemTransform.PushMatrixDataNoTransform();
             GL.UniformMatrix4(9, false, ref _lightView);

@@ -15,6 +15,7 @@ namespace DeeSynk.Core.Components.Types.Render
     [Flags]
     public enum ModelProperties
     {
+        NONE = 0,
         VERTICES = 1,
         ELEMENTS = 1 << 1,
 

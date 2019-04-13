@@ -1,5 +1,6 @@
 ﻿using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Managers;
+using DeeSynk.Core.Systems;
 using OpenTK;
 using OpenTK.Graphics;
 using System;
@@ -27,6 +28,22 @@ namespace DeeSynk.Core.Components.Models
 
     public class Model
     {
+        public static readonly int FLOAT_SIZE = sizeof(float);
+
+        public static readonly int VERTEX_DIMS = 4;
+        public static readonly int VERTEX_SIZE = FLOAT_SIZE * VERTEX_DIMS;
+
+        public static readonly int NORMAL_DIMS = 3;
+        public static readonly int NORMAL_SIZE = FLOAT_SIZE * NORMAL_DIMS;
+
+        public static readonly int COLOR_DIMS  = 4;
+        public static readonly int COLOR_SIZE  = FLOAT_SIZE * COLOR_DIMS;
+
+        public static readonly int UV_DIMS     = 2;
+        public static readonly int UV_SIZE     = FLOAT_SIZE * UV_DIMS;
+
+        public static readonly int UINT_SIZE = sizeof(uint);
+
         private bool _hasValidData;
         public bool HasValidData { get => _hasValidData; }
 
@@ -167,7 +184,7 @@ namespace DeeSynk.Core.Components.Models
             if(_normals == null)
             {
                 int count = VertexCount;
-                _normals = new Vector3[count];
+                Normals = new Vector3[count];
                 {
                     int[] counts = new int[count];
                     for (int i = 0; i < ElementCount / 3; i++)
@@ -207,7 +224,6 @@ namespace DeeSynk.Core.Components.Models
                     }
                 }
             }
-            
         }
 
         // Valid data consists of at least one vertex, and an elements buffer that has equal or more elements than vertices.
@@ -270,8 +286,101 @@ namespace DeeSynk.Core.Components.Models
             return valid;
         }
 
+        public void GetInterleavedData(ModelProperties props, Span<float> data)
+        {
+            ModelProperties properties = _modelProperties & props;
+
+            if (!properties.HasFlag(ModelProperties.VERTICES))
+                throw new ArgumentException("Model vertices expected");
+
+            if (!properties.HasFlag(props))
+                throw new ArgumentException("Model does not contain requested data");
+
+            if (!HasValidData)
+                throw new ArgumentException("Passed model has invalid data, will not read");
+
+            PopulateArrayInterleaved(properties, FloatStride(properties), data);
+        }
+
+        private void PopulateArrayInterleaved(ModelProperties props, int stride, Span<float> data)
+        {
+            int offset = 0;
+            if (props.HasFlag(ModelProperties.VERTICES))
+            {
+                for (int idx = 0; idx < _vertices.Length; idx++)
+                {
+                    data[idx * stride + offset + 0] = _vertices[idx].X;
+                    data[idx * stride + offset + 1] = _vertices[idx].Y;
+                    data[idx * stride + offset + 2] = _vertices[idx].Z;
+                    data[idx * stride + offset + 3] = _vertices[idx].W;
+                }
+
+                offset += PropertyDimensions(ModelProperties.VERTICES);
+            }
+            if (props.HasFlag(ModelProperties.NORMALS))
+            {
+                for (int idx = 0; idx < _normals.Length; idx++)
+                {
+                    data[idx * stride + offset + 0] = _normals[idx].X;
+                    data[idx * stride + offset + 1] = _normals[idx].Y;
+                    data[idx * stride + offset + 2] = _normals[idx].Z;
+                }
+
+                offset += PropertyDimensions(ModelProperties.NORMALS);
+            }
+            if (props.HasFlag(ModelProperties.UVS))
+            {
+                for (int idx = 0; idx < _normals.Length; idx++)
+                {
+                    data[idx * stride + offset + 0] = _uvs[idx].X;
+                    data[idx * stride + offset + 1] = _uvs[idx].Y;
+                }
+
+                offset += PropertyDimensions(ModelProperties.UVS);
+            }
+        }
 
         //***STATICS***\\
+
+        public static int FloatStride(ModelProperties props)
+        {
+            int stride = 0;
+            stride += (props.HasFlag(ModelProperties.VERTICES)) ? VERTEX_DIMS : 0;
+            stride += (props.HasFlag(ModelProperties.NORMALS )) ? NORMAL_DIMS : 0;
+            stride += (props.HasFlag(ModelProperties.UVS     )) ? UV_DIMS     : 0;
+            return stride;
+        }
+        public static int ByteStride(ModelProperties props)
+        {
+            int stride = 0;
+            stride += (props.HasFlag(ModelProperties.VERTICES)) ? VERTEX_SIZE : 0;
+            stride += (props.HasFlag(ModelProperties.NORMALS )) ? NORMAL_SIZE : 0;
+            stride += (props.HasFlag(ModelProperties.UVS     )) ? UV_SIZE     : 0;
+            return stride;
+        }
+
+        public static int PropertyDimensions(ModelProperties property)
+        {
+            switch (property)
+            {
+                case (ModelProperties.VERTICES): return VERTEX_DIMS;
+                case (ModelProperties.NORMALS ): return NORMAL_DIMS;
+                case (ModelProperties.COLORS  ): return COLOR_DIMS ;
+                case (ModelProperties.UVS     ): return UV_DIMS    ;
+                default: return 0;
+            }
+        }
+        public static int PropertySize(ModelProperties property)
+        {
+            switch (property)
+            {
+                case (ModelProperties.VERTICES): return VERTEX_SIZE;
+                case (ModelProperties.NORMALS ): return NORMAL_SIZE;
+                case (ModelProperties.COLORS  ): return COLOR_SIZE ;
+                case (ModelProperties.UVS     ): return UV_SIZE    ;
+                default: return 0;
+            }
+        }
 
         public static string GetTemplateName(ModelTemplates template)
         {

@@ -38,7 +38,7 @@ namespace DeeSynk.Core.Components.Types.Render
             get => _iboID;
             set
             {
-                if(_bufferFlags.HasFlag(Buffers.FACE_ELEMENTS))
+                if (_bufferFlags.HasFlag(Buffers.FACE_ELEMENTS))
                 {
                     if (GL.IsBuffer(value))
                         _iboID = value;
@@ -63,7 +63,8 @@ namespace DeeSynk.Core.Components.Types.Render
             }
         }
 
-
+        private const int BUFF_MIN_MAG = 0;
+        private const int BUFF_MAX_MAG = 5;
 
         private bool _isLoadedIntoVAO;
         /// <summary>
@@ -102,13 +103,28 @@ namespace DeeSynk.Core.Components.Types.Render
         //Position in vao if not unique
         //Must also store cbo id somewhere
 
+        private int _bufferCount;
+        private int BufferCount
+        {
+            get
+            {
+                if(_bufferFlags != Buffers.NONE && _bufferCount == 0)
+                {
+                    int count = 0;
+                    for (int i = BUFF_MIN_MAG; i <= BUFF_MAX_MAG; i++)
+                        count += (1 << i & (int)_bufferFlags) >> i;
+                    _bufferCount = count;
+                }
+
+                return _bufferCount;
+            }
+        }
+
         public ComponentRender(Buffers bufferFlags)
         {
             _bufferFlags = bufferFlags;
 
-            _vaoID = 0;
-            _iboID = 0;
-            _programID = 0;
+            _bufferIDs = new int[BufferCount];
 
             _init = false;
         }
@@ -120,15 +136,20 @@ namespace DeeSynk.Core.Components.Types.Render
             PROGRAM_ID = programID;
         }
 
+        public void AddBufferData()
+        {
+            VAO_ID = GL.GetInteger(GetPName.VertexArrayBinding);
+            IBO_ID = GL.GetInteger(GetPName.ElementArrayBufferBinding);
+            PROGRAM_ID = GL.GetInteger(GetPName.CurrentProgram);
+        }
+
         /// <summary>
         /// Used to ensure that all of the data stored inside of here is indeed valid data that can be used without issue.
         /// </summary>
         /// <returns></returns>
         public bool ValidateData()
         {
-            if(GL.IsVertexArray(_vaoID) && 
-               GL.IsProgram(_programID) &&
-               (_bufferFlags.HasFlag(Buffers.COLORS) ^ _bufferFlags.HasFlag(Buffers.UVS)))
+            if(GL.IsVertexArray(_vaoID) && GL.IsProgram(_programID)) //(_bufferFlags.HasFlag(Buffers.COLORS) ^ _bufferFlags.HasFlag(Buffers.UVS))
             {
                 if(_bufferFlags.HasFlag(Buffers.FACE_ELEMENTS))
                 {

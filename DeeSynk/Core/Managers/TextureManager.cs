@@ -49,11 +49,6 @@ namespace DeeSynk.Core.Managers
 
         #endregion
 
-        private readonly Point CORNER_00 = new Point(0, 0);
-        private readonly Point CORNER_01 = new Point(0, 1);
-        private readonly Point CORNER_10 = new Point(1, 0);
-        private readonly Point CORNER_11 = new Point(1, 1); 
-
         private static TextureManager _textureManager;
 
         private Dictionary<string, int> loadedTextures;

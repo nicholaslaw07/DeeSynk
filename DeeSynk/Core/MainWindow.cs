@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -37,6 +38,10 @@ namespace DeeSynk.Core
         Point center;
         Point mousePos;
 
+        private long frameCount = 0;
+        private double timeCount = 0;
+        private Stopwatch sw;
+
         private MouseState msPrevious;
 
         /// <summary>
@@ -55,10 +60,11 @@ namespace DeeSynk.Core
                                     GraphicsContextFlags.ForwardCompatible)
         {
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
-            //VSync = VSyncMode.Off;
+            VSync = VSyncMode.Off;
             center = new Point(Width / 2, Height / 2);
             mousePos = PointToScreen(center);
             msPrevious = Mouse.GetState();
+            sw = new Stopwatch();
         }
         
         /// <summary>
@@ -86,13 +92,14 @@ namespace DeeSynk.Core
             GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
             GL.Enable(EnableCap.DepthTest);
 
+            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 200f);
+
             _game = new Game();
             //CursorVisible = true;
 
             this.Cursor = MouseCursor.Empty;
-            this.WindowState = this.WindowState | WindowState.Fullscreen;
+            //this.WindowState = this.WindowState | WindowState.Fullscreen;
 
-            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 200f);
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();
@@ -107,6 +114,8 @@ namespace DeeSynk.Core
 
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+            sw.Start();
         }
 
         /// <summary>
@@ -122,8 +131,6 @@ namespace DeeSynk.Core
             _camera.UpdateMatrices();
 
             _game.Update((float)(e.Time));
-
-            
         }
 
         /// <summary>
@@ -133,7 +140,18 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            Title = $"DeeSynk | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f / e.Time:0}"; // adds miscellaneous information to the title bar of the window
+            timeCount += e.Time;
+            frameCount++;
+            if(sw.ElapsedMilliseconds > 100)
+            {
+                sw.Stop();
+                frameCount /= sw.ElapsedMilliseconds;
+                Title = $"DeeSynk | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f / e.Time:0}"; // adds miscellaneous information to the title bar of the window
+                timeCount = 0d;
+                frameCount = 0;
+                sw.Reset();
+                sw.Start();
+            }
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             _game.Render();

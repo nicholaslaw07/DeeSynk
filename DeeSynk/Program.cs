@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace DeeSynk
 {
+
     static class Program
     {
         [STAThread]
@@ -21,4 +22,6 @@ namespace DeeSynk
             new MainWindow().Run(60);
         }
     }
+
+
 }
