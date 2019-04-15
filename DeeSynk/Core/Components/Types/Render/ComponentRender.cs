@@ -15,37 +15,11 @@ namespace DeeSynk.Core.Components.Types.Render
         private bool _init;
         public bool Initialized { get => _init; }
 
-        private int _vaoID;
-        /// <summary>
-        /// The ID of the VAO that this object should be rendered with.
-        /// </summary>
-        public int VAO_ID {
-            get => _vaoID;
-            set
-            {
-                if (GL.IsVertexArray(value))
-                    _vaoID = value;
-                else
-                    _vaoID = 0;
-            }
-        }
-
-        private int _iboID;
-        /// <summary>
-        /// The ID of the IBO that this object should be rendered with.
-        /// </summary>
-        public int IBO_ID {
-            get => _iboID;
-            set
-            {
-                if (_bufferFlags.HasFlag(Buffers.FACE_ELEMENTS))
-                {
-                    if (GL.IsBuffer(value))
-                        _iboID = value;
-                    else
-                        _iboID = 0;
-                }
-            }
+        private VAO _vao;
+        public VAO VAO
+        {
+            get => _vao;
+            set => _vao = value;
         }
 
         private int _programID;
@@ -62,21 +36,6 @@ namespace DeeSynk.Core.Components.Types.Render
                     _programID = 0;
             }
         }
-
-        private const int BUFF_MIN_MAG = 0;
-        private const int BUFF_MAX_MAG = 5;
-
-        private bool _isLoadedIntoVAO;
-        /// <summary>
-        /// Whether or not the model data for this ComponentModel has been loaded into a VAO yet.
-        /// </summary>
-        public bool IsLoadedIntoVAO { get => _isLoadedIntoVAO; }
-
-        private int[] _bufferIDs;
-        /// <summary>
-        /// List of buffers used to store this model's data.
-        /// </summary>
-        public int[] BufferIDs { get => _bufferIDs; }
 
         private Buffers _bufferFlags;
         /// <summary>
@@ -96,6 +55,9 @@ namespace DeeSynk.Core.Components.Types.Render
         /// </summary>
         public int[] LengthsInMemory { get => _lengthsInMemory; }
 
+
+        private int _indexCount;
+        public int IndexCount { get => _indexCount; }
         //Render Layer
         //Render method (2D or 3D)
         //Is simple sprite?  Idk
@@ -103,44 +65,24 @@ namespace DeeSynk.Core.Components.Types.Render
         //Position in vao if not unique
         //Must also store cbo id somewhere
 
-        private int _bufferCount;
-        private int BufferCount
-        {
-            get
-            {
-                if(_bufferFlags != Buffers.NONE && _bufferCount == 0)
-                {
-                    int count = 0;
-                    for (int i = BUFF_MIN_MAG; i <= BUFF_MAX_MAG; i++)
-                        count += (1 << i & (int)_bufferFlags) >> i;
-                    _bufferCount = count;
-                }
-
-                return _bufferCount;
-            }
-        }
-
         public ComponentRender(Buffers bufferFlags)
         {
             _bufferFlags = bufferFlags;
-
-            _bufferIDs = new int[BufferCount];
 
             _init = false;
         }
 
         public void AddVAOData(int vaoID, int iboID, int programID)
         {
-            VAO_ID = vaoID;
-            IBO_ID = iboID;
             PROGRAM_ID = programID;
         }
 
         public void AddBufferData()
         {
-            VAO_ID = GL.GetInteger(GetPName.VertexArrayBinding);
-            IBO_ID = GL.GetInteger(GetPName.ElementArrayBufferBinding);
             PROGRAM_ID = GL.GetInteger(GetPName.CurrentProgram);
+
+            GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out int size);
+            _indexCount = size / 4;
         }
 
         /// <summary>
@@ -149,11 +91,11 @@ namespace DeeSynk.Core.Components.Types.Render
         /// <returns></returns>
         public bool ValidateData()
         {
-            if(GL.IsVertexArray(_vaoID) && GL.IsProgram(_programID)) //(_bufferFlags.HasFlag(Buffers.COLORS) ^ _bufferFlags.HasFlag(Buffers.UVS))
+            if(GL.IsVertexArray(_vao.Id) && GL.IsProgram(_programID)) //(_bufferFlags.HasFlag(Buffers.COLORS) ^ _bufferFlags.HasFlag(Buffers.UVS))
             {
                 if(_bufferFlags.HasFlag(Buffers.FACE_ELEMENTS))
                 {
-                    if(GL.IsBuffer(_iboID))
+                    if(GL.IsBuffer(_vao.Buffers[VAO.IndexData]))
                     {
                         _init = true;
                         return true;
@@ -177,31 +119,16 @@ namespace DeeSynk.Core.Components.Types.Render
         {
             if (_init)
             {
-                int data = 0;
-                GL.GetInteger(GetPName.VertexArray, out data);
-                if (data != _vaoID)
-                    GL.BindVertexArray(_vaoID);
-                GL.BindVertexArray(_vaoID);  //binds this object's VAO
-                if (_bufferFlags.HasFlag(Buffers.FACE_ELEMENTS))
-                {
-                    data = 0;
-                    GL.GetInteger(GetPName.ElementArrayBufferBinding, out data);
-                    if(data != _iboID)
-                        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _iboID);
-                } //binds this object's elements buffer
-
-                data = 0;
-                GL.GetInteger(GetPName.CurrentProgram, out data);  //gets the currently active program id
-                if (data != _programID)  //if program id == the program that is to be used by this object then continue
-                    GL.UseProgram(_programID); //use the program as determined by this class
+                _vao.Bind(); //binds the buffers associated with this object if they aren't already bound
+                GL.GetInteger(GetPName.CurrentProgram, out int data);  //gets the currently active program id
+                if (data != _programID)
+                    GL.UseProgram(_programID); //binds this objects program if it isn't currently bound
             }
         }
 
-        public void BindDataTest()
+        public void BindDataNoShader()
         {
-            GL.BindVertexArray(_vaoID);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _iboID);
-            GL.UseProgram(_programID);
+            _vao.Bind();
         }
 
         public void Update(float time)

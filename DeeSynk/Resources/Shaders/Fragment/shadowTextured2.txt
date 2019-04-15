@@ -22,7 +22,7 @@ float ShadowFactor(vec4 lightCoord)
 	UVCoords.y += rand(vec2(ProjCoords.y, ProjCoords.x)) / 4000;
 	float z = ProjCoords.z;
 	float Depth = texture(shadow, UVCoords).x;
-	if(Depth < (z-0.01))
+	if(Depth < (z+0.0001))
 		return 0.24;
 	else 
 		return 0.7;
@@ -39,7 +39,7 @@ void main(void)
 
 	//vec3 c = texture(tex, vs_texCoord).xyz * ShadowFactor(vs_lightCoord);
 	//color =  vec4(vec3(UVCoords, 0.0), Depth);
-	vec4 c = texture(tex, vs_texCoord) * min(ShadowFactor(vs_lightCoord) , Attenuation(vs_lightCoord));
+	vec4 c = texture(tex, vs_texCoord) * ShadowFactor(vs_lightCoord) * Attenuation(vs_lightCoord);
 	//c.a = SF(vs_lightCoord);
 	c.a = 1;
 	color = c;

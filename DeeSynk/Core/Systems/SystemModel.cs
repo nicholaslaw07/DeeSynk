@@ -71,12 +71,12 @@ namespace DeeSynk.Core.Systems
                                         ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.COLOR4_COLOR | ConstructionFlags.VECTOR3_SCALE,
                                         new Vector3(0, -0.5f, -2), new Vector3(10f, 10f, 10f), v21);
 
-            Texture t = TextureManager.GetInstance().GetTexture("Atlas_0");
+            Texture t = TextureManager.GetInstance().GetTexture("wood");
             float width = t.Width;
             float height = t.Height;
 
             var v10 = new Vector3(0, -1, -2);
-            var v14 = new Vector3(1 / 20f, 0f, 1 / 20f);
+            var v14 = new Vector3(1 / 20f * t.AspectRatio, 0f, 1 / 20f);
             var v11 = new Vector3(100f, 0f, 100f);
             var v12 = t.SubTextureLocations[0].UVOffset;
             var v13 = t.SubTextureLocations[0].UVScale;

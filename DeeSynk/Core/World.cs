@@ -4,6 +4,7 @@ using DeeSynk.Core.Components.Types.Render;
 using OpenTK;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Managers;
+using OpenTK.Graphics.OpenGL4;
 
 namespace DeeSynk.Core
 {
@@ -40,19 +41,25 @@ namespace DeeSynk.Core
         private ComponentTexture[]      _textureComps;
         public  ComponentTexture[]      TextureComps     { get => _textureComps; }
 
+        private VAO[] _vaos;
+        public VAO[] VAOs { get => _vaos; }
+
         public World()
         {
             _existingGameObjects = new bool[OBJECT_MEMORY];
-            _gameObjects    = new GameObject[OBJECT_MEMORY];
+            _gameObjects      = new GameObject[OBJECT_MEMORY];
 
-            _systemRender = new SystemRender(this);
-            _systemTransform = new SystemTransform(this);
+            _systemRender     = new SystemRender(this);
+            _systemTransform  = new SystemTransform(this);
 
-            _transComps     = new ComponentTransform[OBJECT_MEMORY];
+            _transComps       = new ComponentTransform[OBJECT_MEMORY];
 
-            _renderComps = new ComponentRender[OBJECT_MEMORY];
+            _renderComps      = new ComponentRender[OBJECT_MEMORY];
             _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
-            _textureComps = new ComponentTexture[OBJECT_MEMORY];
+            _textureComps     = new ComponentTexture[OBJECT_MEMORY];
+
+            _vaos = new VAO[OBJECT_MEMORY];
+
 
             _systemRender = new SystemRender(this);
 
@@ -63,13 +70,20 @@ namespace DeeSynk.Core
             _systemTransform.InitLocation();
 
             //TEST START
-            _textureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("Atlas_0"), 0);
+            _textureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
 
             _systemVAO = new SystemVAO(this);
-            _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS, 0, 0);
+            _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, 0, 0);
+            _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, 1, 1);
 
-            _systemVAO.InitVAOInRange(Buffers.VERTICES_ELEMENTS | Buffers.UVS, 1, 1, true);
-            //_systemVAO.InitVAOInRange(Buffers.VERTICES_NORMALS_COLORS_ELEMENTS | Buffers.INSTANCES, 0, 0, true);
+            var sm = ShaderManager.GetInstance();
+
+            _renderComps[0].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");
+            _renderComps[1].PROGRAM_ID = sm.GetProgram("shadowTextured2");
+
+            _renderComps[0].ValidateData();
+            _renderComps[1].ValidateData();
+
             //TEST END
         }
 

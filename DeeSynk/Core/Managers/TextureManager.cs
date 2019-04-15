@@ -126,7 +126,7 @@ namespace DeeSynk.Core.Managers
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
             Texture tex = new Texture(texture, width, height, 1);
-
+            tex.AddSubTextureLocation(new SubTextureLocation(new Vector2(0f, 0f), new Vector2(1f, 1f)));
             loadedTextures.Add(fileName, _loadedTextureCount);
 
             _loadedTextures[_loadedTextureCount] = tex;

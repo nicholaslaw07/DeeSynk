@@ -11,6 +11,7 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK;
 using OpenTK.Graphics;
 using DeeSynk.Core.Components.Models;
+using System.Diagnostics;
 
 namespace DeeSynk.Core.Systems
 {
@@ -50,16 +51,6 @@ namespace DeeSynk.Core.Systems
         //purpose: used for the creation of VAO's to organize like rendered objects into groups
         // and create VAO's for different use cases like for textured or non-textured
 
-        //      VAO SETUP
-        //    0 - VERTICES
-        //    1 - COLORS OR UVS
-        //    2 - (occupied by MVP matrix or VP for instanced)
-        //    3 - (normals if/when added)
-        //    4 - MAT4 1
-        //    5 - MAT4 2
-        //    6 - MAT4 3
-        //    7 - MAT4 4
-
         private const int VERTEX_SIZE = 16;
         private const int NORMAL_SIZE = 12;
         private const int COLOR_SIZE = 16;
@@ -76,6 +67,10 @@ namespace DeeSynk.Core.Systems
 
         private ComponentTransform[] _transComps;
 
+        private VAO[] _vaos;
+        private int _vaoCount;
+        public int VAOCount {get => _vaoCount;}
+
         public SystemVAO(World world)
         {
             _world = world;
@@ -87,36 +82,91 @@ namespace DeeSynk.Core.Systems
             _textureComps = _world.TextureComps;
 
             _transComps = _world.TransComps;
+
+            _vaos = _world.VAOs;
+            _vaoCount = -1;
+        }
+
+        //simple, but will do for now
+        private int NextArrayIndex()
+        {
+            if (_vaoCount < _world.ObjectMemory)
+                return ++_vaoCount;
+            else
+                throw new InvalidOperationException("No more available VAO spaces.");
         }
 
         public void InitVAORange(Buffers buffers, int start, int end)
         {
+
             if (start <= end && start >= 0 && start < _world.ObjectMemory &&
                 end >= 0 && end < _world.ObjectMemory)
             {
-                GL.UseProgram(ShaderManager.GetInstance().GetProgram("coloredPhongShaded"));
-
-                int vao = GL.GenVertexArray();
-                GL.BindVertexArray(vao);
-
-                AddInterleavedBuffer(buffers, start, end);
-                AddElementsBuffer(start, end);
+                VAO vao = new VAO(buffers);
+                _vaos[NextArrayIndex()] = vao;
+                AddBuffers(vao, start, end);
 
                 for(int idx = start; idx <= end; idx++)
                 {
                     _renderComps[idx] = new ComponentRender(buffers);
-                    _renderComps[idx].AddBufferData();
-                    _renderComps[idx].ValidateData();
+                    _renderComps[idx].VAO = vao;
                 }
 
                 GL.BindVertexArray(0);
             }
         }
 
-        private void AddElementsBuffer(int lowerBound, int upperBound)
+        private void AddBuffers(VAO vao, int start, int end)
         {
-            int ibo = GL.GenBuffer();
+            Buffers buffers = vao.BufferConfig;
 
+            int dataStart;
+
+            if (buffers.HasFlag(Buffers.FACE_ELEMENTS))
+            {
+                dataStart = VAO.VertexDataWithIBO;
+                AddElementsBuffer(vao.Buffers[VAO.IndexData], start, end);
+            }
+            else
+            {
+                dataStart = VAO.VertexDataNoIBO;
+            }
+
+            if (buffers.HasFlag(Buffers.INTERLEAVED))
+            {
+                AddInterleavedBuffer(vao.Buffers[dataStart++], buffers, start, end); //instanced buffers would go right after this
+                int dataCount = 0;
+                if (buffers.HasFlag(Buffers.FACE_ELEMENTS))
+                {
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, vao.Buffers[VAO.IndexData]);
+                    GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out int size);
+                    dataCount = size / 4;
+                }
+                if (buffers.HasFlag(Buffers.INSTANCES))
+                    AddLocationBuffer(vao.Buffers[dataStart++], start, end, dataCount);
+            }
+            else
+            {
+                if (buffers.HasFlag(Buffers.VERTICES))
+                    AddVertices(vao.Buffers[dataStart++], start, end);
+                if(buffers.HasFlag(Buffers.NORMALS))
+                    AddNormalBuffer(vao.Buffers[dataStart++], start, end);
+                if (buffers.HasFlag(Buffers.UVS))
+                    AddColorBuffer(vao.Buffers[dataStart++], start, end);
+                if (buffers.HasFlag(Buffers.INSTANCES))
+                {
+                    if (buffers.HasFlag(Buffers.FACE_ELEMENTS))
+                    {
+                        GL.BindBuffer(BufferTarget.ElementArrayBuffer, vao.Buffers[VAO.IndexData]);
+                        GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out int size);
+                        AddLocationBuffer(vao.Buffers[dataStart++], start, end, size / 4);
+                    }
+                }
+            }
+        }
+
+        private void AddElementsBuffer(int bufferId, int lowerBound, int upperBound)
+        {
             var modelManager = ModelManager.GetInstance();
 
             int indexCount = 0;
@@ -144,14 +194,13 @@ namespace DeeSynk.Core.Systems
 
             int dataSize = UINT_SIZE * indexCount;
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, ibo);
-            GL.NamedBufferStorage(ibo, dataSize, indices, BufferStorageFlags.MapReadBit);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, bufferId);
+            GL.NamedBufferStorage(bufferId, dataSize, indices, BufferStorageFlags.MapReadBit);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
         }
 
-        private void AddLocationBuffer(int start, int count, int verticesPerInstance)
+        private void AddLocationBuffer(int bufferId, int start, int count, int verticesPerInstance)
         {
-            int lbo = GL.GenBuffer();
-
             Vector4[] offsets = new Vector4[count];
             for (int idx = start; idx < start + count; idx++)
             {
@@ -166,19 +215,19 @@ namespace DeeSynk.Core.Systems
             }
 
             int dataSize = VERTEX_SIZE * count;
-            GL.BindBuffer(BufferTarget.ArrayBuffer, lbo);
-            GL.NamedBufferStorage(lbo, dataSize, offsets, BufferStorageFlags.MapReadBit);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.NamedBufferStorage(bufferId, dataSize, offsets, BufferStorageFlags.MapReadBit);
 
-            GL.BindVertexBuffer(2, lbo, IntPtr.Zero, VERTEX_SIZE);
-            GL.EnableVertexAttribArray(2);
-            GL.VertexAttribFormat(2, 4, VertexAttribType.Float, false, 0);
-            GL.VertexAttribBinding(2, 2);
-            GL.VertexAttribDivisor(2, verticesPerInstance);
+            GL.BindVertexBuffer(3, bufferId, IntPtr.Zero, VERTEX_SIZE);
+            GL.EnableVertexAttribArray(3);
+            GL.VertexAttribFormat(3, 4, VertexAttribType.Float, false, 0);
+            GL.VertexAttribBinding(3, 3);
+            GL.VertexAttribDivisor(3, verticesPerInstance);
 
             Console.WriteLine(GL.GetError().ToString());
         }
 
-        private void AddInterleavedBuffer(Buffers bufferMask, int start, int end)
+        private void AddInterleavedBuffer(int bufferId, Buffers bufferMask, int start, int end)
         {
             ModelProperties properties = BuffersToModelProps(bufferMask);
             ModelManager modelManager = ModelManager.GetInstance();
@@ -208,10 +257,9 @@ namespace DeeSynk.Core.Systems
             }
             offset = 0;
 
-            int vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.NamedBufferStorage(vbo, data.Length * sizeof(float), data, BufferStorageFlags.MapReadBit);
-            GL.BindVertexBuffer(0, vbo, IntPtr.Zero, Model.ByteStride(properties));
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.NamedBufferStorage(bufferId, data.Length * sizeof(float), data, BufferStorageFlags.MapReadBit);
+            GL.BindVertexBuffer(0, bufferId, IntPtr.Zero, Model.ByteStride(properties));
 
             if (properties.HasFlag(ModelProperties.VERTICES))
             {
@@ -232,10 +280,12 @@ namespace DeeSynk.Core.Systems
             if (properties.HasFlag(ModelProperties.UVS))
             {
                 GL.EnableVertexAttribArray(2);
-                GL.VertexAttribFormat(2, Model.UV_SIZE, VertexAttribType.Float, false, offset);
+                GL.VertexAttribFormat(2, Model.UV_DIMS, VertexAttribType.Float, false, offset);
                 GL.VertexAttribBinding(2, 0);
                 offset += Model.UV_SIZE;
             }
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
         public void Update(float time)
@@ -282,8 +332,6 @@ namespace DeeSynk.Core.Systems
                end >= 0 &&
                end < _world.ObjectMemory)
             {
-                int vao = 0;
-                int ibo = 0;
                 int programID = 0;
 
 
@@ -295,14 +343,24 @@ namespace DeeSynk.Core.Systems
 
                 if (groupTogether)
                 {
-                    vao = GL.GenVertexArray();
-                    GL.BindVertexArray(vao);
+                    VAO vao = new VAO(bufferMask);
+
+                    int dataStart;
+                    if (bufferMask.HasFlag(Buffers.FACE_ELEMENTS))
+                    {
+                        AddElementsBuffer(vao.Buffers[VAO.IndexData], start, end);
+                        dataStart = VAO.VertexDataWithIBO;
+                    }
+                    else
+                    {
+                        dataStart = VAO.VertexDataNoIBO;
+                    }
 
                     if (bufferMask.HasFlag(Buffers.VERTICES))
-                        AddVertices(start, end);
+                        AddVertices(vao.Buffers[dataStart++], start, end);
                     if (bufferMask.HasFlag(Buffers.COLORS) && !bufferMask.HasFlag(Buffers.UVS))
                     {
-                        AddColorBuffer(start, end);
+                        AddColorBuffer(vao.Buffers[dataStart++], start, end);
                         if (bufferMask.HasFlag(Buffers.NORMALS))
                         {
                             programID = shaderManager.GetProgram("coloredPhong");
@@ -314,17 +372,15 @@ namespace DeeSynk.Core.Systems
                     }
                     else if (!bufferMask.HasFlag(Buffers.COLORS) && bufferMask.HasFlag(Buffers.UVS))
                     {
-                        AddUVBuffer(start, end);
+                        AddUVBuffer(vao.Buffers[dataStart++], start, end);
                         programID = shaderManager.GetProgram("shadowTextured2");
                     }
                     if (bufferMask.HasFlag(Buffers.INSTANCES))
-                        AddLocationBuffer(start, end - start + 1, 1);
+                        AddLocationBuffer(vao.Buffers[dataStart++], start, end - start + 1, 1);
 
                     if (bufferMask.HasFlag(Buffers.NORMALS))
-                        AddNormalBuffer(start, end);
+                        AddNormalBuffer(vao.Buffers[dataStart++], start, end);
 
-                    if (bufferMask.HasFlag(Buffers.FACE_ELEMENTS))
-                        AddElementsBuffer(start, end);
 
                     GL.UseProgram(programID);
 
@@ -339,10 +395,8 @@ namespace DeeSynk.Core.Systems
             }
         }
 
-        private void AddVertices(int lowerBound, int upperBound)
+        private void AddVertices(int bufferId, int lowerBound, int upperBound)
         {
-            int vbo = GL.GenBuffer();
-
             var modelManager = ModelManager.GetInstance();
 
 
@@ -377,18 +431,16 @@ namespace DeeSynk.Core.Systems
 
             int dataSize = VERTEX_SIZE * vertexCount;
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.NamedBufferStorage(vbo, dataSize, vertices, BufferStorageFlags.MapReadBit);
-            GL.BindVertexBuffer(0, vbo, IntPtr.Zero, VERTEX_SIZE);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.NamedBufferStorage(bufferId, dataSize, vertices, BufferStorageFlags.MapReadBit);
+            GL.BindVertexBuffer(0, bufferId, IntPtr.Zero, VERTEX_SIZE);
             GL.EnableVertexAttribArray(0);
             GL.VertexAttribFormat(0, 4, VertexAttribType.Float, false, 0);
             GL.VertexAttribBinding(0, 0);
         }
 
-        private void AddColorBuffer(int lowerBound, int upperBound)
+        private void AddColorBuffer(int bufferId, int lowerBound, int upperBound)
         {
-            int cbo = GL.GenBuffer();
-
             var modelManager = ModelManager.GetInstance();
 
             int colorCount = 0;
@@ -443,19 +495,17 @@ namespace DeeSynk.Core.Systems
 
             int dataSize = COLOR_SIZE * colorCount;
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, cbo);
-            GL.NamedBufferStorage(cbo, dataSize, colors, BufferStorageFlags.MapReadBit);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.NamedBufferStorage(bufferId, dataSize, colors, BufferStorageFlags.MapReadBit);
 
-            GL.BindVertexBuffer(1, cbo, IntPtr.Zero, COLOR_SIZE);
+            GL.BindVertexBuffer(1, bufferId, IntPtr.Zero, COLOR_SIZE);
             GL.EnableVertexAttribArray(1);
             GL.VertexAttribFormat(1, 4, VertexAttribType.Float, false, 0);
             GL.VertexAttribBinding(1, 1);
         }
 
-        private void AddUVBuffer(int lowerBound, int upperBound)
+        private void AddUVBuffer(int bufferId, int lowerBound, int upperBound)
         {
-            int tbo = GL.GenBuffer();
-
             ModelManager modelManager = ModelManager.GetInstance();
 
             int uvCount = 0;
@@ -485,19 +535,17 @@ namespace DeeSynk.Core.Systems
 
             int dataSize = UV_SIZE * uvCount;
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, tbo);
-            GL.NamedBufferStorage(tbo, dataSize, uvCoords, BufferStorageFlags.MapReadBit);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.NamedBufferStorage(bufferId, dataSize, uvCoords, BufferStorageFlags.MapReadBit);
 
-            GL.BindVertexBuffer(1, tbo, IntPtr.Zero, UV_SIZE);
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribFormat(1, 2, VertexAttribType.Float, false, 0);
-            GL.VertexAttribBinding(1, 1);
+            GL.BindVertexBuffer(2, bufferId, IntPtr.Zero, UV_SIZE);
+            GL.EnableVertexAttribArray(2);
+            GL.VertexAttribFormat(2, 2, VertexAttribType.Float, false, 0);
+            GL.VertexAttribBinding(2, 2);
         }
 
-        private void AddNormalBuffer(int lowerBound, int upperBound)
+        private void AddNormalBuffer(int bufferId, int lowerBound, int upperBound)
         {
-            int nbo = GL.GenBuffer();
-
             var modelManager = ModelManager.GetInstance();
 
 
@@ -532,10 +580,10 @@ namespace DeeSynk.Core.Systems
 
             int dataSize = NORMAL_SIZE * normalCount;
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, nbo);
-            GL.NamedBufferStorage(nbo, dataSize, normals, BufferStorageFlags.MapReadBit);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.NamedBufferStorage(bufferId, dataSize, normals, BufferStorageFlags.MapReadBit);
 
-            GL.BindVertexBuffer(3, nbo, IntPtr.Zero, NORMAL_SIZE);
+            GL.BindVertexBuffer(3, bufferId, IntPtr.Zero, NORMAL_SIZE);
             GL.EnableVertexAttribArray(3);
             GL.VertexAttribFormat(3, 3, VertexAttribType.Float, false, 0);
             GL.VertexAttribBinding(3, 3);

@@ -92,7 +92,7 @@ namespace DeeSynk.Core
             GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
             GL.Enable(EnableCap.DepthTest);
 
-            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 200f);
+            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 30f);
 
             _game = new Game();
             //CursorVisible = true;
@@ -108,8 +108,19 @@ namespace DeeSynk.Core
 
             {
                 long collectionBefore = System.GC.GetTotalMemory(false);
-                long collectionAfter = System.GC.GetTotalMemory(true);
-                Console.WriteLine("Collected garbage: removed {0} bytes", collectionBefore - collectionAfter);
+                long collectionAfter = collectionBefore - System.GC.GetTotalMemory(true);
+                long magnitude = (long)(Math.Log((double)collectionAfter, 1000d));
+                string ending = "";
+                switch (magnitude)
+                {
+                    case (0): ending = "B"; break;
+                    case (1): ending = "KB"; break;
+                    case (2): ending = "MB"; break;
+                    case (3): ending = "GB"; break;
+                }
+                collectionAfter = collectionAfter / (long)Math.Pow(1000, magnitude);
+
+                Console.WriteLine("Collected garbage: {0} {1}", collectionAfter, ending);
             }
 
             GL.Enable(EnableCap.Blend);
@@ -142,11 +153,10 @@ namespace DeeSynk.Core
         {
             timeCount += e.Time;
             frameCount++;
-            if(sw.ElapsedMilliseconds > 100)
+            if(sw.ElapsedMilliseconds > 1000)
             {
                 sw.Stop();
-                frameCount /= sw.ElapsedMilliseconds;
-                Title = $"DeeSynk | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f / e.Time:0}"; // adds miscellaneous information to the title bar of the window
+                Title = $"DeeSynk | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0}"; // adds miscellaneous information to the title bar of the window
                 timeCount = 0d;
                 frameCount = 0;
                 sw.Reset();

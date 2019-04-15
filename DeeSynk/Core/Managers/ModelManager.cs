@@ -4,6 +4,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -219,6 +220,8 @@ namespace DeeSynk.Core.Managers
 
         public void TryParsePly(string filePath)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             try
             {
                 var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -362,7 +365,6 @@ namespace DeeSynk.Core.Managers
                         string key = @"-?\d\.\d+(e-?\d+)?";
                         Regex regex = new Regex(key);
                         var matches = regex.Matches(data);
-                        Console.WriteLine(matches.Count);
                         if (matches.Count == vertexElementCount * 3)
                         {
                             for (int idx = 0; idx < vertexElementCount; idx++)
@@ -576,7 +578,8 @@ namespace DeeSynk.Core.Managers
                     model.SetReadOnly(true, true);
 
                     _modelLibrary.Add(Path.GetFileNameWithoutExtension(filePath), model);
-                    Console.WriteLine("Loaded model {0}: {1} vertices, {2} faces", Path.GetFileNameWithoutExtension(filePath), vertexElementCount, faceElementCount);
+                    sw.Stop();
+                    Console.WriteLine("Loaded model {0}: {1} vertices, {2} faces\nTime: {3} ms", Path.GetFileNameWithoutExtension(filePath), vertexElementCount, faceElementCount, sw.ElapsedMilliseconds);
                 }
             }
             catch(Exception e)

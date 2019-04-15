@@ -281,7 +281,6 @@ namespace DeeSynk.Core.Algorithms
         public Rectangle[] FindBestConfiguration()
         {
             BestConfiguration();
-            Console.WriteLine("Best Score: " + bestScore);
             for (int idx = 0; idx < rectangleCount; idx++)
             {
                 rectangles[idx] = Rectangle.Reset(rectangles[idx]);
