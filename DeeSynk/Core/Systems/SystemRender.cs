@@ -182,6 +182,7 @@ namespace DeeSynk.Core.Systems
             UnBindFBO();
 
             GL.Viewport(0, 0, (int)_camera.Width, (int)_camera.Height);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
         //SHADOW END
@@ -192,12 +193,10 @@ namespace DeeSynk.Core.Systems
         {
             RenderDepthMap(ref systemTransform);
 
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
             #region BIND
             Bind(0, true);
             #endregion
-            #region MATERIAL
+            #region MATERIAL_COLOR
             var colorArr = _staticModelComps[0].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
             Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
             GL.Uniform4(17, color);
@@ -216,13 +215,25 @@ namespace DeeSynk.Core.Systems
             GL.DrawElements(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero);
             #endregion
 
+            #region BIND
             Bind(1, true);
-            GL.UniformMatrix4(9, false, ref _lightView);
-            systemTransform.PushModelMatrix(1);
+            #endregion
+            #region MATERIAL_TEXTURE
             _textureComps[1].BindTexture(TextureUnit.Texture0);
-            BindDepthMap();
+            #endregion
+            #region LIGHTS
+            GL.UniformMatrix4(9, false, ref _lightView);
+            #endregion
+            #region MODELMAT
+            systemTransform.PushModelMatrix(1);
             int y = ModelManager.GetInstance().GetModel(ref _staticModelComps[1]).ElementCount;
+            #endregion
+            #region SHADOW
+            BindDepthMap();
+            #endregion
+            #region RENDER
             GL.DrawRangeElements(PrimitiveType.Triangles, 0, y-1, y, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            #endregion
         }
     }
 }
