@@ -17,9 +17,7 @@ namespace DeeSynk.Core.Systems
     {
         public int MonitoredComponents => (int)Component.RENDER |
                                           (int)Component.MODEL_STATIC |
-                                          (int)Component.MODEL_DYNAMIC |
-                                          (int)Component.TEXTURE |
-                                          (int)Component.COLOR;
+                                          (int)Component.TEXTURE;
 
         private World _world;
 
@@ -43,8 +41,6 @@ namespace DeeSynk.Core.Systems
 
         private int _width = 8192;
         private int _height = 8192;
-
-        private int ubo = 0;
 
         //SHADOW END
 
@@ -88,31 +84,13 @@ namespace DeeSynk.Core.Systems
             //_lightOrtho = Matrix4.CreateOrthographic(12f, 8f, 10f, 25f);
             _lightView *= _lightOrtho;
 
-            ubo = GL.GenBuffer();
-
             //SHADOW END
         }
 
         public void PushCameraRef(ref Camera camera)
         {
             _camera = camera;
-            BuildUBO();
-        }
-
-        public void BuildUBO()
-        {
-            GL.BindBuffer(BufferTarget.UniformBuffer, ubo);
-            var mat = _camera.ViewProjection;
-            Matrix4[] mats = new Matrix4[1];
-            mats[0] = mat;
-            Vector4[] vecs = new Vector4[5];
-            vecs[0] = mat.Row0;
-            vecs[1] = mat.Row1;
-            vecs[2] = mat.Row2;
-            vecs[3] = mat.Row3;
-            vecs[4] = new Vector4(_camera.Location, 1f);
-            GL.BufferData(BufferTarget.UniformBuffer, 80, vecs, BufferUsageHint.DynamicDraw | BufferUsageHint.DynamicRead);
-            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, 2, ubo, IntPtr.Zero, 80);
+            _camera.BuildUBO(2);
         }
 
         public void UpdateMonitoredGameObjects()
@@ -215,18 +193,28 @@ namespace DeeSynk.Core.Systems
             RenderDepthMap(ref systemTransform);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            #region BIND
             Bind(0, true);
-            var mat = _camera.ViewProjection;
-            Vector4[] vecs = { mat.Row0, mat.Row1, mat.Row2, mat.Row3, new Vector4(_camera.Location, 1f) };
-            GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 80, vecs);
+            #endregion
+            #region MATERIAL
             var colorArr = _staticModelComps[0].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
             Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
             GL.Uniform4(17, color);
+            #endregion
+            #region LIGHTS
             GL.UniformMatrix4(9, false, ref _lightView);
+            #endregion
+            #region MODELMAT
             systemTransform.PushModelMatrix(0);
-            BindDepthMap();
             int x = ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount;
+            #endregion
+            #region SHADOW
+            BindDepthMap();
+            #endregion
+            #region RENDER
             GL.DrawElements(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            #endregion
 
             Bind(1, true);
             GL.UniformMatrix4(9, false, ref _lightView);

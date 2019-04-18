@@ -86,6 +86,10 @@
     <Compile Include="Core\Algorithms\AlgorithmRectangleCompaction.cs" />
     <Compile Include="Core\Components\Camera.cs" />
     <Compile Include="Core\Components\Texture.cs" />
+    <Compile Include="Core\Components\Types\Render\ComponentCamera.cs" />
+    <Compile Include="Core\Components\Types\Render\ComponentLight.cs" />
+    <Compile Include="Core\Components\Types\Render\ComponentMaterial.cs" />
+    <Compile Include="Core\Components\Types\Transform\ComponentControllable.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentModel.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentRender.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentTexture.cs" />
@@ -103,6 +107,7 @@
     <Compile Include="Core\Managers\ShaderManager.cs" />
     <Compile Include="Core\Components\GameObject.cs" />
     <Compile Include="Core\Systems\ISystem.cs" />
+    <Compile Include="Core\Systems\SystemInput.cs" />
     <Compile Include="Core\Systems\SystemModel.cs" />
     <Compile Include="Core\Systems\SystemRender.cs" />
     <Compile Include="Core\Systems\SystemTransform.cs" />

@@ -40,6 +40,8 @@ namespace DeeSynk.Core
         public  ComponentModelStatic[]  StaticModelComps { get => _staticModelComps; }
         private ComponentTexture[]      _textureComps;
         public  ComponentTexture[]      TextureComps     { get => _textureComps; }
+        private ComponentCamera[]       _cameraComps;
+        public  ComponentCamera[]       CameraComps      { get => _cameraComps; }
 
         private VAO[] _vaos;
         public VAO[] VAOs { get => _vaos; }
@@ -57,6 +59,7 @@ namespace DeeSynk.Core
             _renderComps      = new ComponentRender[OBJECT_MEMORY];
             _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
             _textureComps     = new ComponentTexture[OBJECT_MEMORY];
+            _cameraComps      = new ComponentCamera[OBJECT_MEMORY];
 
             _vaos = new VAO[OBJECT_MEMORY];
 
@@ -86,6 +89,12 @@ namespace DeeSynk.Core
 
             //TEST END
         }
+
+        //CREATE NEW OBJECT WITH BITMASKID
+        //ADD COMPONENTS VIA METHOD
+        //IF GAMEOBJECT AT SPECIFIED INDEX ALLOWS COMPONENT, ADD IT
+        //OTHERWISE DO NOTHING
+        //ALLOW TEMPLATING (ADD CAMERA, ADD PLAYER, ETC)
 
         public void PushCameraRef(ref Camera camera)
         {

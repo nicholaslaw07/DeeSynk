@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
+using DeeSynk.Core.Systems;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -17,6 +18,9 @@ namespace DeeSynk.Core
     public class Game
     {
         private World _world;
+        private SystemInput _systemInput;
+        public SystemInput SystemInput { get => _systemInput; }
+
         public Game()
         {
             Load();
@@ -28,6 +32,7 @@ namespace DeeSynk.Core
             Managers.TextureManager.GetInstance().Load();
             Managers.ModelManager.GetInstance().Load();
             _world = new World();
+            _systemInput = new SystemInput();
         }
 
         public void PushCameraRef(ref Camera camera)

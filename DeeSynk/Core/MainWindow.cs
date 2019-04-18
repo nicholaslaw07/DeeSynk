@@ -40,7 +40,7 @@ namespace DeeSynk.Core
 
         private long frameCount = 0;
         private double timeCount = 0;
-        private Stopwatch sw;
+        private Stopwatch sw, sw2;
 
         private MouseState msPrevious;
 
@@ -65,6 +65,7 @@ namespace DeeSynk.Core
             mousePos = PointToScreen(center);
             msPrevious = Mouse.GetState();
             sw = new Stopwatch();
+            sw2 = new Stopwatch();
         }
         
         /// <summary>
@@ -106,27 +107,13 @@ namespace DeeSynk.Core
 
             _game.PushCameraRef(ref _camera);
 
-            {
-                long collectionBefore = System.GC.GetTotalMemory(false);
-                long collectionAfter = collectionBefore - System.GC.GetTotalMemory(true);
-                long magnitude = (long)(Math.Log((double)collectionAfter, 1000d));
-                string ending = "";
-                switch (magnitude)
-                {
-                    case (0): ending = "B"; break;
-                    case (1): ending = "KB"; break;
-                    case (2): ending = "MB"; break;
-                    case (3): ending = "GB"; break;
-                }
-                collectionAfter = collectionAfter / (long)Math.Pow(1000, magnitude);
-
-                Console.WriteLine("Collected garbage: {0} {1}", collectionAfter, ending);
-            }
+            GCCollectDebug();
 
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             sw.Start();
+            sw2.Start();
         }
 
         /// <summary>
@@ -138,7 +125,7 @@ namespace DeeSynk.Core
         {
             HandleKeyboard((float)e.Time);
 
-            _camera.AddRotation();
+            _camera.UpdateRotation();
             _camera.UpdateMatrices();
 
             _game.Update((float)(e.Time));
@@ -156,7 +143,7 @@ namespace DeeSynk.Core
             if(sw.ElapsedMilliseconds > 1000)
             {
                 sw.Stop();
-                Title = $"DeeSynk | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0}"; // adds miscellaneous information to the title bar of the window
+                Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0}"; // adds miscellaneous information to the title bar of the window
                 timeCount = 0d;
                 frameCount = 0;
                 sw.Reset();
@@ -187,6 +174,23 @@ namespace DeeSynk.Core
             msPrevious = ms;
         }
 
+        protected override void OnKeyDown(KeyboardKeyEventArgs e)
+        {
+            if (!e.IsRepeat)
+                _game.SystemInput.AddEvent(e, Systems.EventType.KeyDown, sw2.ElapsedMilliseconds);
+        }
+
+        protected override void OnKeyUp(KeyboardKeyEventArgs e)
+        {
+            if (!e.IsRepeat)
+                _game.SystemInput.AddEvent(e, Systems.EventType.KeyUp, sw2.ElapsedMilliseconds);
+        }
+
+        protected override void OnKeyPress(KeyPressEventArgs e)
+        {
+            _game.SystemInput.AddPress(e.KeyChar, sw2.ElapsedMilliseconds); 
+        }
+
         /// <summary>
         /// The HandleKeyboard method listens for any keyboard inputs from the user. Anything dealing
         /// with keybindings should go here.
@@ -209,6 +213,24 @@ namespace DeeSynk.Core
                 _camera.AddLocation(ref V_Up, time);
             if (keyState.IsKeyDown(Key.ShiftLeft))
                 _camera.AddLocation(ref V_Dn, time);
+        }
+
+        private void GCCollectDebug()
+        {
+            long collectionBefore = System.GC.GetTotalMemory(false);
+            long collectionAfter = collectionBefore - System.GC.GetTotalMemory(true);
+            long magnitude = (long)(Math.Log((double)collectionAfter, 1000d));
+            string ending = "";
+            switch (magnitude)
+            {
+                case (0): ending = "B"; break;
+                case (1): ending = "KB"; break;
+                case (2): ending = "MB"; break;
+                case (3): ending = "GB"; break;
+            }
+            collectionAfter = collectionAfter / (long)Math.Pow(1000, magnitude);
+
+            Console.WriteLine("Collected garbage: {0} {1}", collectionAfter, ending);
         }
     }
 }

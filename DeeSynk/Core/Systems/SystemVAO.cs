@@ -41,9 +41,7 @@ namespace DeeSynk.Core.Systems
 
     class SystemVAO : ISystem
     {
-        public int MonitoredComponents => (int)Component.COLOR |
-                                          (int)Component.MODEL_STATIC |
-                                          (int)Component.MODEL_DYNAMIC |
+        public int MonitoredComponents => (int)Component.MODEL_STATIC |
                                           (int)Component.RENDER |
                                           (int)Component.TEXTURE |
                                           (int)Component.TRANSFORM;  //will also probably include at the very least Transform for instanced rendering
