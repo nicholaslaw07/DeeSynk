@@ -128,7 +128,10 @@ namespace DeeSynk.Core.Components.Types.Render
 
         public void BindDataNoShader()
         {
-            _vao.Bind();
+            if (_init)
+            {
+                _vao.Bind();
+            }
         }
 
         public void Update(float time)

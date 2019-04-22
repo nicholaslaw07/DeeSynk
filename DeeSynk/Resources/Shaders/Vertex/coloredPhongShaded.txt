@@ -9,8 +9,16 @@ layout (location = 17) uniform vec4 color;
 layout(binding = 2) uniform Camera
 {
 	mat4 projection;  //model_view
-	vec4 location; //cameraLoc
+	vec4 camLocation; //cameraLoc
 } camera;
+
+layout(binding = 3) uniform Light
+{
+	mat4 view;
+	vec4 lightLocation;
+	vec4 lightColor;
+	vec4 shadowColor;
+} lights[4];
 
 
 out vec4 vs_lightCoord;
@@ -53,7 +61,7 @@ void main(void)
 	vec3 Lm = normalize(light - tr.xyz );
 	vec3 N  = normalize((mmN * vec4(normal, 1.0)).xyz);
 	vec3 Rm = normalize(2 * (dot(Lm, N)) * N - Lm);
-	vec3 V  = normalize(camera.location.xyz  - tr.xyz);
+	vec3 V  = normalize(camera.camLocation.xyz  - tr.xyz);
 
 	float dDot = dot(Lm, N);
 	float sDot = dot(Rm, V);

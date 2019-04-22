@@ -26,6 +26,9 @@ namespace DeeSynk.Core
             Load();
         }
 
+        /// <summary>
+        /// Responsible for loading all resources that will be used within the game and engine.
+        /// </summary>
         public void Load()
         {
             Managers.ShaderManager.GetInstance().Load();
@@ -45,6 +48,10 @@ namespace DeeSynk.Core
 
         }
 
+        /// <summary>
+        /// Performs and update call on the world object associated with Game.
+        /// </summary>
+        /// <param name="time">Previous time step.</param>
         public void Update(float time)
         {
             _world.Update(time);

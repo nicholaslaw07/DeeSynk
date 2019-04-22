@@ -94,32 +94,48 @@ namespace DeeSynk.Core.Systems
                 throw new InvalidOperationException("No more available VAO spaces.");
         }
 
+        /// <summary>
+        /// Initializes a vao containing vertex data for all objects within the specified range.
+        /// </summary>
+        /// <param name="buffers">A bitmask specifying the configuration of the buffers within the vao.</param>
+        /// <param name="start">The starting index in the components arrays, or the starting id of the range of GameObjects.</param>
+        /// <param name="end">The ending index in the components arrays, or the ending id of the range of GameObjects.</param>
         public void InitVAORange(Buffers buffers, int start, int end)
         {
 
             if (start <= end && start >= 0 && start < _world.ObjectMemory &&
                 end >= 0 && end < _world.ObjectMemory)
             {
+                //Creates a new VAO and adds it to the vao array
                 VAO vao = new VAO(buffers);
                 _vaos[NextArrayIndex()] = vao;
                 AddBuffers(vao, start, end);
 
+                //After the vao has its data, initialize the render components associated with the GameObjects in this vao
                 for(int idx = start; idx <= end; idx++)
                 {
                     _renderComps[idx] = new ComponentRender(buffers);
                     _renderComps[idx].VAO = vao;
                 }
 
+                //Clear bindings
                 GL.BindVertexArray(0);
             }
         }
 
+        /// <summary>
+        /// Adds the buffers and data to the newly created VAO object within the specified range.
+        /// </summary>
+        /// <param name="vao"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
         private void AddBuffers(VAO vao, int start, int end)
         {
             Buffers buffers = vao.BufferConfig;
 
             int dataStart;
 
+            //If this vao will contain an ibo then add one, otherwise don't.
             if (buffers.HasFlag(Buffers.FACE_ELEMENTS))
             {
                 dataStart = VAO.VertexDataWithIBO;
@@ -130,6 +146,7 @@ namespace DeeSynk.Core.Systems
                 dataStart = VAO.VertexDataNoIBO;
             }
 
+            //Adds an interleaved buffer if specified (multiple sets of data in one buffer)
             if (buffers.HasFlag(Buffers.INTERLEAVED))
             {
                 AddInterleavedBuffer(vao.Buffers[dataStart++], buffers, start, end); //instanced buffers would go right after this
@@ -143,6 +160,7 @@ namespace DeeSynk.Core.Systems
                 if (buffers.HasFlag(Buffers.INSTANCES))
                     AddLocationBuffer(vao.Buffers[dataStart++], start, end, dataCount);
             }
+            //If there isn't an interleaved buffer, then just add all of the different types of data in their own buffers
             else
             {
                 if (buffers.HasFlag(Buffers.VERTICES))
@@ -167,7 +185,9 @@ namespace DeeSynk.Core.Systems
         {
             var modelManager = ModelManager.GetInstance();
 
-            int indexCount = 0;
+            //Counts number of elements that will be contained in this buffer
+            //This must be done seperately since a buffer must be created with a specified size
+            int indexCount = 0; 
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
                 var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
@@ -176,6 +196,7 @@ namespace DeeSynk.Core.Systems
                 indexCount += model.ElementCount;
             }
 
+            //Get the index data for all GameObjects in the specified range and add it to one continuous array
             uint kdx = 0;
             uint[] indices = new uint[indexCount];
             for(int idx = lowerBound; idx <= upperBound; idx++)
@@ -192,11 +213,13 @@ namespace DeeSynk.Core.Systems
 
             int dataSize = UINT_SIZE * indexCount;
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, bufferId);
-            GL.NamedBufferStorage(bufferId, dataSize, indices, BufferStorageFlags.MapReadBit);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, bufferId);  //Sets the ibo as the active elements buffer
+            GL.NamedBufferStorage(bufferId, dataSize, indices, BufferStorageFlags.MapReadBit); //Adds the index data the ibo
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0); //Clear bindings
         }
 
+
+        //Not a good version, will be replaced with something more robust and worth while once we figure out how we want to handle transformation updates
         private void AddLocationBuffer(int bufferId, int start, int count, int verticesPerInstance)
         {
             Vector4[] offsets = new Vector4[count];
@@ -225,11 +248,25 @@ namespace DeeSynk.Core.Systems
             Console.WriteLine(GL.GetError().ToString());
         }
 
+        // INTERLEAVED DATA :  VERTEX | NORMAL | UV | VERTEX | NORMNAL | UV | VERTEX | NORMAL | UV ...
+        // INSTEAD OF :        VERTEX | VERTEX | VERTEX ...
+        //                     NORMAL | NORMAL | NORMAL ...
+        //                     UV     | UV     | UV     ...
+
+        /// <summary>
+        /// Adds a buffer to the currently bound vao with specified data from GameObjects in the specified range.
+        /// </summary>
+        /// <param name="bufferId">Id of the buffer to add the interleaved data to.</param>
+        /// <param name="bufferMask">Which data to interleave into the buffer.</param>
+        /// <param name="start">Starting index or id.</param>
+        /// <param name="end">Ending index or id.</param>
         private void AddInterleavedBuffer(int bufferId, Buffers bufferMask, int start, int end)
         {
             ModelProperties properties = BuffersToModelProps(bufferMask);
             ModelManager modelManager = ModelManager.GetInstance();
+            //The sum of number of floats that each type of data has based on the bufferMask (bytes / 4)
             int fStride = Model.FloatStride(properties);
+            //The total data count for all models (vertex, uv, and color data should all be the same, so it is only represeted as vertex count)
             int count = 0;
             for (int idx = start; idx <= end; idx++)
             {
@@ -244,7 +281,8 @@ namespace DeeSynk.Core.Systems
             }
 
             float[] data = new float[fStride * count];
-            int offset = 0;
+            int offset = 0; 
+            //interleave data
             for(int idx = start; idx <= end; idx++)
             {
                 Model model = modelManager.GetModel(ref _staticModelComps[idx]);
@@ -259,6 +297,7 @@ namespace DeeSynk.Core.Systems
             GL.NamedBufferStorage(bufferId, data.Length * sizeof(float), data, BufferStorageFlags.MapReadBit);
             GL.BindVertexBuffer(0, bufferId, IntPtr.Zero, Model.ByteStride(properties));
 
+            //Activate vertex attributes (allows access to data within shaders) and specify the offset and stride of the data
             if (properties.HasFlag(ModelProperties.VERTICES))
             {
                 GL.EnableVertexAttribArray(0);

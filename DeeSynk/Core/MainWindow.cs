@@ -215,6 +215,9 @@ namespace DeeSynk.Core
                 _camera.AddLocation(ref V_Dn, time);
         }
 
+        /// <summary>
+        /// Performs a manual garbage collection with debug output.
+        /// </summary>
         private void GCCollectDebug()
         {
             long collectionBefore = System.GC.GetTotalMemory(false);

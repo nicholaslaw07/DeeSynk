@@ -16,24 +16,45 @@ namespace DeeSynk.Core
     using SystemModel = Systems.SystemModel;
     using Buffers = Systems.Buffers;
 
+
+    //Possible configuations of entities
+    //  Render - (Transform, Model, Texture*, Material*)
+    //  Camera
+    //  Camera with Objects (Render as above)
+    //  Light - Transform?
+
+
     public class World
     {
         private const uint OBJECT_MEMORY = 2;
+        /// <summary>
+        /// Maximum number of GameObjects that can be stored inside of this world.
+        /// </summary>
         public uint ObjectMemory { get => OBJECT_MEMORY; }
         private GameObject[] _gameObjects;
+        /// <summary>
+        /// Array containing all GameObjects within this world.
+        /// </summary>
         public GameObject[] GameObjects { get => _gameObjects; }
         private bool[] _existingGameObjects;
+        /// <summary>
+        /// Specifies if a game object does or does not exist at the specified index within the array.
+        /// </summary>
         public bool[] ExistingGameObjects { get => _existingGameObjects; }
         private int MaxObjectCount;
 
+        //Systems that act as a medium for components to communicate through, specific to certain purposes
+        #region SYSTEMS
         private SystemRender    _systemRender;
         private SystemTransform _systemTransform;
         private SystemVAO       _systemVAO;
         private SystemModel     _systemModel;
+        #endregion
 
-        private ComponentTransform[]        _transComps;
-        public ComponentTransform[] TransComps { get => _transComps; }
-
+        //The arrays that store all of the components inside of this world object, their capactiy is limited by OBJECT_MEMORY
+        #region COMPONENT_ARRAYS
+        private ComponentTransform[]    _transComps;
+        public ComponentTransform[]     TransComps       { get => _transComps; }
         private ComponentRender[]       _renderComps;
         public  ComponentRender[]       RenderComps      { get => _renderComps; }
         private ComponentModelStatic[]  _staticModelComps;
@@ -42,8 +63,12 @@ namespace DeeSynk.Core
         public  ComponentTexture[]      TextureComps     { get => _textureComps; }
         private ComponentCamera[]       _cameraComps;
         public  ComponentCamera[]       CameraComps      { get => _cameraComps; }
+        #endregion
 
         private VAO[] _vaos;
+        /// <summary>
+        /// The array containing all VAOs that are in use by the GameObjects in this world object.
+        /// </summary>
         public VAO[] VAOs { get => _vaos; }
 
         public World()
@@ -55,7 +80,6 @@ namespace DeeSynk.Core
             _systemTransform  = new SystemTransform(this);
 
             _transComps       = new ComponentTransform[OBJECT_MEMORY];
-
             _renderComps      = new ComponentRender[OBJECT_MEMORY];
             _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
             _textureComps     = new ComponentTexture[OBJECT_MEMORY];
@@ -164,6 +188,10 @@ namespace DeeSynk.Core
             }
         }
 
+        /// <summary>
+        /// Performs an update call on the systems within this world object.
+        /// </summary>
+        /// <param name="time"></param>
         public void Update(float time)
         {
             _systemTransform.Update(time);
