@@ -29,13 +29,6 @@ namespace DeeSynk.Core.Systems
         private ComponentModelStatic[] _staticModelComps;
         private ComponentTexture[] _textureComps;
 
-        //SHADOW START
-        private Vector3 _lightLocation = new Vector3(0, 2, 6);
-        private Vector3 _lightLookAt = new Vector3(0);
-        private Vector3 _lightUp = new Vector3(0, 1, 0);
-        private Matrix4 _lightView;
-        private Matrix4 _lightOrtho;
-
         private Camera _camera;
 
         //SHADOW END
@@ -135,8 +128,6 @@ namespace DeeSynk.Core.Systems
 
         public void RenderAll(ref SystemTransform systemTransform)
         {
-            //RenderDepthMap(ref systemTransform);
-
             RenderDepthMaps(ref systemTransform);
 
             var gameObjects = _world.GameObjects;
