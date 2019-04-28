@@ -11,15 +11,9 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace DeeSynk.Core.Systems
 {
-    class SystemTransform : ISystem
+    public class SystemTransform : ISystem
     {
-        public int MonitoredComponents => (int)Component.LOCATION |
-                                          (int)Component.VELOCITY |
-                                          (int)Component.GRAVITY |
-                                          (int)Component.ROTATION_X |
-                                          (int)Component.ROTATION_Y |
-                                          (int)Component.ROTATION_Z |
-                                          (int)Component.SCALE;
+        public Component MonitoredComponents => Component.TRANSFORM;
 
         private World _world;
 
@@ -53,7 +47,7 @@ namespace DeeSynk.Core.Systems
             {
                 if (_world.ExistingGameObjects[i])
                 {
-                    if ((_world.GameObjects[i].Components | MonitoredComponents) == MonitoredComponents)
+                    if (_world.GameObjects[i].Components.HasFlag(MonitoredComponents))
                     {
                         _monitoredGameObjects[i] = true;
                     }
@@ -65,7 +59,10 @@ namespace DeeSynk.Core.Systems
         public void Update(float time)
         {
             for(int i=0; i< _world.ObjectMemory; i++)
-                _transComps[i].Update(time);
+            {
+                if(_monitoredGameObjects[i])
+                    _transComps[i].Update(time);
+            }
             _camera.UpdateMatrices();
         }
 
@@ -73,7 +70,10 @@ namespace DeeSynk.Core.Systems
         {
             //TEST START
             for (int i = 0; i < _world.ObjectMemory; i++)
-                _transComps[i] = new ComponentTransform(ref _modelCompsStatic[i]);
+            {
+                if(_monitoredGameObjects[i])
+                    _transComps[i] = new ComponentTransform(ref _modelCompsStatic[i]);
+            }
 
             //_transComps[0].RotationXComp.InterpolateRotation(5f, 30f, InterpolationMode.LINEAR);
             _transComps[0].RotationYComp.InterpolateRotation(2f, 30f, InterpolationMode.LINEAR);

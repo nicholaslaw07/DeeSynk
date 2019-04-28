@@ -43,7 +43,7 @@ namespace DeeSynk.Core.Components.Types.Render
 
         public static readonly Color4 DEFAULT_COLOR = Color4.White;
         public static readonly TextureUnit DEFAULT_SHADOW_BINDING = TextureUnit.Texture1;
-        public static readonly int DEFAULT_BINDING_BASE = 3;
+        public static readonly int DEFAULT_BINDING_BASE = 3; //will have multiple bindings for diferent types of lights
 
         private Color4 _lightColor, _shadowColor;
         public Color4 LightColor { get => _lightColor; }
@@ -85,29 +85,10 @@ namespace DeeSynk.Core.Components.Types.Render
                 _castShadows = castShadows;
                 _shadowColor = shadowColor;
 
-                _fbo = GL.GenFramebuffer();
-                _depthMap = GL.GenTexture();
+                _resX = resolutionX;
+                _resY = resolutionY;
 
-                int _resX = resolutionX;
-                int _resY = resolutionY;
-
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32, _resX, _resY, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float)TextureMinFilter.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float)TextureMagFilter.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (float)TextureWrapMode.ClampToEdge);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (float)TextureWrapMode.ClampToEdge);
-
-                GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
-                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, _depthMap, 0);
-
-                GL.DrawBuffer(DrawBufferMode.None);
-                GL.ReadBuffer(ReadBufferMode.None);
-
-                var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-                if (status != FramebufferErrorCode.FramebufferComplete)
-                    Console.WriteLine(status);
-
-                GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+                AddShadowMap();
             }
 
             BuildUBO(DEFAULT_BINDING_BASE);
@@ -135,6 +116,46 @@ namespace DeeSynk.Core.Components.Types.Render
         // IF THEY OCCUPY THE SAME FIELD//
         // AS ONES THAT ARE MOVING      //
         //******************************//
+
+        public void Bind()
+        {
+            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _fbo);
+            GL.Viewport(0, 0, _resX, _resY);
+        }
+
+        public void UnBind()
+        {
+            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+        }
+
+        private void AddShadowMap()
+        {
+            _fbo = GL.GenFramebuffer();
+            _depthMap = GL.GenTexture();
+
+            GL.BindTexture(TextureTarget.Texture2D, _depthMap);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32, _resX, _resY, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (float)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (float)TextureWrapMode.ClampToEdge);
+
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, _depthMap, 0);
+
+            GL.DrawBuffer(DrawBufferMode.None);
+
+            GL.ReadBuffer(ReadBufferMode.None);
+
+
+            var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+            if (status != FramebufferErrorCode.FramebufferComplete)
+                Console.WriteLine(status);
+
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+        }
 
         public void BuildUBO(int bindingLocation)
         {
@@ -177,6 +198,12 @@ namespace DeeSynk.Core.Components.Types.Render
             vecs[4] = new Vector4(_camera.Location);
             vecs[5] = new Vector4(_lightColor.R, _lightColor.G, _lightColor.B, _lightColor.A);
             vecs[6] = new Vector4(_shadowColor.R, _shadowColor.G, _shadowColor.B, _shadowColor.A);
+        }
+
+        public void Update()
+        {
+            _camera.UpdateMatrices();
+            UpdateUBO();
         }
     }
 }

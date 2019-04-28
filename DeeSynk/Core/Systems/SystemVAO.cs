@@ -39,12 +39,12 @@ namespace DeeSynk.Core.Systems
         VERTICES_NORMALS_UVS_ELEMENTS = VERTICES_NORMALS_UVS | FACE_ELEMENTS
     }
 
-    class SystemVAO : ISystem
+    public class SystemVAO : ISystem
     {
-        public int MonitoredComponents => (int)Component.MODEL_STATIC |
-                                          (int)Component.RENDER |
-                                          (int)Component.TEXTURE |
-                                          (int)Component.TRANSFORM;  //will also probably include at the very least Transform for instanced rendering
+        public Component MonitoredComponents => Component.MODEL_STATIC |
+                                                Component.RENDER |
+                                                Component.TEXTURE |
+                                                Component.TRANSFORM;  //will also probably include at the very least Transform for instanced rendering
 
         //purpose: used for the creation of VAO's to organize like rendered objects into groups
         // and create VAO's for different use cases like for textured or non-textured

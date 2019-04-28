@@ -2,7 +2,6 @@
 
 layout (location = 0) in vec4 position;
 layout (location = 1) in vec3 normal;
-layout (location = 9) uniform mat4 light_view;
 layout (location = 13) uniform mat4 modelMat;
 layout (location = 17) uniform vec4 color;
 
@@ -37,7 +36,7 @@ out float vs_sDot;
 void main(void)
 {
 	vec3 offset = inverse(modelMat)[3].xyz;
-	vec3 light = vec3(0, 2, 6);
+	vec3 light = lights[0].lightLocation.xyz;
 
 	vec3 iA = color.xyz;
 	vec3 iD = color.xyz;
@@ -49,7 +48,7 @@ void main(void)
 
 	float a  = 250;
 
-	vs_lightCoord = light_view * modelMat * position;
+	vs_lightCoord = lights[0].view * modelMat * position;
     gl_Position = camera.projection * modelMat * position;
 
 	vec4 tr = modelMat * (position);

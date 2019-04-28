@@ -25,6 +25,9 @@ namespace DeeSynk.Core.Components
         public static readonly Vector3 DEFAULT_LOOK = new Vector3(0.0f, 0.0f, -1.0f);
         public static readonly Vector3 DEFAULT_UP = new Vector3(0.0f, 1.0f, 0.0f);
 
+        private bool _overrideLookAtVector;
+        public bool OverrideLookAtVector { get => _overrideLookAtVector; set => _overrideLookAtVector = value; }
+
         private Matrix4 _view;
         /// <summary>
         /// The matrix that represents the lookAt matrix for the camera.
@@ -50,6 +53,10 @@ namespace DeeSynk.Core.Components
 
         #region RotationProperties
         private bool _rotationUpdate;
+
+                //***NOTE***
+                //Add z rotation as an optional thing
+                //***ENDNOTE***
 
         private float _rotX, _rotY;
         /// <summary>
@@ -359,7 +366,8 @@ namespace DeeSynk.Core.Components
             {
                 if (_viewUpdate)
                 {
-                    _lookAt = _location + (qY * qX * p * qXi * qYi).Xyz;
+                    if(_overrideLookAtVector)
+                        _lookAt = _location + (qY * qX * p * qXi * qYi).Xyz;
                     _view = Matrix4.LookAt(_location, _lookAt, _up);
                     _viewUpdate = false;
                 }

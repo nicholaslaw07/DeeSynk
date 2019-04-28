@@ -13,11 +13,13 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace DeeSynk.Core.Systems
 {
-    class SystemRender : ISystem
+    public class SystemRender : ISystem
     {
-        public int MonitoredComponents => (int)Component.RENDER |
-                                          (int)Component.MODEL_STATIC |
-                                          (int)Component.TEXTURE;
+        public Component MonitoredComponents => Component.RENDER |
+                                                Component.MODEL_STATIC |
+                                                Component.TEXTURE;
+
+        private static readonly Component RenderQualfier = Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM;
 
         private World _world;
 
@@ -58,6 +60,7 @@ namespace DeeSynk.Core.Systems
 
             //SHADOW START
 
+
             _fbo = GL.GenFramebuffer();
             _depthMap = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, _depthMap);
@@ -78,6 +81,7 @@ namespace DeeSynk.Core.Systems
                 Console.WriteLine(status);
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
 
             _lightView = Matrix4.LookAt(_lightLocation, _lightLookAt, _lightUp);
              _lightOrtho = Matrix4.CreatePerspectiveFieldOfView(1.0f, _width/(float)_height, 5f, 11f);
@@ -119,25 +123,10 @@ namespace DeeSynk.Core.Systems
                 _renderComps[idx].BindDataNoShader();
         }
 
-        public void Render(int idx)
-        {
-            //GL.DrawElements(BeginMode.Triangles, _staticModelComps[idx].IndexCount, DrawElementsType.UnsignedInt, 0);
-        }
-
         public void UnBind()
         {
             GL.UseProgram(0);
             GL.BindVertexArray(0);
-        }
-
-        public void RenderAll(ref SystemTransform systemTransform)
-        {
-            for (int idx = 0; idx < _renderComps.Length; idx++)
-            {
-                Bind(idx, false);
-                systemTransform.PushMatrixData(idx);
-                Render(idx);
-            }
         }
         
         //SHADOW START
@@ -158,82 +147,119 @@ namespace DeeSynk.Core.Systems
             GL.BindTexture(TextureTarget.Texture2D, _depthMap);
         }
 
+        /*
         public void RenderDepthMap(ref SystemTransform systemTransform)
         {
             GL.Viewport(0, 0, _width, _height);
             BindFBO();
-            Bind(1, false);
-            GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
-            GL.UniformMatrix4(5, false, ref _lightView);
-            systemTransform.PushModelMatrix(1);
-            int y = ModelManager.GetInstance().GetModel(ref _staticModelComps[1]).ElementCount;
-            GL.DrawElements(PrimitiveType.Triangles, y, DrawElementsType.UnsignedInt, IntPtr.Zero);
 
+            var gameObjects = _world.GameObjects;
             GL.Clear(ClearBufferMask.DepthBufferBit);
-
-            Bind(0, false);
-            GL.UniformMatrix4(5, false, ref _lightView);
-            systemTransform.PushModelMatrix(0);
-            int x = ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount;
-            GL.DrawElements(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero);
-
-
+            for (int idx = 0; idx < _world.ObjectMemory; idx++)
+            {
+                if (_world.ExistingGameObjects[idx])
+                {
+                    Component comps = gameObjects[idx].Components;
+                    if (comps.HasFlag(RenderQualfier))
+                    {
+                        Bind(idx, false);
+                        GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
+                        GL.UniformMatrix4(5, false, ref _lightView);
+                        systemTransform.PushModelMatrix(idx);
+                        int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
+                        GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                    }
+                }
+            }
 
             UnBindFBO();
-
             GL.Viewport(0, 0, (int)_camera.Width, (int)_camera.Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
-
+        */
         //SHADOW END
 
         //RENDER PASS METHOD
 
-        public void RenderInstanced(ref SystemTransform systemTransform, int renderIdx)
+        private void RenderDepthMaps(ref SystemTransform systemTransform)
         {
-            RenderDepthMap(ref systemTransform);
+            int[] currentViewPort = new int[4];
+            GL.GetInteger(GetPName.Viewport, currentViewPort);
 
-            #region BIND
-            Bind(0, true);
-            #endregion
-            #region MATERIAL_COLOR
-            var colorArr = _staticModelComps[0].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-            Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
-            GL.Uniform4(17, color);
-            #endregion
-            #region LIGHTS
-            GL.UniformMatrix4(9, false, ref _lightView);
-            #endregion
-            #region MODELMAT
-            systemTransform.PushModelMatrix(0);
-            int x = ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount;
-            #endregion
-            #region SHADOW
-            BindDepthMap();
-            #endregion
-            #region RENDER
-            GL.DrawElements(PrimitiveType.Triangles, x, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            #endregion
+            var gameObjects = _world.GameObjects;
+            for(int jdx = 0; jdx < _world.ObjectMemory; jdx++)
+            {
+                if (gameObjects[jdx].Components.HasFlag(Component.LIGHT))
+                {
 
-            #region BIND
-            Bind(1, true);
-            #endregion
-            #region MATERIAL_TEXTURE
-            _textureComps[1].BindTexture(TextureUnit.Texture0);
-            #endregion
-            #region LIGHTS
-            GL.UniformMatrix4(9, false, ref _lightView);
-            #endregion
-            #region MODELMAT
-            systemTransform.PushModelMatrix(1);
-            int y = ModelManager.GetInstance().GetModel(ref _staticModelComps[1]).ElementCount;
-            #endregion
-            #region SHADOW
-            BindDepthMap();
-            #endregion
-            #region RENDER
-            GL.DrawRangeElements(PrimitiveType.Triangles, 0, y-1, y, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            #endregion
+                    var light = _world.LightComps[jdx];
+                    light.Bind();
+
+                    GL.Clear(ClearBufferMask.DepthBufferBit);
+
+                    for (int idx = 0; idx < _world.ObjectMemory; idx++)
+                    {
+                        if (_world.ExistingGameObjects[idx])
+                        {
+                            if (gameObjects[idx].Components.HasFlag(RenderQualfier))
+                            {
+                                Bind(idx, false);
+                                GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
+                                systemTransform.PushModelMatrix(idx);
+                                int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
+                                GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                            }
+                        }
+                    }
+
+                    light.UnBind();
+                }
+            }
+
+            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+            GL.Viewport(currentViewPort[0], currentViewPort[1], currentViewPort[2], currentViewPort[3]);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        }
+
+        public void RenderAll(ref SystemTransform systemTransform)
+        {
+            //RenderDepthMap(ref systemTransform);
+
+            RenderDepthMaps(ref systemTransform);
+
+            var gameObjects = _world.GameObjects;
+
+            for (int idx=0; idx<_world.ObjectMemory; idx++)
+            {
+                if (_world.ExistingGameObjects[idx])
+                {
+                    Component comps = gameObjects[idx].Components;
+                    if (comps.HasFlag(RenderQualfier))
+                    {
+                        Bind(idx, true);
+
+                        if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))
+                        {
+                            var colorArr = _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
+                            Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
+                            GL.Uniform4(17, color);
+                        }
+
+                        if (comps.HasFlag(Component.TEXTURE))
+                        {
+                            _textureComps[idx].BindTexture(TextureUnit.Texture0);
+                        }
+
+                        systemTransform.PushModelMatrix(idx);
+                        int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
+
+                        GL.ActiveTexture(TextureUnit.Texture1);
+                        GL.BindTexture(TextureTarget.Texture2D, _world.LightComps[2].DepthMap);
+
+                        GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                    }
+                }
+            }
         }
     }
 }

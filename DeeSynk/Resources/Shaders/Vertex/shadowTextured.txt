@@ -3,8 +3,15 @@
 layout (location = 0) in vec4 position;
 layout (location = 1) in vec2 texCoord;
 layout (location = 2) in vec4 offset;
-layout (location = 5) uniform mat4 model_view;
 layout (location = 13) uniform mat4 modelMat;
+
+layout(binding = 3) uniform Light
+{
+	mat4 view;
+	vec4 lightLocation;
+	vec4 lightColor;
+	vec4 shadowColor;
+} lights[4];
 
 out vec2 vs_texCoord;
 
@@ -12,5 +19,5 @@ void main(void)
 {
  vs_texCoord = texCoord;
 
- gl_Position = model_view * modelMat * (position);
+ gl_Position = lights[0].view * modelMat * (position);
 }

@@ -94,7 +94,7 @@ namespace DeeSynk.Core
             GL.Enable(EnableCap.DepthTest);
 
             _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 30f);
-
+            _camera.OverrideLookAtVector = true;
             _game = new Game();
             //CursorVisible = true;
 

@@ -26,7 +26,7 @@ namespace DeeSynk.Core
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 2;
+        private const uint OBJECT_MEMORY = 4;
         /// <summary>
         /// Maximum number of GameObjects that can be stored inside of this world.
         /// </summary>
@@ -46,9 +46,13 @@ namespace DeeSynk.Core
         //Systems that act as a medium for components to communicate through, specific to certain purposes
         #region SYSTEMS
         private SystemRender    _systemRender;
+        public  SystemRender     SystemRender    { get => _systemRender; }
         private SystemTransform _systemTransform;
+        public  SystemTransform  SystemTransform { get => _systemTransform; }
         private SystemVAO       _systemVAO;
+        public  SystemVAO        SystemVAO       { get => _systemVAO; }
         private SystemModel     _systemModel;
+        public  SystemModel      SystemModel     { get => _systemModel; }
         #endregion
 
         //The arrays that store all of the components inside of this world object, their capactiy is limited by OBJECT_MEMORY
@@ -63,6 +67,8 @@ namespace DeeSynk.Core
         public  ComponentTexture[]      TextureComps     { get => _textureComps; }
         private ComponentCamera[]       _cameraComps;
         public  ComponentCamera[]       CameraComps      { get => _cameraComps; }
+        private ComponentLight[]        _lightComps;
+        public  ComponentLight[]        LightComps       { get => _lightComps; }
         #endregion
 
         private VAO[] _vaos;
@@ -84,34 +90,23 @@ namespace DeeSynk.Core
             _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
             _textureComps     = new ComponentTexture[OBJECT_MEMORY];
             _cameraComps      = new ComponentCamera[OBJECT_MEMORY];
+            _lightComps       = new ComponentLight[OBJECT_MEMORY];
 
-            _vaos = new VAO[OBJECT_MEMORY];
+            _vaos             = new VAO[OBJECT_MEMORY];
 
+            _systemRender     = new SystemRender(this);
+            _systemModel      = new SystemModel(this);
+            _systemTransform  = new SystemTransform(this);
+            _systemVAO        = new SystemVAO(this);
+        }
 
-            _systemRender = new SystemRender(this);
+        public void InitData()
+        {
+            _systemModel.UpdateMonitoredGameObjects();
+            _systemTransform.UpdateMonitoredGameObjects();
 
-            _systemModel = new SystemModel(this);
             _systemModel.InitModel();
-
-            _systemTransform = new SystemTransform(this);
             _systemTransform.InitLocation();
-
-            //TEST START
-            _textureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
-
-            _systemVAO = new SystemVAO(this);
-            _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, 0, 0);
-            _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, 1, 1);
-
-            var sm = ShaderManager.GetInstance();
-
-            _renderComps[0].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");
-            _renderComps[1].PROGRAM_ID = sm.GetProgram("shadowTextured2");
-
-            _renderComps[0].ValidateData();
-            _renderComps[1].ValidateData();
-
-            //TEST END
         }
 
         //CREATE NEW OBJECT WITH BITMASKID
@@ -153,7 +148,7 @@ namespace DeeSynk.Core
             }
         }
 
-        public ref GameObject CreateGameObject(int componentMask)
+        public ref GameObject CreateGameObject(Component componentMask)
         {
             int id = GetNewGameObjectID();
             _gameObjects[id] = new GameObject(id, componentMask);
@@ -199,8 +194,7 @@ namespace DeeSynk.Core
 
         public void Render()
         {
-            //_systemRender.RenderAll(ref _systemTransform);
-            _systemRender.RenderInstanced(ref _systemTransform, 0);
+            _systemRender.RenderAll(ref _systemTransform);
         }
     }
 }

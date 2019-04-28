@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
+using DeeSynk.Core.Components.Types.Render;
+using DeeSynk.Core.Managers;
 using DeeSynk.Core.Systems;
 using OpenTK;
 using OpenTK.Graphics;
@@ -45,7 +47,34 @@ namespace DeeSynk.Core
 
         public void LoadGameData()
         {
+            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM);
+            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
 
+            _world.CreateGameObject(Component.LIGHT);
+            _world.CreateGameObject(Component.CAMERA);
+
+            _world.InitData();
+
+            _world.TextureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
+
+            _world.SystemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, 0, 0);
+            _world.SystemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, 1, 1);
+
+
+            var sm = ShaderManager.GetInstance();
+
+            _world.RenderComps[0].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");
+            _world.RenderComps[1].PROGRAM_ID = sm.GetProgram("shadowTextured2");
+
+            _world.RenderComps[0].ValidateData();
+            _world.RenderComps[1].ValidateData();
+
+            Camera cameraL = new Camera();
+            cameraL.SetPerspectiveFOV(1.0f, 8192, 8192, 5f, 11f);
+            cameraL.SetView(new Vector3(0, 1, 6), new Vector3(0), new Vector3(0, 1, 0));
+            cameraL.OverrideLookAtVector = false;
+            cameraL.UpdateMatrices();
+            _world.LightComps[2] = new ComponentLight(cameraL, Color4.White, Color4.White, true, 8192, 8192);
         }
 
         /// <summary>

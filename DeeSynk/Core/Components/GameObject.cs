@@ -11,9 +11,9 @@ namespace DeeSynk.Core.Components
     public struct GameObject
     {
         public int ID;
-        public int Components;
+        public Component Components;
 
-        public GameObject(int id, int comps)
+        public GameObject(int id, Component comps)
         {
             ID = id;
             Components = comps;

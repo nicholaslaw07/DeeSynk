@@ -389,9 +389,8 @@ namespace DeeSynk.Core.Components.Models
                 case (ModelTemplates.TemplatePlaneXZ): return "TemplatePlaneXZ";
                 case (ModelTemplates.TemplatePlaneXY): return "TemplatePlaneXY";
                 case (ModelTemplates.TemplatePlaneYZ): return "TemplatePlaneYZ";
+                default: return "NONE";
             }
-
-            return "NONE";
         }
 
         /// <summary>

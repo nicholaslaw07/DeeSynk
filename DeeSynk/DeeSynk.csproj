@@ -127,6 +127,7 @@
   <ItemGroup>
     <Folder Include="Core\Components\GraphicsObjects\" />
     <Folder Include="Core\Components\Models\Templates\" />
+    <Folder Include="Core\Components\RenderObjects\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />

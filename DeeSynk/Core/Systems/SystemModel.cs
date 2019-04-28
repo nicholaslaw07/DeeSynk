@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Systems
 {
-    class SystemModel : ISystem
+    public class SystemModel : ISystem
     {
-        public int MonitoredComponents => throw new NotImplementedException();
+        public Component MonitoredComponents => Component.MODEL_STATIC;
 
         private World _world;
 
@@ -25,6 +25,7 @@ namespace DeeSynk.Core.Systems
         public SystemModel(World world)
         {
             _world = world;
+
 
             _monitoredGameObjects = new bool[_world.ObjectMemory];
 
@@ -37,7 +38,7 @@ namespace DeeSynk.Core.Systems
             {
                 if (_world.ExistingGameObjects[i])
                 {
-                    if ((_world.GameObjects[i].Components | MonitoredComponents) == MonitoredComponents)
+                    if (_world.GameObjects[i].Components.HasFlag(MonitoredComponents))
                     {
                         _monitoredGameObjects[i] = true;
                     }
@@ -53,7 +54,10 @@ namespace DeeSynk.Core.Systems
 
             var modelManager = ModelManager.GetInstance();
             for(int idx = 0; idx < _staticModelComps.Length; idx++)
-                modelManager.InitModel(ref _staticModelComps[idx]);
+            {
+                if(_monitoredGameObjects[idx])
+                    modelManager.InitModel(ref _staticModelComps[idx]);
+            }
         }
 
         private void CreateModels()
