@@ -38,12 +38,6 @@ namespace DeeSynk.Core.Systems
 
         private Camera _camera;
 
-        private int _fbo;      //Frame Buffer (Depth)
-        private int _depthMap; //Texture
-
-        private int _width = 8192;
-        private int _height = 8192;
-
         //SHADOW END
 
         public SystemRender(World world)
@@ -57,38 +51,6 @@ namespace DeeSynk.Core.Systems
             _textureComps = _world.TextureComps;
 
             //UpdateMonitoredGameObjects();
-
-            //SHADOW START
-
-
-            _fbo = GL.GenFramebuffer();
-            _depthMap = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, _depthMap);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32, _width, _height, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (float)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (float)TextureWrapMode.ClampToEdge);
-
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, _depthMap, 0);
-
-            GL.DrawBuffer(DrawBufferMode.None);
-            GL.ReadBuffer(ReadBufferMode.None);
-
-            var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-            if (status != FramebufferErrorCode.FramebufferComplete)
-                Console.WriteLine(status);
-
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            GL.BindTexture(TextureTarget.Texture2D, 0);
-
-            _lightView = Matrix4.LookAt(_lightLocation, _lightLookAt, _lightUp);
-             _lightOrtho = Matrix4.CreatePerspectiveFieldOfView(1.0f, _width/(float)_height, 5f, 11f);
-            //_lightOrtho = Matrix4.CreateOrthographic(12f, 8f, 10f, 25f);
-            _lightView *= _lightOrtho;
-
-            //SHADOW END
         }
 
         public void PushCameraRef(ref Camera camera)
@@ -128,56 +90,6 @@ namespace DeeSynk.Core.Systems
             GL.UseProgram(0);
             GL.BindVertexArray(0);
         }
-        
-        //SHADOW START
-
-        private void BindFBO()
-        {
-            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _fbo);
-        }
-
-        private void UnBindFBO()
-        {
-            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-        }
-
-        private void BindDepthMap()
-        {
-            GL.ActiveTexture(TextureUnit.Texture1);
-            GL.BindTexture(TextureTarget.Texture2D, _depthMap);
-        }
-
-        /*
-        public void RenderDepthMap(ref SystemTransform systemTransform)
-        {
-            GL.Viewport(0, 0, _width, _height);
-            BindFBO();
-
-            var gameObjects = _world.GameObjects;
-            GL.Clear(ClearBufferMask.DepthBufferBit);
-            for (int idx = 0; idx < _world.ObjectMemory; idx++)
-            {
-                if (_world.ExistingGameObjects[idx])
-                {
-                    Component comps = gameObjects[idx].Components;
-                    if (comps.HasFlag(RenderQualfier))
-                    {
-                        Bind(idx, false);
-                        GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
-                        GL.UniformMatrix4(5, false, ref _lightView);
-                        systemTransform.PushModelMatrix(idx);
-                        int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
-                        GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
-                    }
-                }
-            }
-
-            UnBindFBO();
-            GL.Viewport(0, 0, (int)_camera.Width, (int)_camera.Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        }
-        */
-        //SHADOW END
 
         //RENDER PASS METHOD
 
