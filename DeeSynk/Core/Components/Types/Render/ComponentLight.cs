@@ -90,8 +90,6 @@ namespace DeeSynk.Core.Components.Types.Render
 
                 AddShadowMap();
             }
-
-            BuildUBO(DEFAULT_BINDING_BASE);
         }
 
         //*************NOTE*************//

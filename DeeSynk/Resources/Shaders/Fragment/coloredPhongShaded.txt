@@ -1,23 +1,33 @@
 ﻿#version 450 core
 
-in vec4 vs_color;
 in vec4 vs_lightCoord;
 
-in vec3 compA;
-in vec3 compD;
-in vec3 compS;
-in float vs_dDot;
-in float vs_sDot;
+in vec3 vs_EyeCoord;
+in vec3 vs_Normal;
 
-in vec3 vs_N;
+layout(binding = 1) uniform sampler2D shadow;
+layout(binding = 2) uniform Camera
+{
+	mat4 projection;  //model_view
+	vec4 camLocation; //cameraLoc
+} camera;
 
-layout(binding=1) uniform sampler2D shadow;
-out vec4 color;
+layout(binding = 3) uniform Light
+{
+	mat4 view;
+	vec4 lightLocation;
+	vec4 lightColor;
+	vec4 shadowColor;
+} lights[4];
 
-uniform float fallOutDivisor = 5;
+layout (location = 17) uniform vec4 color;
+
+out vec4 color_Out;
+
+uniform float fallOutDivisor = 5.0;
 uniform float shadowBrightness = 0.2;
 uniform float nonShadowBrightness = 1.0;
-uniform float dR = 1/ 8192;
+uniform float dR = 1.0/ 8192.0;
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -50,8 +60,8 @@ float SF(vec4 lightCoord)
 	float D2 = mix(Depth, DepthC, DepthD);
 	float D3 = mix(D1, D2, Depth);
 
-	//return 1.4 * pow(D3 - z, 2) + 0.001;
-	return pow(D3 - z, 2);
+	//return 1.4 * pow(D3 - z, 2.0) + 0.001;
+	return pow(D3 - z, 2.0);
 }
 float ShadowFactor(vec4 lightCoord)
 {
@@ -60,19 +70,6 @@ float ShadowFactor(vec4 lightCoord)
 	UVCoords.x = 0.5 * (ProjCoords.x) + 0.5;
 	UVCoords.y = 0.5 * (ProjCoords.y) + 0.5;
 	float z = ProjCoords.z;
-
-	//float Depth = GetSF(UVCoords, z);
-	//float dA = GetSF(UVCoords + vec2(dR, 0), z);
-	//float dB = GetSF(UVCoords + vec2(-dR, 0), z);
-	//float dAB = mix(dA, dB, Depth);
-
-	//float lI = GetSF(UVCoords + vec2(0, dR), z);
-	//float lT = GetSF(UVCoords + vec2(0, -dR), z);
-	//float lIT = mix(lI, lT, Depth);
-
-	//float dABlIT = mix (dAB, lIT, Depth);
-	
-	//return dABlIT * (1-min(vs_dDot, 0));
 
 	float Depth = texture(shadow, UVCoords).x;
 	if(Depth < (z+0.0001))
@@ -84,34 +81,49 @@ float ShadowFactor(vec4 lightCoord)
 float Attenuation(vec4 lightCoord)
 {
 	vec3 coord = lightCoord.xyz;
-	return 1/pow((length(coord) / fallOutDivisor), 2);
+	return 1/pow((length(coord) / fallOutDivisor), 2.0);
 }
 
 
 void main(void)
 {
-	vec3 Ip = compA;
+	vec3 iA = color.xyz;
+	vec3 iD = color.xyz;
+	vec3 iS = vec3(1.0, 1.0, 1.0);
 
-	float sF = 1;
-	if(vs_dDot < 0)
-	{
-		sF = ShadowFactor(vs_lightCoord);
-	}
-	//if(vs_dDot > 0 && sF == 1)
+	float kA = 1.0;
+	float kD = 0.07;
+	float kS = 0.5;
 
-    Ip += compD * (pow(vs_dDot - 0.5, 3) + 0.5);
+	float a  = 250.0;
+
+	vec3 lightLoc = lights[0].lightLocation.xyz;
+
+	vec3 Lm = normalize(lightLoc - vs_EyeCoord);
+	vec3 N  = normalize(vs_Normal);
+
+	float dDot = dot(Lm, N);
+
+	vec3 Rm = normalize(2 * dDot * N - Lm);
+	vec3 V  = normalize(camera.camLocation.xyz  - vs_EyeCoord);
+
+	float sDot = dot(Rm, V);
+
+	vec3 Ip = kA * iA;
+
+    Ip += (kD * dDot * iD) * (pow(dDot - 0.5, 3.0) + 0.5);
 
 	float trns = SF(vs_lightCoord);
-	//trns = (log(trns*10)) + rand(vs_lightCoord.xy) / 40;
-	//trns = pow(trns, 0.5) + rand(vs_lightCoord.xy) / 40;
-	trns = 0.5 * atan(3.1 * (trns - 0.5)) + 0.5 + rand(vs_lightCoord.xy) / 40;
+	trns = 0.5 * atan(3.141 * (trns - 0.5)) + 0.5 + rand(vs_lightCoord.xy) / 40.0;
 	Ip *= trns;
-	if((vs_sDot > 0 && vs_dDot > 0))
-		Ip += compS;
-	color = vec4(Ip, 1.0) ;
+	if((sDot > 0.0 && dDot > 0.0))
+		Ip += kS * pow(sDot, a) * iS;
+	color_Out = vec4(Ip, 1.0);
 
 }
 
-	//float factor = 1;
+	//trns = (log(trns*10)) + rand(vs_lightCoord.xy) / 40.0;
+	//trns = pow(trns, 0.5) + rand(vs_lightCoord.xy) / 40.0;
+	//float factor = 1.0;
 	//vec4 c = col * min(sF , Attenuation(vs_lightCoord)); 
-	//float val = (trns) * 4 + max(vs_dDot, 0.1);
+	//float val = (trns) * 4.0 + max(vs_dDot, 0.1);

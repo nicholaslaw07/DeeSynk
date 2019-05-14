@@ -75,6 +75,7 @@ namespace DeeSynk.Core
             cameraL.OverrideLookAtVector = false;
             cameraL.UpdateMatrices();
             _world.LightComps[2] = new ComponentLight(cameraL, Color4.White, Color4.White, true, 8192, 8192);
+            _world.LightComps[2].BuildUBO(3);
         }
 
         /// <summary>

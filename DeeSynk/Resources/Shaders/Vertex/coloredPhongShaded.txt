@@ -21,82 +21,22 @@ layout(binding = 3) uniform Light
 
 
 out vec4 vs_lightCoord;
-out vec4 vs_color;
 
-out vec3 compA;
-out vec3 compD;
-out vec3 compS;
+//up is old
+//down is new
 
-out vec3 vs_N;
-
-out float vs_dDot;
-out float vs_sDot;
-
+out vec3 vs_EyeCoord;
+out vec3 vs_Normal;
 
 void main(void)
 {
-	vec3 offset = inverse(modelMat)[3].xyz;
-	vec3 light = lights[0].lightLocation.xyz;
-
-	vec3 iA = color.xyz;
-	vec3 iD = color.xyz;
-	vec3 iS = vec3(1.0, 1.0, 1.0);
-
-	float kA = 1.0;
-	float kD = 0.07;
-	float kS = 0.5;
-
-	float a  = 250;
-
 	vs_lightCoord = lights[0].view * modelMat * position;
     gl_Position = camera.projection * modelMat * position;
 
-	vec4 tr = modelMat * (position);
-
 	mat4 mmN = inverse(modelMat);
-	mmN[3] = vec4(0,0,0,1);
+	mmN[3] = vec4(0.0,0.0,0.0,1.0);
 	mmN = inverse(mmN);
 
-	vec3 Lm = normalize(light - tr.xyz );
-	vec3 N  = normalize((mmN * vec4(normal, 1.0)).xyz);
-	vec3 Rm = normalize(2 * (dot(Lm, N)) * N - Lm);
-	vec3 V  = normalize(camera.camLocation.xyz  - tr.xyz);
-
-	float dDot = dot(Lm, N);
-	float sDot = dot(Rm, V);
-
-	vs_dDot = dDot;
-	vs_sDot = sDot;
-
-	vec3 Ip = kA * iA;
-	compA = kA * iA;
-
-	if(dDot > 0)
-	{
-		Ip += kD * dDot * iD;
-		compD = kD * dDot * iD;
-		//Ip = vec3(1.0 ,1.0, 1.0);
-	}else
-	{
-		compD = vec3(0);
-	}
-
-	if(sDot > 0)
-	{
-		Ip += kS * pow(sDot, a) * iS;
-		compS = kS * pow(sDot, a) * iS;
-		//Ip = vec3(0.0 ,1.0, 0.0);
-	}else
-	{
-		compS = vec3(0);
-	}
-
-	vec3 outColor = Ip;
-	
-	vs_N = N;
-
-	if(N.x == 0 && N.y == 0 && N.z == 0)
-		vs_color = vec4(1, 0, 0, 1);
-	else
-		vs_color = vec4(outColor, 1.0);
+	vs_EyeCoord = (modelMat * (position)).xyz;
+	vs_Normal = (mmN * vec4(normal, 1.0)).xyz;
 }
