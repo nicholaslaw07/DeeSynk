@@ -91,6 +91,8 @@ namespace DeeSynk.Core.Systems
             int[] currentViewPort = new int[4];
             GL.GetInteger(GetPName.Viewport, currentViewPort);
 
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
+
             var gameObjects = _world.GameObjects;
             for(int jdx = 0; jdx < _world.ObjectMemory; jdx++)
             {
@@ -109,7 +111,6 @@ namespace DeeSynk.Core.Systems
                             if (gameObjects[idx].Components.HasFlag(RenderQualfier))
                             {
                                 Bind(idx, false);
-                                GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
                                 systemTransform.PushModelMatrix(idx);
                                 int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
                                 GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);

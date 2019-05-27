@@ -187,6 +187,7 @@ namespace DeeSynk.Core.Components.Models
                 Normals = new Vector3[count];
                 {
                     int[] counts = new int[count];
+                    float[] angles = new float[count];
                     for (int i = 0; i < ElementCount / 3; i++)
                     {
                         Vector3 p1 = _vertices[_elements[i * 3]].Xyz;
