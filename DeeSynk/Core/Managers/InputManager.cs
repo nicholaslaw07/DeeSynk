@@ -16,7 +16,6 @@ namespace DeeSynk.Core.Managers
         private Dictionary<Key, long> _keyDownTimestamps;
         private Dictionary<Key, long> _keyUpTimestamps;
         private Dictionary<Key, long> _keyPressTimestamps;
-
         private List<Key> _currentFrameKeys;
 
         private InputManager()
@@ -26,7 +25,6 @@ namespace DeeSynk.Core.Managers
             _keyUpTimestamps = new Dictionary<Key, long>();
             _keyPressTimestamps = new Dictionary<Key, long>();
             _currentFrameKeys = new List<Key>();
-
         }
 
         public static ref InputManager GetInstance()
