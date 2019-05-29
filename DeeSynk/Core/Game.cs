@@ -20,8 +20,6 @@ namespace DeeSynk.Core
     public class Game
     {
         private World _world;
-        private SystemInput _systemInput;
-        public SystemInput SystemInput { get => _systemInput; }
 
         public Game()
         {
@@ -33,11 +31,12 @@ namespace DeeSynk.Core
         /// </summary>
         public void Load()
         {
-            Managers.ShaderManager.GetInstance().Load();
-            Managers.TextureManager.GetInstance().Load();
-            Managers.ModelManager.GetInstance().Load();
+            ShaderManager.GetInstance().Load();
+            TextureManager.GetInstance().Load();
+            ModelManager.GetInstance().Load();
+            InputManager.GetInstance().Load();
+
             _world = new World();
-            _systemInput = new SystemInput();
         }
 
         public void PushCameraRef(ref Camera camera)

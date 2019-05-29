@@ -102,6 +102,23 @@ namespace DeeSynk.Core
             //this.WindowState = this.WindowState | WindowState.Fullscreen;
 
 
+            /*              INPUT DEMO              */
+            Managers.InputManager IM = Managers.InputManager.GetInstance();
+            IM.RegisterCallback(Key.Escape, Exit);
+
+            Title = "";
+            void ChangeTitle(string s)
+            {
+                Title += s;
+            }
+
+            IM.RegisterCallback(Key.J, () => ChangeTitle("what's "));
+            IM.RegisterCallback(Key.K, () => ChangeTitle("up "));
+            IM.RegisterCallback(Key.L, () => ChangeTitle("idiot"));
+            IM.RegisterCallback(Key.Semicolon, () => ChangeTitle("?"));
+            /*              INPUT DEMO              */
+
+
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();
 
@@ -124,6 +141,7 @@ namespace DeeSynk.Core
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             HandleKeyboard((float)e.Time);
+            Managers.InputManager.GetInstance().Update();
 
             _camera.UpdateRotation();
             _camera.UpdateMatrices();
@@ -143,7 +161,7 @@ namespace DeeSynk.Core
             if(sw.ElapsedMilliseconds > 1000)
             {
                 sw.Stop();
-                Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0}"; // adds miscellaneous information to the title bar of the window
+                //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0}"; // adds miscellaneous information to the title bar of the window
                 timeCount = 0d;
                 frameCount = 0;
                 sw.Reset();
@@ -177,18 +195,18 @@ namespace DeeSynk.Core
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
             if (!e.IsRepeat)
-                _game.SystemInput.AddEvent(e, Systems.EventType.KeyDown, sw2.ElapsedMilliseconds);
+                Managers.InputManager.GetInstance().KeyDown(e.Key, sw2.ElapsedMilliseconds);
         }
 
         protected override void OnKeyUp(KeyboardKeyEventArgs e)
         {
             if (!e.IsRepeat)
-                _game.SystemInput.AddEvent(e, Systems.EventType.KeyUp, sw2.ElapsedMilliseconds);
+                Managers.InputManager.GetInstance().KeyUp(e.Key, sw2.ElapsedMilliseconds);
         }
 
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
-            _game.SystemInput.AddPress(e.KeyChar, sw2.ElapsedMilliseconds); 
+            Managers.InputManager.GetInstance().KeyPress((Key)e.KeyChar, sw2.ElapsedMilliseconds); 
         }
 
         /// <summary>
@@ -199,8 +217,8 @@ namespace DeeSynk.Core
         {
             keyState = Keyboard.GetState();
 
-            if (keyState.IsKeyDown(Key.Escape))
-                Exit();
+            //if (keyState.IsKeyDown(Key.Escape))
+            //    Exit();
             if (keyState.IsKeyDown(Key.W))
                 _camera.AddLocation(ref V_W, time);
             if (keyState.IsKeyDown(Key.S))
