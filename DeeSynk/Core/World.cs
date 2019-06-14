@@ -26,7 +26,7 @@ namespace DeeSynk.Core
 
     public class World
     {
-        private const uint OBJECT_MEMORY = 4;
+        private const uint OBJECT_MEMORY = 5;
         /// <summary>
         /// Maximum number of GameObjects that can be stored inside of this world.
         /// </summary>

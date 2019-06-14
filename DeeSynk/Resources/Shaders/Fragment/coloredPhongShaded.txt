@@ -4,8 +4,8 @@ in vec4 vs_lightCoord;
 
 in vec3 vs_EyeCoord;
 in vec3 vs_Normal;
-in vec3 vs_LookAt;
 in vec3 vs_TransPos;
+in vec3 vs_TransPosi[4];
 
 layout(binding = 1) uniform sampler2D shadow;
 layout(binding = 2) uniform Camera
@@ -103,7 +103,7 @@ void main(void)
 
 	vec3 Ip = kA * iA;
 
-	float spotDot = dot(normalize(vs_TransPos), normalize(vs_LookAt));
+	float spotDot = dot(normalize(vs_TransPos), spotLights[0].spotLightLookAt.xyz);
 
 	if(spotDot >= spotLights[0].spotLightFOV.x)
 	{

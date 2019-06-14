@@ -21,19 +21,37 @@ layout(binding = 3) uniform SpotLight
 	vec4 spotLightFOV;
 } spotLights[4];
 
+
+
 //OUTS
 out vec2 vs_texCoord;
 out vec4 vs_lightCoord;
-out vec3 vs_lookAt;
-out vec3 vs_transPos;
+out vec3 vs_TransPosiSpot[4];
 
 void main(void)
 {
  vs_texCoord = texCoord;
  vs_lightCoord = spotLights[0].spotLightView * modelMat * (- position - offset);
- vs_lookAt = normalize((spotLights[0].spotLightLookAt - spotLights[0].spotLightLocation).xyz);
  vec4 pos = modelMat * position;
- vs_transPos = (pos - spotLights[0].spotLightLocation).xyz;
+ vs_TransPosiSpot[0] = (pos - spotLights[0].spotLightLocation).xyz;
+ vs_TransPosiSpot[1] = (pos - spotLights[1].spotLightLocation).xyz;
+ vs_TransPosiSpot[2] = (pos - spotLights[2].spotLightLocation).xyz;
+ vs_TransPosiSpot[3] = (pos - spotLights[3].spotLightLocation).xyz;
 
  gl_Position = camera.projection * modelMat * (position + offset);
 }
+
+/*
+struct SpotL
+{
+	mat4 view;
+	vec4 location;
+	vec4 lookAt;
+	vec4 color;
+	vec4 FOV;
+};
+
+layout(binding = 7) uniform SpotLights
+{
+	SpotL spotLights[4];
+};*/

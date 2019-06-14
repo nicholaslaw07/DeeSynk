@@ -39,7 +39,6 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
 
         private Matrix4 _viewProjection;
         public ref Matrix4 ViewProjectionMatrix => ref _viewProjection;
-
         public override int BufferSize => 16 * 8; //matrix, location, lookAt, color, fov (assume 1.0 aspect ratio)  (rgb, fov)
 
         #region Shadow Map Properties
@@ -70,6 +69,7 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
             Matrix4.Mult(ref _view, ref _projection, out _viewProjection);
         }
 
+        #region Shadow Map
         public override void BindShadowMap()
         {
             GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _fbo);
@@ -114,11 +114,12 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
 
             _hasShadowMap = true;
         }
+        #endregion
 
         #region UBO Managment
         public override void AttachUBO(int bindingLocation)
         {
-            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, _bindingLocation, _ubo_Id, IntPtr.Zero, BufferSize);
+            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, _bindingLocation, _ubo_Id, IntPtr.Add(IntPtr.Zero, 0), BufferSize);
         }
 
         public override void BuildUBO(int bindingLocation, int numOfVec4s)
@@ -131,10 +132,25 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
             GL.BufferData(BufferTarget.UniformBuffer, BufferSize, _bufferData, BufferUsageHint.DynamicRead);
             AttachUBO(bindingLocation);
 
-            GL.GetBufferParameter(BufferTarget.UniformBuffer, BufferParameterName.BufferSize, out int sizeQuery);
-            if (GL.IsBuffer(_ubo_Id) && sizeQuery == BufferSize)
-                _initUBO = true;
+            //GL.GetBufferParameter(BufferTarget.UniformBuffer, BufferParameterName.BufferSize, out int sizeQuery);
+            //if (GL.IsBuffer(_ubo_Id) && sizeQuery == BufferSize)
+            _initUBO = true;
 
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+        }
+
+        public override void BuildUBO(int uboId, int uboSize, int offset, int bindingLocation, int numOfVec4s)
+        {
+            //automatically grow ubo if buffer is too big? or throw error?
+            _ubo_Id = uboId;
+            GL.BindBuffer(BufferTarget.UniformBuffer, _ubo_Id);
+            _bufferData = new Vector4[numOfVec4s];
+            _bindingLocation = bindingLocation;
+            _bufferOffset = offset;
+            FillBuffer();
+            GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Add(IntPtr.Zero, _bufferOffset), numOfVec4s * 16, _bufferData);
+            AttachUBO(bindingLocation);
+            _initUBO = true;
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
         }
 
@@ -145,12 +161,14 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
 
         public override void FillBuffer()
         {
+            Vector3 lookAtTranslated = (_lookAt - _location);
+            lookAtTranslated.Normalize();
             _bufferData[0] = _viewProjection.Row0;
             _bufferData[1] = _viewProjection.Row1;
             _bufferData[2] = _viewProjection.Row2;
             _bufferData[3] = _viewProjection.Row3;
             _bufferData[4] = new Vector4(_location, 1.0f);
-            _bufferData[5] = new Vector4(_lookAt, 1.0f);
+            _bufferData[5] = new Vector4(lookAtTranslated, 1.0f);  //translated to the location of the light
             _bufferData[6] = new Vector4(_emissionColor.R, _emissionColor.G, _emissionColor.B, 1.0f);
             _bufferData[7] = new Vector4((float)Math.Cos(_fov)); //make fov the alpha value of the color if data size is an issue
         }

@@ -2,8 +2,7 @@
 
 in vec2 vs_texCoord;
 in vec4 vs_lightCoord;
-in vec3 vs_lookAt;
-in vec3 vs_transPos;
+in vec3 vs_TransPosiSpot[4];
 layout(binding=0) uniform sampler2D tex;
 layout(binding=1) uniform sampler2D shadow;
 out vec4 color;
@@ -34,7 +33,7 @@ float ShadowFactor(vec4 lightCoord)
 	float z = ProjCoords.z;
 	float Depth = texture(shadow, UVCoords).x;
 	if(Depth < (z+0.0001))
-		return 0.24;
+		return 0.0; //return 0.24;
 	else 
 		return 0.7;
 }
@@ -48,14 +47,17 @@ float Attenuation(vec4 lightCoord)
 
 void main(void)
 {
-
-	//vec3 c = texture(tex, vs_texCoord).xyz * ShadowFactor(vs_lightCoord);
-	//color =  vec4(vec3(UVCoords, 0.0), Depth);
 	vec4 c = texture(tex, vs_texCoord);
-	if(dot(normalize(vs_transPos), vs_lookAt) >= spotLights[0].spotLightFOV.x)
-		c *= ShadowFactor(vs_lightCoord) * Attenuation(vs_lightCoord);
-	else
-		c *= 0.05;
-	c.a = 1;
-	color = c;
+	vec4 cNew = vec4(0);
+	for(int i=0; i<4; i++)
+	{
+		if(dot(normalize(vs_TransPosiSpot[i]), spotLights[i].spotLightLookAt.xyz) >= spotLights[i].spotLightFOV.x)
+			cNew += vec4(spotLights[i].spotLightColor.x * c.x, 
+						 spotLights[i].spotLightColor.y * c.y, 
+						 spotLights[i].spotLightColor.z * c.z,
+						 0.0) * Attenuation(vec4(vs_TransPosiSpot[i], 1.0));
+	}
+	cNew *= ShadowFactor(vs_lightCoord);
+	cNew.a = 1;
+	color = cNew;
 }

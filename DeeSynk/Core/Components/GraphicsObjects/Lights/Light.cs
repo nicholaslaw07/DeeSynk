@@ -25,6 +25,8 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
         protected Vector4[] _bufferData;
         public Vector4[] BufferData => _bufferData;
         public abstract int BufferSize { get; }
+        protected int _bufferOffset;
+        public int BufferOffset { get => _bufferOffset; }
 
         //This is temporary stuff.  There  will be a new graphics object that will gauge the shadow method which is where all stuff regarding depth maps (or other) will be stored.
         public abstract bool HasShadowMap { get; }
@@ -37,6 +39,7 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
         public int DepthMap => _depthMap;
 
         public abstract void BuildUBO(int bindingLocation, int numOfVec4s);
+        public abstract void BuildUBO(int uboId, int uboSize, int offset, int bindingLocation, int numOfVec4s);
         public abstract void AttachUBO(int bindingLocation);
         public abstract void DetatchUBO();
         public abstract void UpdateUBO();

@@ -14,8 +14,10 @@ namespace DeeSynk.Core.Components.GraphicsObjects
         int BindingLocation { get; }
         Vector4[] BufferData { get; }
         int BufferSize { get; }
+        int BufferOffset { get; }
 
         void BuildUBO(int bindingLocation, int numOfVec4s);
+        void BuildUBO(int uboId, int uboSize, int offset, int bindingLocation, int numOfVec4s);
         void AttachUBO(int bindingLocation);
         void DetatchUBO();
         void UpdateUBO();

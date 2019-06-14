@@ -131,7 +131,7 @@ namespace DeeSynk.Core.Components
         private Matrix4 _viewProjection;
         public ref Matrix4 ViewProjection { get => ref _viewProjection; }
 
-
+        public int BufferOffset => throw new NotImplementedException();
 
         public Camera()
         {
@@ -400,6 +400,11 @@ namespace DeeSynk.Core.Components
                 if(_initUBO)
                     UpdateUBO();
             }
+        }
+
+        public void BuildUBO(int uboId, int uboSize, int offset, int bindingLocation, int numOfVec4s)
+        {
+            throw new NotImplementedException();
         }
     }
 }

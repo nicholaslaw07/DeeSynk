@@ -25,16 +25,14 @@ out vec4 vs_lightCoord;
 
 //up is old
 //down is new
-
 out vec3 vs_EyeCoord;
 out vec3 vs_Normal;
-out vec3 vs_LookAt;
 out vec3 vs_TransPos;
+out vec3 vs_TransPosi[4];
 
 void main(void)
 {
 	vs_lightCoord = spotLights[0].spotLightView * modelMat * position;
-	vs_LookAt = (spotLights[0].spotLightLookAt - spotLights[0].spotLightLocation).xyz;
 	vec4 pos = modelMat * position;
 	vs_TransPos = (pos - spotLights[0].spotLightLocation).xyz;
     gl_Position = camera.projection * modelMat * position;
