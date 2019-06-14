@@ -2,11 +2,22 @@
 
 in vec2 vs_texCoord;
 in vec4 vs_lightCoord;
+in vec3 vs_lookAt;
+in vec3 vs_transPos;
 layout(binding=0) uniform sampler2D tex;
 layout(binding=1) uniform sampler2D shadow;
 out vec4 color;
 
 uniform float fallOutDivisor = 5;
+
+layout(binding = 3) uniform SpotLight
+{
+	mat4 spotLightView;
+	vec4 spotLightLocation;
+	vec4 spotLightLookAt;
+	vec4 spotLightColor;
+	vec4 spotLightFOV;
+} spotLights[4];
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -31,7 +42,8 @@ float ShadowFactor(vec4 lightCoord)
 float Attenuation(vec4 lightCoord)
 {	
 	vec3 coord = lightCoord.xyz;
-	return 1/pow((length(coord) / fallOutDivisor), 2);
+	return 1/pow((length(coord) / fallOutDivisor), 2.0);
+	//return 10;
 }
 
 void main(void)
@@ -39,10 +51,11 @@ void main(void)
 
 	//vec3 c = texture(tex, vs_texCoord).xyz * ShadowFactor(vs_lightCoord);
 	//color =  vec4(vec3(UVCoords, 0.0), Depth);
-	vec4 c = texture(tex, vs_texCoord) * ShadowFactor(vs_lightCoord) * Attenuation(vs_lightCoord);
-	//c.a = SF(vs_lightCoord);
+	vec4 c = texture(tex, vs_texCoord);
+	if(dot(normalize(vs_transPos), vs_lookAt) >= spotLights[0].spotLightFOV.x)
+		c *= ShadowFactor(vs_lightCoord) * Attenuation(vs_lightCoord);
+	else
+		c *= 0.05;
 	c.a = 1;
 	color = c;
-	//if()
-	//color = vec4(z, z, z, Depth);
 }

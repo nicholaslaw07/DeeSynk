@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
+using DeeSynk.Core.Components.GraphicsObjects.Lights;
 using DeeSynk.Core.Components.Models;
 using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Managers;
@@ -49,7 +50,7 @@ namespace DeeSynk.Core.Systems
         public void PushCameraRef(ref Camera camera)
         {
             _camera = camera;
-            _camera.BuildUBO(2);
+            _camera.BuildUBO(2, 5);
         }
 
         public void UpdateMonitoredGameObjects()
@@ -99,8 +100,8 @@ namespace DeeSynk.Core.Systems
                 if (gameObjects[jdx].Components.HasFlag(Component.LIGHT))
                 {
 
-                    var light = _world.LightComps[jdx];
-                    light.Bind();
+                    var light = _world.LightComps[jdx].LightObject;
+                    light.BindShadowMap();
 
                     GL.Clear(ClearBufferMask.DepthBufferBit);
 
@@ -118,7 +119,7 @@ namespace DeeSynk.Core.Systems
                         }
                     }
 
-                    light.UnBind();
+                    light.UnbindShadowMap();
                 }
             }
 
@@ -158,7 +159,7 @@ namespace DeeSynk.Core.Systems
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
 
                         GL.ActiveTexture(TextureUnit.Texture1);
-                        GL.BindTexture(TextureTarget.Texture2D, _world.LightComps[2].DepthMap);
+                        GL.BindTexture(TextureTarget.Texture2D, _world.LightComps[2].LightObject.DepthMap);
 
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }

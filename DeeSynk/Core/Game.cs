@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
+using DeeSynk.Core.Components.GraphicsObjects.Lights;
 using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Managers;
 using DeeSynk.Core.Systems;
@@ -69,13 +70,12 @@ namespace DeeSynk.Core
             _world.RenderComps[0].ValidateData();
             _world.RenderComps[1].ValidateData();
 
-            Camera cameraL = new Camera();
-            cameraL.SetPerspectiveFOV(1.0f, 8192, 8192, 5f, 11f);
-            cameraL.SetView(new Vector3(0, 1, 6), new Vector3(0), new Vector3(0, 1, 0));
-            cameraL.OverrideLookAtVector = false;
-            cameraL.UpdateMatrices();
-            _world.LightComps[2] = new ComponentLight(cameraL, Color4.White, Color4.White, true, 8192, 8192);
-            _world.LightComps[2].BuildUBO(3);
+            _world.LightComps[2] = new ComponentLight(LightType.SPOTLIGHT, 
+                                                        new SpotLight(Color4.White, 
+                                                                        new Vector3(0, 5.0f, 6.0f), new Vector3(0), new Vector3(0, 1, 0),
+                                                                        0.3f, 1.0f, 5f, 11f));
+            _world.LightComps[2].LightObject.BuildUBO(3, 8);
+            _world.LightComps[2].LightObject.AddShadowMap(8192, 8192);
         }
 
         /// <summary>

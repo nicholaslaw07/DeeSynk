@@ -4,6 +4,8 @@ in vec4 vs_lightCoord;
 
 in vec3 vs_EyeCoord;
 in vec3 vs_Normal;
+in vec3 vs_LookAt;
+in vec3 vs_TransPos;
 
 layout(binding = 1) uniform sampler2D shadow;
 layout(binding = 2) uniform Camera
@@ -12,13 +14,14 @@ layout(binding = 2) uniform Camera
 	vec4 camLocation; //cameraLoc
 } camera;
 
-layout(binding = 3) uniform Light
+layout(binding = 3) uniform SpotLight
 {
-	mat4 view;
-	vec4 lightLocation;
-	vec4 lightColor;
-	vec4 shadowColor;
-} lights[4];
+	mat4 spotLightView;
+	vec4 spotLightLocation;
+	vec4 spotLightLookAt;
+	vec4 spotLightColor;
+	vec4 spotLightFOV;
+} spotLights[4];
 
 layout (location = 17) uniform vec4 color;
 
@@ -61,7 +64,7 @@ float SF(vec4 lightCoord)
 	float D3 = mix(D1, D2, Depth);
 
 	//return 1.4 * pow(D3 - z, 2.0) + 0.001;
-	return pow(D3 - z, 2.0);
+	return pow(D3 - z, 2.0); //change 0.0 to 2.0
 }
 float ShadowFactor(vec4 lightCoord)
 {
@@ -87,9 +90,10 @@ float Attenuation(vec4 lightCoord)
 
 void main(void)
 {
-	vec3 iA = color.xyz;
-	vec3 iD = color.xyz;
-	vec3 iS = vec3(1.0, 1.0, 1.0);
+	vec3 materialColor = color.xyz;
+	vec3 iA = materialColor;
+	vec3 iD = materialColor;
+	vec3 iS = materialColor;
 
 	float kA = 1.0;
 	float kD = 0.07;
@@ -97,29 +101,37 @@ void main(void)
 
 	float a  = 250.0;
 
-	vec3 lightLoc = lights[0].lightLocation.xyz;
-
-	vec3 Lm = normalize(lightLoc - vs_EyeCoord);
-	vec3 N  = normalize(vs_Normal);
-
-	float dDot = dot(Lm, N);
-
-	vec3 Rm = normalize(2 * dDot * N - Lm);
-	vec3 V  = normalize(camera.camLocation.xyz  - vs_EyeCoord);
-
-	float sDot = dot(Rm, V);
-
 	vec3 Ip = kA * iA;
 
-    Ip += (kD * dDot * iD) * (pow(dDot - 0.5, 3.0) + 0.5);
+	float spotDot = dot(normalize(vs_TransPos), normalize(vs_LookAt));
 
-	float trns = SF(vs_lightCoord);
-	trns = 0.5 * atan(3.141 * (trns - 0.5)) + 0.5 + rand(vs_lightCoord.xy) / 40.0;
-	Ip *= trns;
-	if((sDot > 0.0 && dDot > 0.0))
-		Ip += kS * pow(sDot, a) * iS;
+	if(spotDot >= spotLights[0].spotLightFOV.x)
+	{
+		vec3 lightLoc = spotLights[0].spotLightLocation.xyz;
+
+		vec3 Lm = normalize(lightLoc - vs_EyeCoord);
+		vec3 N  = normalize(vs_Normal);
+
+		float dDot = dot(Lm, N);
+
+		vec3 Rm = normalize(2 * dDot * N - Lm);
+		vec3 V  = normalize(camera.camLocation.xyz  - vs_EyeCoord);
+
+		float sDot = dot(Rm, V);
+
+
+		Ip += (kD * dDot * iD) * (pow(dDot - 0.5, 3.0) + 0.5);
+
+		float trns = SF(vs_lightCoord); // Attenuation(vs_lightCoord);
+		trns = 0.5 * atan(3.141 * (trns - 0.5)) + 0.5 + rand(vs_lightCoord.xy) / 40.0;
+		Ip *= trns;
+		if((sDot > 0.0 && dDot > 0.0))
+			Ip += kS * pow(sDot, a) * iS;
+	}
+	else{
+		Ip *= 0.05;
+	}
 	color_Out = vec4(Ip, 1.0);
-
 }
 
 	//trns = (log(trns*10)) + rand(vs_lightCoord.xy) / 40.0;

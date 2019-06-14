@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL4;
+using DeeSynk.Core.Components.GraphicsObjects;
+using DeeSynk.Core.Components.Models;
 
 namespace DeeSynk.Core.Components
 {
@@ -16,7 +18,7 @@ namespace DeeSynk.Core.Components
         PERSPECTIVE_OFF_CENTER = 2,
         ORTHOGRAPHIC_OFF_CENTER = 3
     }
-    public class Camera
+    public class Camera : IUBO
     {
         public static readonly int DEFAULT_BINDING = 2;
 
@@ -112,15 +114,24 @@ namespace DeeSynk.Core.Components
         public bool InitUBO { get => _initUBO; }
 
         private int _ubo;
-        public int UBO { get => _ubo; }
+        public int UBO_Id { get => _ubo; }
 
         private int _bindingLocation;
+        public int BindingLocation { get => _bindingLocation; }
 
-        private Vector4[] vec4s;
+
+        private Vector4[] _vec4s;
+        public Vector4[] BufferData { get => _vec4s; }
+
+        private int _bufferSize;
+        public int BufferSize { get => _bufferSize; }
+
         #endregion
 
         private Matrix4 _viewProjection;
         public ref Matrix4 ViewProjection { get => ref _viewProjection; }
+
+
 
         public Camera()
         {
@@ -277,44 +288,45 @@ namespace DeeSynk.Core.Components
         #endregion
 
         #region UBO
-        public void BuildUBO(int bindingLocation)
+        public void BuildUBO(int bindingLocation, int numOfVec4s)
         {
             _ubo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.UniformBuffer, _ubo);
-            vec4s = new Vector4[5];
-            FillVectorBuffer();
-            GL.BufferData(BufferTarget.UniformBuffer, 80, vec4s, BufferUsageHint.DynamicRead);
+            _vec4s = new Vector4[numOfVec4s];
+            _bufferSize = numOfVec4s << 4;
+            FillBuffer();
+            GL.BufferData(BufferTarget.UniformBuffer, _bufferSize, _vec4s, BufferUsageHint.DynamicRead);
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
             AttachUBO(bindingLocation);
 
-            if (_ubo != 0)
+            if (GL.IsBuffer(_ubo))
                 _initUBO = true;
         }
 
         public void AttachUBO(int bindingLocation)
         {
             _bindingLocation = bindingLocation;
-            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, _bindingLocation, _ubo, IntPtr.Zero, 80);
+            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, _bindingLocation, _ubo, IntPtr.Zero, _bufferSize);
         }
         public void DetatchUBO()
         {
             GL.BindBufferRange(BufferRangeTarget.UniformBuffer, _bindingLocation, 0, IntPtr.Zero, 0);
         }
 
-        private void UpdateUBO()
+        public void UpdateUBO()
         {
             GL.BindBuffer(BufferTarget.UniformBuffer, _ubo);
-            FillVectorBuffer();
-            GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 80, vec4s);
+            FillBuffer();
+            GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, _bufferSize, _vec4s);
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
         }
-        private void FillVectorBuffer()
+        public void FillBuffer()
         {
-            vec4s[0] = _viewProjection.Row0;
-            vec4s[1] = _viewProjection.Row1;
-            vec4s[2] = _viewProjection.Row2;
-            vec4s[3] = _viewProjection.Row3;
-            vec4s[4] = new Vector4(_location);
+            _vec4s[0] = _viewProjection.Row0;
+            _vec4s[1] = _viewProjection.Row1;
+            _vec4s[2] = _viewProjection.Row2;
+            _vec4s[3] = _viewProjection.Row3;
+            _vec4s[4] = new Vector4(_location);
         }
         #endregion
 

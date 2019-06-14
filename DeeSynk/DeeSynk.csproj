@@ -84,8 +84,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Algorithms\AlgorithmRectangleCompaction.cs" />
-    <Compile Include="Core\Components\Camera.cs" />
-    <Compile Include="Core\Components\Texture.cs" />
+    <Compile Include="Core\Components\GraphicsObjects\Camera.cs" />
+    <Compile Include="Core\Components\GraphicsObjects\IUBO.cs" />
+    <Compile Include="Core\Components\GraphicsObjects\Lights\Light.cs" />
+    <Compile Include="Core\Components\GraphicsObjects\Lights\PointSource.cs" />
+    <Compile Include="Core\Components\GraphicsObjects\Lights\SpotLight.cs" />
+    <Compile Include="Core\Components\GraphicsObjects\Lights\SunLamp.cs" />
+    <Compile Include="Core\Components\GraphicsObjects\Texture.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentCamera.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentLight.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentMaterial.cs" />
@@ -98,7 +103,7 @@
     <Compile Include="Core\Components\Collections\DataGroup.cs" />
     <Compile Include="Core\Components\Types\IComponent.cs" />
     <Compile Include="Core\Components\Models\Model.cs" />
-    <Compile Include="Core\Components\VAO.cs" />
+    <Compile Include="Core\Components\GraphicsObjects\VAO.cs" />
     <Compile Include="Core\Game.cs" />
     <Compile Include="Core\MainWindow.cs" />
     <Compile Include="Core\Managers\ModelManager.cs" />
@@ -125,9 +130,7 @@
     <None Include="Resources\Models\dragon_vripPLY.ply" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Core\Components\GraphicsObjects\" />
     <Folder Include="Core\Components\Models\Templates\" />
-    <Folder Include="Core\Components\RenderObjects\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />

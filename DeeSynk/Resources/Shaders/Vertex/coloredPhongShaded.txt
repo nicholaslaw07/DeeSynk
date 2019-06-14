@@ -11,13 +11,14 @@ layout(binding = 2) uniform Camera
 	vec4 camLocation; //cameraLoc
 } camera;
 
-layout(binding = 3) uniform Light
+layout(binding = 3) uniform SpotLight
 {
-	mat4 view;
-	vec4 lightLocation;
-	vec4 lightColor;
-	vec4 shadowColor;
-} lights[4];
+	mat4 spotLightView;
+	vec4 spotLightLocation;
+	vec4 spotLightLookAt;
+	vec4 spotLightColor;
+	vec4 spotLightFOV;
+} spotLights[4];
 
 
 out vec4 vs_lightCoord;
@@ -27,10 +28,15 @@ out vec4 vs_lightCoord;
 
 out vec3 vs_EyeCoord;
 out vec3 vs_Normal;
+out vec3 vs_LookAt;
+out vec3 vs_TransPos;
 
 void main(void)
 {
-	vs_lightCoord = lights[0].view * modelMat * position;
+	vs_lightCoord = spotLights[0].spotLightView * modelMat * position;
+	vs_LookAt = (spotLights[0].spotLightLookAt - spotLights[0].spotLightLocation).xyz;
+	vec4 pos = modelMat * position;
+	vs_TransPos = (pos - spotLights[0].spotLightLocation).xyz;
     gl_Position = camera.projection * modelMat * position;
 
 	mat4 mmN = inverse(modelMat);

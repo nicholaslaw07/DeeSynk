@@ -187,7 +187,7 @@ namespace DeeSynk.Core.Components.Models
                 Normals = new Vector3[count];
                 {
                     int[] counts = new int[count];
-                    float[] angles = new float[count];
+                    Vector3[] angles = new Vector3[count];
                     for (int i = 0; i < ElementCount / 3; i++)
                     {
                         Vector3 p1 = _vertices[_elements[i * 3]].Xyz;
@@ -203,6 +203,23 @@ namespace DeeSynk.Core.Components.Models
 
                         Vector3 normal = new Vector3(Nx, Ny, Nz);
 
+                        /*
+                        float r = normal.Length;
+                        double theta = Math.Atan2(normal.Y, normal.X);
+                        double psi = Math.Acos(normal.Z / r);
+
+                        Vector3 spherical = new Vector3(1.0f, (float)theta, (float)psi);
+
+                        for (int j=0; j<3; j++)
+                        {
+                            if (angles[_elements[i * 3 + j]] == Vector3.Zero)
+                                angles[_elements[i * 3 + j]] = spherical;
+                            else
+                                angles[_elements[i * 3 + j]] += spherical;
+
+                            counts[_elements[i * 3 + j]]++;
+                        }*/
+
                         for(int j=0; j<3; j++)
                         {
                             var d = _normals[_elements[i * 3 + j]];
@@ -210,11 +227,9 @@ namespace DeeSynk.Core.Components.Models
                                 _normals[_elements[i * 3 + j]] = normal;
                             else
                                 _normals[_elements[i * 3 + j]] = (d != -normal) ? Vector3.Lerp(d, normal, 1f/ (counts[_elements[i * 3 + j]] + 1)): Vector3.Zero;
-                        }
 
-                        counts[_elements[i * 3]]++;
-                        counts[_elements[i * 3 + 1]]++;
-                        counts[_elements[i * 3 + 2]]++;
+                            counts[_elements[i * 3 + j]]++;
+                        }
                     }
 
                     for (int i = 0; i < _normals.Length; i++)
@@ -222,6 +237,11 @@ namespace DeeSynk.Core.Components.Models
                         Vector3 n = _normals[i];
                         n.Normalize();
                         _normals[i] = n;
+                        /*angles[i] /= (float)counts[i];
+                        float x = (float)(Math.Cos(angles[i].Y) * Math.Sin(angles[i].Z));
+                        float y = (float)(Math.Sin(angles[i].Y) * Math.Sin(angles[i].Z));
+                        float z = (float)(Math.Cos(angles[i].Z));
+                        _normals[i] = new Vector3(x, y, z);*/
                     }
                 }
             }

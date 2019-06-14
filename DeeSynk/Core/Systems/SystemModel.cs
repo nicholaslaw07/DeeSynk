@@ -62,7 +62,7 @@ namespace DeeSynk.Core.Systems
 
         private void CreateModels()
         {
-            var v00 = new Vector3(0, 8f, 0);
+            var v00 = new Vector3(0, 8, 0);
             var v01 = new Vector3(5f, 5f, 5f);
             var v02 = new Vector2(0.0f, 0.0f);
             var v03 = new Vector2(1.0f, 1.0f);
@@ -73,13 +73,13 @@ namespace DeeSynk.Core.Systems
 
             _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "dragon_vripPLY",
                                         ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.COLOR4_COLOR | ConstructionFlags.VECTOR3_SCALE,
-                                        new Vector3(0, -0.5f, -2), new Vector3(10f, 10f, 10f), v21);
+                                        new Vector3(0, 0.5f, 0), new Vector3(10f, 10f, 10f), v21);
 
             Texture t = TextureManager.GetInstance().GetTexture("wood");
             float width = t.Width;
             float height = t.Height;
 
-            var v10 = new Vector3(0, -1, -2);
+            var v10 = new Vector3(0);
             var v14 = new Vector3(1 / 20f * t.AspectRatio, 0f, 1 / 20f);
             var v11 = new Vector3(100f, 0f, 100f);
             var v12 = t.SubTextureLocations[0].UVOffset;
