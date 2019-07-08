@@ -1,10 +1,14 @@
 ﻿#version 450 core
 
 in vec2 vs_texCoord;
-in vec4 vs_lightCoord;
+in vec4 vs_lightCoord[4];
 in vec3 vs_TransPosiSpot[4];
 layout(binding=0) uniform sampler2D tex;
-layout(binding=1) uniform sampler2D shadow;
+layout(binding=1) uniform sampler2D spotLight0;
+layout(binding=2) uniform sampler2D spotLight1;
+layout(binding=3) uniform sampler2D spotLight2;
+layout(binding=4) uniform sampler2D spotLight3;
+
 out vec4 color;
 
 uniform float fallOutDivisor = 5;
@@ -22,16 +26,26 @@ float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-float ShadowFactor(vec4 lightCoord)
+float ShadowFactor(int index, vec4 lightCoord)
 {
 	vec3 ProjCoords = lightCoord.xyz / lightCoord.w;
 	vec2 UVCoords;
 	UVCoords.x = 0.5 * (ProjCoords.x) + 0.5;
-	UVCoords.x += rand(vec2(ProjCoords.x, ProjCoords.y)) / 4000;
+	//UVCoords.x += rand(vec2(ProjCoords.x, ProjCoords.y)) / 4000;
 	UVCoords.y = 0.5 * (ProjCoords.y) + 0.5;
-	UVCoords.y += rand(vec2(ProjCoords.y, ProjCoords.x)) / 4000;
+	//UVCoords.y += rand(vec2(ProjCoords.y, ProjCoords.x)) / 4000;
 	float z = ProjCoords.z;
-	float Depth = texture(shadow, UVCoords).x;
+	
+	float Depth = 0.0;
+	
+	switch(index)
+	{
+		case(0): Depth = texture(spotLight0, UVCoords).x; break;
+		case(1): Depth = texture(spotLight1, UVCoords).x; break;
+		case(2): Depth = texture(spotLight2, UVCoords).x; break;
+		case(3): Depth = texture(spotLight3, UVCoords).x; break;
+	}
+
 	if(Depth < (z+0.0001))
 		return 0.0; //return 0.24;
 	else 
@@ -42,22 +56,24 @@ float Attenuation(vec4 lightCoord)
 {	
 	vec3 coord = lightCoord.xyz;
 	return 1/pow((length(coord) / fallOutDivisor), 2.0);
-	//return 10;
+	//return 4;
 }
 
 void main(void)
 {
 	vec4 c = texture(tex, vs_texCoord);
+	c.a = 1;
 	vec4 cNew = vec4(0);
-	for(int i=0; i<4; i++)
+	for(int i=0; i<3; i++)
 	{
 		if(dot(normalize(vs_TransPosiSpot[i]), spotLights[i].spotLightLookAt.xyz) >= spotLights[i].spotLightFOV.x)
 			cNew += vec4(spotLights[i].spotLightColor.x * c.x, 
 						 spotLights[i].spotLightColor.y * c.y, 
 						 spotLights[i].spotLightColor.z * c.z,
-						 0.0) * Attenuation(vec4(vs_TransPosiSpot[i], 1.0));
+						 0.0) * 
+						 ShadowFactor(i, vs_lightCoord[i]) *
+						 Attenuation(vec4(vs_TransPosiSpot[i], 1.0)) * 1.5;
 	}
-	cNew *= ShadowFactor(vs_lightCoord);
 	cNew.a = 1;
 	color = cNew;
 }

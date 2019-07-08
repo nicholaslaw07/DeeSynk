@@ -38,6 +38,7 @@ namespace DeeSynk.Core
         Point center;
         Point mousePos;
 
+        private long fpsOld = 0;
         private long frameCount = 0;
         private double timeCount = 0;
         private Stopwatch sw, sw2;
@@ -140,10 +141,16 @@ namespace DeeSynk.Core
         {
             timeCount += e.Time;
             frameCount++;
-            if(sw.ElapsedMilliseconds > 1000)
+
+            if(sw.ElapsedMilliseconds % 20 == 0)
+                Title = $"DeeSynk | The WIP Student Video Game | Vsync: {VSync} | FPS: {fpsOld} | {_camera.Location.ToString()}";
+
+            if (sw.ElapsedMilliseconds > 1000)
             {
                 sw.Stop();
-                Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0}"; // adds miscellaneous information to the title bar of the window
+                //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
+                fpsOld = (long)(1f / timeCount * ((float)frameCount));
+                Title = $"DeeSynk | The WIP Student Video Game | Vsync: {VSync} | FPS: {fpsOld} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                 timeCount = 0d;
                 frameCount = 0;
                 sw.Reset();

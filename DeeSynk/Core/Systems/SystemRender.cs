@@ -94,16 +94,21 @@ namespace DeeSynk.Core.Systems
 
             GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowTextured"));
 
+            int lightNum = 0;
+
             var gameObjects = _world.GameObjects;
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Front);
             for(int jdx = 0; jdx < _world.ObjectMemory; jdx++)
             {
                 if (gameObjects[jdx].Components.HasFlag(Component.LIGHT))
                 {
 
                     var light = _world.LightComps[jdx].LightObject;
-                    light.BindShadowMap();
-
+                    light.BindShadowMapFBO();
                     GL.Clear(ClearBufferMask.DepthBufferBit);
+
+                    GL.Uniform1(3, lightNum);
 
                     for (int idx = 0; idx < _world.ObjectMemory; idx++)
                     {
@@ -118,12 +123,14 @@ namespace DeeSynk.Core.Systems
                             }
                         }
                     }
+                    light.UnbindShadowMapFBO();
 
-                    light.UnbindShadowMap();
+                    lightNum++;
                 }
             }
+            GL.Disable(EnableCap.CullFace);
 
-            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Viewport(currentViewPort[0], currentViewPort[1], currentViewPort[2], currentViewPort[3]);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
@@ -158,9 +165,10 @@ namespace DeeSynk.Core.Systems
                         systemTransform.PushModelMatrix(idx);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
 
-                        GL.ActiveTexture(TextureUnit.Texture1);
-                        GL.BindTexture(TextureTarget.Texture2D, _world.LightComps[2].LightObject.DepthMap);
-
+                        _world.LightComps[2].LightObject.BindShadowMapTex(TextureUnit.Texture1);
+                        _world.LightComps[3].LightObject.BindShadowMapTex(TextureUnit.Texture2);
+                        _world.LightComps[4].LightObject.BindShadowMapTex(TextureUnit.Texture3);
+                        //if(idx != 0)
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }
                 }

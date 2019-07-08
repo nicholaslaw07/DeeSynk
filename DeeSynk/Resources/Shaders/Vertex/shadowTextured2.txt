@@ -25,14 +25,21 @@ layout(binding = 3) uniform SpotLight
 
 //OUTS
 out vec2 vs_texCoord;
-out vec4 vs_lightCoord;
+out vec4 vs_lightCoord[4];
 out vec3 vs_TransPosiSpot[4];
 
 void main(void)
 {
  vs_texCoord = texCoord;
- vs_lightCoord = spotLights[0].spotLightView * modelMat * (- position - offset);
+
+
+ vs_lightCoord[0] = spotLights[0].spotLightView * modelMat * (- position - offset);
+ vs_lightCoord[1] = spotLights[1].spotLightView * modelMat * (- position - offset);
+ vs_lightCoord[2] = spotLights[2].spotLightView * modelMat * (- position - offset);
+ vs_lightCoord[3] = spotLights[3].spotLightView * modelMat * (- position - offset);
+
  vec4 pos = modelMat * position;
+
  vs_TransPosiSpot[0] = (pos - spotLights[0].spotLightLocation).xyz;
  vs_TransPosiSpot[1] = (pos - spotLights[1].spotLightLocation).xyz;
  vs_TransPosiSpot[2] = (pos - spotLights[2].spotLightLocation).xyz;

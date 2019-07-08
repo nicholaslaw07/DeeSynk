@@ -66,7 +66,7 @@ namespace DeeSynk.Core.Systems
             var v01 = new Vector3(5f, 5f, 5f);
             var v02 = new Vector2(0.0f, 0.0f);
             var v03 = new Vector2(1.0f, 1.0f);
-            var v21 = Color4.Chartreuse;
+            var v21 = Color4.White;
 
             Random r = new Random();
 

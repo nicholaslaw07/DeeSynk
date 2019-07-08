@@ -20,27 +20,31 @@ layout(binding = 3) uniform SpotLight
 	vec4 spotLightFOV;
 } spotLights[4];
 
-
-out vec4 vs_lightCoord;
-
-//up is old
-//down is new
-out vec3 vs_EyeCoord;
-out vec3 vs_Normal;
-out vec3 vs_TransPos;
-out vec3 vs_TransPosi[4];
+out vec3 vs_eyeCoord;
+out vec3 vs_normal;
+out vec4 vs_lightCoord[4];
+out vec3 vs_transPosiSpot[4];
 
 void main(void)
 {
-	vs_lightCoord = spotLights[0].spotLightView * modelMat * position;
+	vs_lightCoord[0] = spotLights[0].spotLightView * modelMat * (position);
+	vs_lightCoord[1] = spotLights[1].spotLightView * modelMat * (position);
+	vs_lightCoord[2] = spotLights[2].spotLightView * modelMat * (position);
+	vs_lightCoord[3] = spotLights[3].spotLightView * modelMat * (position);
+
 	vec4 pos = modelMat * position;
-	vs_TransPos = (pos - spotLights[0].spotLightLocation).xyz;
+
+	vs_transPosiSpot[0] = (pos - spotLights[0].spotLightLocation).xyz;
+	vs_transPosiSpot[1] = (pos - spotLights[1].spotLightLocation).xyz;
+	vs_transPosiSpot[2] = (pos - spotLights[2].spotLightLocation).xyz;
+	vs_transPosiSpot[3] = (pos - spotLights[3].spotLightLocation).xyz;
+
     gl_Position = camera.projection * modelMat * position;
 
 	mat4 mmN = inverse(modelMat);
 	mmN[3] = vec4(0.0,0.0,0.0,1.0);
 	mmN = inverse(mmN);
 
-	vs_EyeCoord = (modelMat * (position)).xyz;
-	vs_Normal = (mmN * vec4(normal, 1.0)).xyz;
+	vs_eyeCoord = (modelMat * (position)).xyz;
+	vs_normal = (mmN * vec4(normal, 1.0)).xyz;
 }

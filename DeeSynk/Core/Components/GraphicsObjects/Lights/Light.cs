@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
 
 namespace DeeSynk.Core.Components.GraphicsObjects.Lights
 {
@@ -45,9 +46,14 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
         public abstract void UpdateUBO();
         public abstract void FillBuffer();
 
-        public abstract void AddShadowMap(int width, int height);
-        public abstract void BindShadowMap();
-        public abstract void UnbindShadowMap();
+        public abstract void AddShadowMap(int width, int height, TextureUnit textureUnit);
+        public abstract void BindShadowMapFBO();
+        public abstract void UnbindShadowMapFBO();
+        public abstract void BindShadowMapTex();
+        public abstract void BindShadowMapTex(TextureUnit textureUnit);
+        public abstract void UnbindShadowMapTex();
+        public abstract void UnbindShadowMapTex(TextureUnit textureUnit);
+
         #endregion
     }
 }

@@ -41,6 +41,9 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
         public ref Matrix4 ViewProjectionMatrix => ref _viewProjection;
         public override int BufferSize => 16 * 8; //matrix, location, lookAt, color, fov (assume 1.0 aspect ratio)  (rgb, fov)
 
+        private TextureUnit _textureUnit;
+        public TextureUnit TextureUnit => _textureUnit;
+
         #region Shadow Map Properties
         private bool _hasShadowMap;
         public override bool HasShadowMap => _hasShadowMap;
@@ -70,23 +73,49 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
         }
 
         #region Shadow Map
-        public override void BindShadowMap()
+        public override void BindShadowMapFBO()
         {
-            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _fbo);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
             GL.Viewport(0, 0, _mapResX, _mapResY);
         }
 
-        public override void UnbindShadowMap()
+        public override void UnbindShadowMapFBO()
         {
-            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 
-        public override void AddShadowMap(int width, int height)
+        public override void BindShadowMapTex()
+        {
+            GL.ActiveTexture(_textureUnit);
+            GL.BindTexture(TextureTarget.Texture2D, _depthMap);
+        }
+
+        public override void UnbindShadowMapTex()
+        {
+            GL.ActiveTexture(_textureUnit);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+        }
+
+        public override void BindShadowMapTex(TextureUnit textureUnit)
+        {
+            GL.ActiveTexture(textureUnit);
+            GL.BindTexture(TextureTarget.Texture2D, _depthMap);
+        }
+
+        public override void UnbindShadowMapTex(TextureUnit textureUnit)
+        {
+            GL.ActiveTexture(textureUnit);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+        }
+
+        public override void AddShadowMap(int width, int height, TextureUnit textureUnit)
         {
             //GL.GetInteger(GetPName.MaxTextureSize, out int maxSize);
             //is there error handling in opentk for textures that are too large?
             _mapResX = width;
             _mapResY = height;
+
+            _textureUnit = textureUnit;
 
             _fbo = GL.GenFramebuffer();
             _depthMap = GL.GenTexture();
@@ -108,11 +137,12 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
             var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
             if (status != FramebufferErrorCode.FramebufferComplete)
                 Console.WriteLine(status);
+            else
+                _hasShadowMap = true;
 
             GL.BindTexture(TextureTarget.Texture2D, 0);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
-            _hasShadowMap = true;
         }
         #endregion
 
@@ -170,7 +200,8 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
             _bufferData[4] = new Vector4(_location, 1.0f);
             _bufferData[5] = new Vector4(lookAtTranslated, 1.0f);  //translated to the location of the light
             _bufferData[6] = new Vector4(_emissionColor.R, _emissionColor.G, _emissionColor.B, 1.0f);
-            _bufferData[7] = new Vector4((float)Math.Cos(_fov)); //make fov the alpha value of the color if data size is an issue
+            _bufferData[7] = new Vector4((float)Math.Cos(_fov / 2.0f), _zNear, _zFar, _zFar - _zNear); //make fov the alpha value of the color if data size is an issue
+            // fov near far near-far
         }
 
         public override void UpdateUBO()

@@ -2,7 +2,7 @@
 
 layout (location = 0) in vec4 position;
 layout (location = 1) in vec2 texCoord;
-layout (location = 2) in vec4 offset;
+layout (location = 3) uniform int lightNum;
 layout (location = 13) uniform mat4 modelMat;
 
 layout(binding = 3) uniform SpotLight
@@ -14,11 +14,7 @@ layout(binding = 3) uniform SpotLight
 	vec4 spotLightFOV;
 } spotLights[4];
 
-out vec2 vs_texCoord;
-
 void main(void)
 {
- vs_texCoord = texCoord;
-
- gl_Position = spotLights[0].spotLightView * modelMat * (position);
+ gl_Position = spotLights[lightNum].spotLightView * modelMat * (position);
 }
