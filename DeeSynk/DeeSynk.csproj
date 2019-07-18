@@ -91,9 +91,13 @@
     <Compile Include="Core\Components\GraphicsObjects\Lights\SpotLight.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Lights\SunLamp.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Texture.cs" />
+    <Compile Include="Core\Components\Types\Matrices\OrthographicMatrix.cs" />
+    <Compile Include="Core\Components\Types\Matrices\PerspectiveMatrix.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentCamera.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentLight.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentMaterial.cs" />
+    <Compile Include="Core\Components\Types\Matrices\ProjectionMatrix.cs" />
+    <Compile Include="Core\Components\Types\Matrices\ViewMatrix.cs" />
     <Compile Include="Core\Components\Types\Transform\ComponentControllable.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentModel.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentRender.cs" />

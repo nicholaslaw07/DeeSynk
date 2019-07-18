@@ -78,7 +78,7 @@ namespace DeeSynk.Core
                                                                         0.3f, 1.0f, 5f, 11f));
 
             _world.LightComps[2].LightObject.BuildUBO(3, 8);
-            _world.LightComps[2].LightObject.AddShadowMap(8192, 8192, TextureUnit.Texture1);
+            _world.LightComps[2].LightObject.AddShadowMap(2048, 2048, TextureUnit.Texture1);
 
             _world.LightComps[3] = new ComponentLight(LightType.SPOTLIGHT,
                                             new SpotLight(Color4.Blue,
@@ -86,7 +86,7 @@ namespace DeeSynk.Core
                                                             0.3f, 1.0f, 5f, 11f));
 
             _world.LightComps[3].LightObject.BuildUBO(4, 8);
-            _world.LightComps[3].LightObject.AddShadowMap(8192, 8192, TextureUnit.Texture2);
+            _world.LightComps[3].LightObject.AddShadowMap(2048, 2048, TextureUnit.Texture2);
 
             _world.LightComps[4] = new ComponentLight(LightType.SPOTLIGHT,
                                 new SpotLight(new Color4(0.0f, 1.0f, 0.0f, 1.0f),
@@ -94,7 +94,7 @@ namespace DeeSynk.Core
                                                 0.3f, 1.0f, 5.7f, 11f));
 
             _world.LightComps[4].LightObject.BuildUBO(5, 8);
-            _world.LightComps[4].LightObject.AddShadowMap(8192, 8192, TextureUnit.Texture3);
+            _world.LightComps[4].LightObject.AddShadowMap(2048, 2048, TextureUnit.Texture3);
 
         }
 
