@@ -104,35 +104,37 @@ namespace DeeSynk.Core.Systems
                 if (gameObjects[jdx].Components.HasFlag(Component.LIGHT))
                 {
 
-                    var light = _world.LightComps[jdx].LightObject;
-                    light.BindShadowMapFBO();
-                    GL.Clear(ClearBufferMask.DepthBufferBit);
-
-                    GL.Uniform1(3, lightNum);
-
-                    for (int idx = 0; idx < _world.ObjectMemory; idx++)
+                    if (_world.LightComps[jdx].LightObject.HasShadowMap)
                     {
-                        if (_world.ExistingGameObjects[idx])
+                        var light = _world.LightComps[jdx].LightObject;
+
+                        light.ShadowMap.BindFBO();
+                        GL.Clear(ClearBufferMask.DepthBufferBit);
+
+                        GL.Uniform1(3, lightNum);
+
+                        for (int idx = 0; idx < _world.ObjectMemory; idx++)
                         {
-                            if (gameObjects[idx].Components.HasFlag(RenderQualfier))
+                            if (_world.ExistingGameObjects[idx])
                             {
-                                Bind(idx, false);
-                                systemTransform.PushModelMatrix(idx);
-                                int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
-                                GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                                if (gameObjects[idx].Components.HasFlag(RenderQualfier))
+                                {
+                                    Bind(idx, false);
+                                    systemTransform.PushModelMatrix(idx);
+                                    int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
+                                    GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                                }
                             }
                         }
+                        lightNum++;
                     }
-                    light.UnbindShadowMapFBO();
-
-                    lightNum++;
                 }
             }
             GL.Disable(EnableCap.CullFace);
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Viewport(currentViewPort[0], currentViewPort[1], currentViewPort[2], currentViewPort[3]);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GL.Clear(ClearBufferMask.DepthBufferBit);
         }
 
         public void RenderAll(ref SystemTransform systemTransform)
@@ -165,10 +167,10 @@ namespace DeeSynk.Core.Systems
                         systemTransform.PushModelMatrix(idx);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
 
-                        _world.LightComps[2].LightObject.BindShadowMapTex(TextureUnit.Texture1);
-                        _world.LightComps[3].LightObject.BindShadowMapTex(TextureUnit.Texture2);
-                        _world.LightComps[4].LightObject.BindShadowMapTex(TextureUnit.Texture3);
-                        //if(idx != 0)
+                        _world.LightComps[2].LightObject.ShadowMap.BindTexture(TextureUnit.Texture1, true);
+                        _world.LightComps[3].LightObject.ShadowMap.BindTexture(TextureUnit.Texture2, true);
+                        _world.LightComps[4].LightObject.ShadowMap.BindTexture(TextureUnit.Texture3, true);
+
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }
                 }

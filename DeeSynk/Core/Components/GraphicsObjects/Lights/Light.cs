@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeeSynk.Core.Components.GraphicsObjects.Shadows;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -15,6 +16,12 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
 
         protected Color4 _emissionColor;
         public abstract Color4 EmissionColor { get; set; }
+
+        #region Shadow Mapping
+        protected ShadowMap _shadowMap;
+        public ShadowMap ShadowMap { get => _shadowMap; set => _shadowMap = value; }
+        public bool HasShadowMap => _shadowMap != null && _shadowMap.Init;
+        #endregion
 
         #region UBO
         protected bool _initUBO;
@@ -29,31 +36,12 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
         protected int _bufferOffset;
         public int BufferOffset { get => _bufferOffset; }
 
-        //This is temporary stuff.  There  will be a new graphics object that will gauge the shadow method which is where all stuff regarding depth maps (or other) will be stored.
-        public abstract bool HasShadowMap { get; }
-
-        public abstract int MapResolutionX { get; }
-        public abstract int MapResolutionY { get; }
-
-        protected int _fbo, _depthMap;
-        public int FBO => _fbo;
-        public int DepthMap => _depthMap;
-
         public abstract void BuildUBO(int bindingLocation, int numOfVec4s);
         public abstract void BuildUBO(int uboId, int uboSize, int offset, int bindingLocation, int numOfVec4s);
         public abstract void AttachUBO(int bindingLocation);
         public abstract void DetatchUBO();
         public abstract void UpdateUBO();
         public abstract void FillBuffer();
-
-        public abstract void AddShadowMap(int width, int height, TextureUnit textureUnit);
-        public abstract void BindShadowMapFBO();
-        public abstract void UnbindShadowMapFBO();
-        public abstract void BindShadowMapTex();
-        public abstract void BindShadowMapTex(TextureUnit textureUnit);
-        public abstract void UnbindShadowMapTex();
-        public abstract void UnbindShadowMapTex(TextureUnit textureUnit);
-
         #endregion
     }
 }

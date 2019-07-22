@@ -90,6 +90,7 @@
     <Compile Include="Core\Components\GraphicsObjects\Lights\PointSource.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Lights\SpotLight.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Lights\SunLamp.cs" />
+    <Compile Include="Core\Components\GraphicsObjects\Shadows\ShadowMap.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Texture.cs" />
     <Compile Include="Core\Components\Types\Matrices\OrthographicMatrix.cs" />
     <Compile Include="Core\Components\Types\Matrices\PerspectiveMatrix.cs" />

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.GraphicsObjects.Lights;
+using DeeSynk.Core.Components.GraphicsObjects.Shadows;
 using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Managers;
 using DeeSynk.Core.Systems;
@@ -71,14 +72,13 @@ namespace DeeSynk.Core
             _world.RenderComps[0].ValidateData();
             _world.RenderComps[1].ValidateData();
 
-
             _world.LightComps[2] = new ComponentLight(LightType.SPOTLIGHT, 
                                                         new SpotLight(Color4.Red, 
                                                                         new Vector3(-3.0f, 5.0f, 6.0f), new Vector3(0), new Vector3(0, 1, 0),
                                                                         0.3f, 1.0f, 5f, 11f));
 
             _world.LightComps[2].LightObject.BuildUBO(3, 8);
-            _world.LightComps[2].LightObject.AddShadowMap(2048, 2048, TextureUnit.Texture1);
+            _world.LightComps[2].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture1);
 
             _world.LightComps[3] = new ComponentLight(LightType.SPOTLIGHT,
                                             new SpotLight(Color4.Blue,
@@ -86,15 +86,15 @@ namespace DeeSynk.Core
                                                             0.3f, 1.0f, 5f, 11f));
 
             _world.LightComps[3].LightObject.BuildUBO(4, 8);
-            _world.LightComps[3].LightObject.AddShadowMap(2048, 2048, TextureUnit.Texture2);
+            _world.LightComps[3].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture2);
 
             _world.LightComps[4] = new ComponentLight(LightType.SPOTLIGHT,
                                 new SpotLight(new Color4(0.0f, 1.0f, 0.0f, 1.0f),
                                                 new Vector3(0.0f, 5.0f, 6.0f * 1.118f), new Vector3(0), new Vector3(0, 1, 0),
-                                                0.3f, 1.0f, 5.7f, 11f));
+                                                0.3f, 1.0f, 5.7f, 11.0f));
 
             _world.LightComps[4].LightObject.BuildUBO(5, 8);
-            _world.LightComps[4].LightObject.AddShadowMap(2048, 2048, TextureUnit.Texture3);
+            _world.LightComps[4].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture3);
 
         }
 
