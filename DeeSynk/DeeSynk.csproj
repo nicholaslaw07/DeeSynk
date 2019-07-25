@@ -131,6 +131,7 @@
     <None Include="App.config" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
+    <None Include="Resources\Models\Collada\dragon2.dae" />
     <None Include="Resources\Models\Collada\Moo.dae" />
     <None Include="Resources\Models\Collada\RegularCube.dae" />
     <None Include="Resources\Models\Collada\TestCube.dae" />
