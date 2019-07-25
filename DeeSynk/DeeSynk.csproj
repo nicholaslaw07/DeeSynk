@@ -50,7 +50,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <LangVersion>7.1</LangVersion>
-    <Prefer32Bit>true</Prefer32Bit>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -130,14 +131,19 @@
     <None Include="App.config" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
+    <None Include="Resources\Models\Collada\Moo.dae" />
+    <None Include="Resources\Models\Collada\RegularCube.dae" />
+    <None Include="Resources\Models\Collada\TestCube.dae" />
     <None Include="Resources\Temp\armadillo.obj" />
     <None Include="Resources\Temp\dragon_vrip.obj" />
     <None Include="Resources\Models\dragon_vripPLY.ply" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Core\Components\Models\Templates\" />
+    <Folder Include="Core\SystemTools\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\Models\Collada\Schema\collada_schema_1_5.xml" />
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
     <Content Include="Resources\Shaders\Fragment\shadowColored.txt" />

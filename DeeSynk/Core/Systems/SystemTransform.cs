@@ -75,7 +75,7 @@ namespace DeeSynk.Core.Systems
                     _transComps[i] = new ComponentTransform(ref _modelCompsStatic[i]);
             }
 
-            //_transComps[0].RotationXComp.InterpolateRotation(5f, 30f, InterpolationMode.LINEAR);
+            _transComps[0].RotationXComp.InterpolateRotation(-5f, 30f, InterpolationMode.LINEAR);
             _transComps[0].RotationYComp.InterpolateRotation(2f, 30f, InterpolationMode.LINEAR);
             //_transComps[0].LocationComp.InterpolateTranslation(new Vector3(3, 0, 0), 30, InterpolationMode.LINEAR);
 

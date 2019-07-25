@@ -291,7 +291,7 @@ namespace DeeSynk.Core.Components.Models
                     }
                 }
 
-                if (_modelProperties.HasFlag(ModelProperties.NORMALS))
+                /*if (_modelProperties.HasFlag(ModelProperties.NORMALS))
                 {
                     if (NormalCount == VertexCount)
                     {
@@ -302,7 +302,7 @@ namespace DeeSynk.Core.Components.Models
                     {
                         valid = false;
                     }
-                }
+                }*/
             }
             return valid;
         }
