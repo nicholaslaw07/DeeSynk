@@ -91,7 +91,7 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
-
+            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Point);
             GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
             GL.Enable(EnableCap.DepthTest);
 
@@ -146,7 +146,7 @@ namespace DeeSynk.Core
             if(sw.ElapsedMilliseconds % 20 == 0)
                 Title = $"DeeSynk | The WIP Student Video Game | Vsync: {VSync} | FPS: {fpsOld} | {_camera.Location.ToString()}";
 
-            if (sw.ElapsedMilliseconds > 1000)
+            if (sw.ElapsedMilliseconds > 1000/80)
             {
                 sw.Stop();
                 //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window

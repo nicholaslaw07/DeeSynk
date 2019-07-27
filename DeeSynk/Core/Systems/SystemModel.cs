@@ -66,14 +66,14 @@ namespace DeeSynk.Core.Systems
             var v01 = new Vector3(5f, 5f, 5f);
             var v02 = new Vector2(0.0f, 0.0f);
             var v03 = new Vector2(1.0f, 1.0f);
-            var v21 = Color4.White;
+            var v21 = Color4.Aqua;
 
             Random r = new Random();
 
 
             _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
                                         ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.COLOR4_COLOR | ConstructionFlags.VECTOR3_SCALE,
-                                        new Vector3(0, 0.5f, 0), new Vector3(5.0f, 5.0f, 5.0f), v21);
+                                        new Vector3(0, 0.5f, 0), new Vector3(.1f, .1f, .1f), v21);
 
             Texture t = TextureManager.GetInstance().GetTexture("wood");
             float width = t.Width;

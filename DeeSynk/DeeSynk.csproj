@@ -134,6 +134,7 @@
     <None Include="Resources\Models\Collada\dragon2.dae" />
     <None Include="Resources\Models\Collada\Moo.dae" />
     <None Include="Resources\Models\Collada\RegularCube.dae" />
+    <None Include="Resources\Models\Collada\Stitch.dae" />
     <None Include="Resources\Models\Collada\TestCube.dae" />
     <None Include="Resources\Temp\armadillo.obj" />
     <None Include="Resources\Temp\dragon_vrip.obj" />

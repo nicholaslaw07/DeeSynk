@@ -76,6 +76,12 @@ namespace DeeSynk.Core.Managers
 
     public class ModelManager : IManager
     {
+        private const string X_UP = "X_UP";
+        private const string Y_UP = "Y_UP";
+        private const string Z_UP = "Z_UP";
+
+        private Vector3 DefaultOrder { get { return new Vector3(0.0f, 1.0f, 2.0f); } }
+
         private const string FILE_PATH = @"..\..\Resources\Models\";
         private static ModelManager _modelManager;
 
@@ -100,7 +106,7 @@ namespace DeeSynk.Core.Managers
 
         public void Load()
         {
-            LoadColladaModel(@"..\..\Resources\Models\Collada\dragon2.dae");
+            LoadColladaModel(@"..\..\Resources\Models\Collada\Stitch.dae");
 
             string[] models = Directory.GetFiles(FILE_PATH);
             string[] fileNames = models.Select(Path.GetFileNameWithoutExtension).ToArray();
@@ -217,11 +223,17 @@ namespace DeeSynk.Core.Managers
                 XDocument modelDoc = XDocument.Load(filePath);
 
                 //DEBUG --- VIEWING ALL DATA
-                //foreach (XElement element in modelDoc.Root.Elements())
-                //{
-                //    Console.WriteLine(element.ToString());
-                //}
+                foreach (XElement element in modelDoc.Root.Elements())
+                {
+                    Console.WriteLine(element.ToString());
+                }
                 //END
+
+                //Retrieve preliminary information
+                var asset = modelDoc.Root.Elements().Where(a => a.Name.LocalName == "asset").First();
+                var upAxis = asset.Elements().Where(a => a.Name.LocalName == "up_axis").First().Value;  //Valid values are X_UP Y_UP Z_UP
+                if (upAxis == null)
+                    upAxis = Y_UP;
 
                 //Load geometry
                     //Isolate the geometry library 'library_geometries'
@@ -296,12 +308,23 @@ namespace DeeSynk.Core.Managers
                     if (data.Length != stride * elementCount)
                         throw new Exception("Mismatched data in file: array data count does not match what is expected");
 
+                    var order = ElementOrder(upAxis);
+
+                    int xOffset = (int)order.X;
+                    int yOffset = (int)order.Y;
+                    int zOffset = (int)order.Z;
+
+                    bool flipX = (upAxis == X_UP);
+                    bool flipZ = (upAxis == Z_UP);
+
                     vectors = new Vector3[elementCount];
                     for (int i = 0; i < elementCount; i++)
                     {
-                        float.TryParse(data[i * stride + 0], out vectors[i].X);
-                        float.TryParse(data[i * stride + 1], out vectors[i].Y);
-                        float.TryParse(data[i * stride + 2], out vectors[i].Z);
+                        float.TryParse(data[i * stride + xOffset], out vectors[i].X);
+                        float.TryParse(data[i * stride + yOffset], out vectors[i].Y);
+                        float.TryParse(data[i * stride + zOffset], out vectors[i].Z);
+                        if (flipX) vectors[i].X *= -1f;
+                        if (flipZ) vectors[i].Z *= -1f;
                     }
                 }
 
@@ -368,7 +391,7 @@ namespace DeeSynk.Core.Managers
                 model.Vertices = positionsNew;
                 //model.Normals = normals;
                 model.Elements = vOrder;
-                model.SetReadOnly(false, true);
+                model.SetReadOnly(true, true);
                 _modelLibrary.Add("TestCube", model);
 
             }
@@ -377,6 +400,17 @@ namespace DeeSynk.Core.Managers
                 Console.WriteLine("Error loading '.DAE' file type at {0}", filePath);
                 Console.WriteLine(e.ToString());
                 return;
+            }
+        }
+
+        private Vector3 ElementOrder(string upAxis)
+        {
+            Vector3 order = DefaultOrder;
+            switch (upAxis)
+            {
+                case (X_UP): order = order.Yxz; return order;
+                case (Z_UP): order = order.Xzy; return order;
+                default: return order;
             }
         }
 
