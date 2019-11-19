@@ -2,13 +2,22 @@
 
 in vec3 vs_eyeCoord;
 in vec3 vs_normal;
+
 in vec4 vs_lightCoord[4];
 in vec3 vs_transPosiSpot[4];
+
+in vec4 vs_lightCoordSun[4];
+in vec3 vs_transPosiSun[4];
 
 layout(binding=1) uniform sampler2D spotLight0;
 layout(binding=2) uniform sampler2D spotLight1;
 layout(binding=3) uniform sampler2D spotLight2;
 layout(binding=4) uniform sampler2D spotLight3;
+
+layout(binding=5) uniform sampler2D sunLamp0;
+layout(binding=6) uniform sampler2D sunLamp1;
+layout(binding=7) uniform sampler2D sunLamp2;
+layout(binding=8) uniform sampler2D sunLamp3;
 
 layout(binding = 2) uniform Camera
 {
@@ -24,6 +33,15 @@ layout(binding = 3) uniform SpotLight
 	vec4 spotLightColor;
 	vec4 spotLightFOV;
 } spotLights[4];
+
+layout(binding=7) uniform SunLamp
+{
+	mat4 sunLampView;
+	vec4 sunLampLocation;
+	vec4 sunLampLookAt;
+	vec4 sunLampColor;
+	vec4 sunLampViewProps;
+} sunLamps[4];
 
 layout (location = 17) uniform vec4 color;
 
@@ -45,11 +63,12 @@ uniform float kS = 1.0;
 
 uniform float a  = 250.0;
 
-float rand(vec2 co){
+float rand(vec2 co)
+{
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-float ShadowFactor(int index, vec4 lightCoord)
+float ShadowFactor(int index, int lightType, vec4 lightCoord)  // 0=spot 1=sun
 {
 	vec3 ProjCoords = lightCoord.xyz / lightCoord.w;
 	vec2 UVCoords;
@@ -61,13 +80,13 @@ float ShadowFactor(int index, vec4 lightCoord)
 
 	switch(index)
 	{
-		case(0): Depth = texture(spotLight0, UVCoords).x; break;
-		case(1): Depth = texture(spotLight1, UVCoords).x; break;
-		case(2): Depth = texture(spotLight2, UVCoords).x; break;
-		case(3): Depth = texture(spotLight3, UVCoords).x; break;
+		case(0): Depth = texture((lightType == 0) ? spotLight0 : sunLamp0, UVCoords).x; break;
+		case(1): Depth = texture((lightType == 0) ? spotLight1 : sunLamp1, UVCoords).x; break;
+		case(2): Depth = texture((lightType == 0) ? spotLight2 : sunLamp2, UVCoords).x; break;
+		case(3): Depth = texture((lightType == 0) ? spotLight3 : sunLamp3, UVCoords).x; break;
 	}
 
-	float bias = max(0.0005 * (1.0 - dot(normalize(vs_normal), normalize(-vs_transPosiSpot[index]))), 0.001);
+	float bias = max(0.0005 * (1.0 - dot(normalize(vs_normal), normalize((lightType == 0) ? -vs_transPosiSpot[index] : -vs_transPosiSun[index]))), 0.001);
 
 	if(Depth < (z+bias))
 		return shadowBrightness;
@@ -108,7 +127,7 @@ vec3 SpotLightIllumination(int spotLightIdx)
 		Ip = vec3(Ip.x * spotLights[spotLightIdx].spotLightColor.x,
 				  Ip.y * spotLights[spotLightIdx].spotLightColor.y,
 				  Ip.z * spotLights[spotLightIdx].spotLightColor.z) *
-				  ShadowFactor(spotLightIdx, vs_lightCoord[spotLightIdx]) *
+				  ShadowFactor(spotLightIdx, 0, vs_lightCoord[spotLightIdx]) *
 				  Attenuation(vec4(vs_transPosiSpot[spotLightIdx], 1.0));
 	}
 	else{
@@ -117,12 +136,51 @@ vec3 SpotLightIllumination(int spotLightIdx)
 	return Ip;
 }
 
+vec3 SunLampIllumination(int sunLampIdx)
+{
+	vec3 Ip = kA * iA;
+	//if(the position lies within the bounds of the ortho matrix projected along the lookAt vector)
+	{
+		vec3 lightLoc = sunLamps[sunLampIdx].sunLampLocation.xyz;
+
+		vec3 Lm = normalize(lightLoc - vs_eyeCoord);
+		vec3 N  = normalize(vs_normal);
+
+		float dDot = dot(Lm, N);
+
+		vec3 Rm = normalize(2 * dDot * N - Lm);
+		vec3 V  = normalize(camera.camLocation.xyz  - vs_eyeCoord);
+
+		float sDot = dot(Rm, V);
+
+
+		Ip += (kD * dDot * iD);
+
+		if((sDot > 0.0 && dDot > 0.0))
+			Ip += kS * pow(sDot, a) * iS;
+
+		Ip = vec3(Ip.x * sunLamps[sunLampIdx].sunLampColor.x,
+				  Ip.y * sunLamps[sunLampIdx].sunLampColor.y,
+				  Ip.z * sunLamps[sunLampIdx].sunLampColor.z) *
+				  ShadowFactor(sunLampIdx, 1, vs_lightCoordSun[sunLampIdx]);
+	}
+	//else{
+	//IP *= 0.05;
+	//}
+	return Ip;
+}
+
 void main(void)
 {
 	vec3 Ip = vec3(0.0);
-	for(int i=0; i<3; i++)
+	for(int i=0; i<3; i++) //supports up to 4
 	{
 		Ip += SpotLightIllumination(i);
+	}
+
+	for(int i=0; i<1; i++) //supports up to 4
+	{
+		Ip += SunLampIllumination(i);
 	}
 
 	float Depth = gl_FragCoord.z;

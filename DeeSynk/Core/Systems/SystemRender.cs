@@ -107,12 +107,17 @@ namespace DeeSynk.Core.Systems
 
                     if (_world.LightComps[jdx].LightObject.HasShadowMap)
                     {
-                        var light = _world.LightComps[jdx].LightObject;
+                        var lightComp = _world.LightComps[jdx];
+                        var light = lightComp.LightObject;
 
                         light.ShadowMap.BindFBO();
                         GL.Clear(ClearBufferMask.DepthBufferBit);
 
-                        GL.Uniform1(3, lightNum);
+                        int lightType = 0;
+                        if (lightComp.LightType == LightType.SUN) lightType = 1;
+
+                        GL.Uniform1(3, lightType);
+                        GL.Uniform1(4, lightNum);
 
                         for (int idx = 0; idx < _world.ObjectMemory; idx++)
                         {
@@ -128,6 +133,7 @@ namespace DeeSynk.Core.Systems
                             }
                         }
                         lightNum++;
+                        lightNum %= 3;
                     }
                 }
             }
@@ -172,6 +178,8 @@ namespace DeeSynk.Core.Systems
                         _world.LightComps[2].LightObject.ShadowMap.BindTexture(TextureUnit.Texture1, true);
                         _world.LightComps[3].LightObject.ShadowMap.BindTexture(TextureUnit.Texture2, true);
                         _world.LightComps[4].LightObject.ShadowMap.BindTexture(TextureUnit.Texture3, true);
+
+                        _world.LightComps[5].LightObject.ShadowMap.BindTexture(TextureUnit.Texture5, true);
 
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }

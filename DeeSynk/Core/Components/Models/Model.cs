@@ -648,6 +648,7 @@ namespace DeeSynk.Core.Components.Models
                 //model = new Model(modelMatrix);
 
                 //no error checking since this should almost always be the case, if not we compensate for it by having defaults (1.0f)
+                    //checks for an instance of a dimension flag - if none is present use default values
                 bool hasDimensionFlag = modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS);
                 float[] WH = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_DIMENSIONS); 
 

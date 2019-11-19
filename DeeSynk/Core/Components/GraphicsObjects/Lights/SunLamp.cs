@@ -13,6 +13,8 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
 {
     public class SunLamp : Light
     {
+        //TODO add attenuation option for sunlamp (boolean)
+
         public override Color4 EmissionColor { get => _emissionColor; set => _emissionColor = value; }
 
         private ViewMatrix _view;
@@ -30,7 +32,7 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
 
             ViewMatrix.GetViewProjectionProduct(_view, _projection, out _viewProjection);
         }
-
+        #region UBO Managment
         public override void AttachUBO(int bindingLocation)
         {
             GL.BindBufferRange(BufferRangeTarget.UniformBuffer, _bindingLocation, _ubo_Id, IntPtr.Add(IntPtr.Zero, 0), BufferSize);
@@ -91,7 +93,7 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
             GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, BufferSize, _bufferData);
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
         }
-
+        #endregion
         public void Update()
         {
             if (_view.ValueModified || _projection.ValueModified)

@@ -106,7 +106,7 @@ namespace DeeSynk.Core.Managers
 
         public void Load()
         {
-            LoadColladaModel(@"..\..\Resources\Models\Collada\Stitch.dae");
+            LoadColladaModel(@"..\..\Resources\Models\Collada\dragon2.dae");
 
             string[] models = Directory.GetFiles(FILE_PATH);
             string[] fileNames = models.Select(Path.GetFileNameWithoutExtension).ToArray();
@@ -225,7 +225,7 @@ namespace DeeSynk.Core.Managers
                 //DEBUG --- VIEWING ALL DATA
                 foreach (XElement element in modelDoc.Root.Elements())
                 {
-                    Console.WriteLine(element.ToString());
+                    //Console.WriteLine(element.ToString());
                 }
                 //END
 
