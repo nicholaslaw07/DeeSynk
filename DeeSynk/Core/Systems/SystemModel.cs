@@ -1,4 +1,5 @@
-﻿using DeeSynk.Core.Components;
+﻿using DeeSynk.Core.Algorithms;
+using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.Models;
 using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Managers;

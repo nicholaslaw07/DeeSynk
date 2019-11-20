@@ -16,7 +16,9 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
         public override Color4 EmissionColor { get => _emissionColor; set => _emissionColor = value; }
 
         private ViewMatrix _view;
+        public ViewMatrix View { get => _view; }
         private PerspectiveMatrix _projection;
+        public PerspectiveMatrix Projection { get => _projection; }
         private Matrix4 _viewProjection;
 
         public override int BufferSize => 16 * 8; //matrix, location, lookAt, color, fov (assume 1.0 aspect ratio)  (rgb, fov)

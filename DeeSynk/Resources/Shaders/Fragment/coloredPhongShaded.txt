@@ -78,7 +78,7 @@ float ShadowFactor(int index, int lightType, vec4 lightCoord)  // 0=spot 1=sun
 
 	float Depth = 0.0f;
 
-	switch(index)
+ 	switch(index)
 	{
 		case(0): Depth = texture((lightType == 0) ? spotLight0 : sunLamp0, UVCoords).x; break;
 		case(1): Depth = texture((lightType == 0) ? spotLight1 : sunLamp1, UVCoords).x; break;

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeeSynk.Core.Algorithms;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.GraphicsObjects.Lights;
 using DeeSynk.Core.Components.GraphicsObjects.Shadows;
@@ -109,6 +110,10 @@ namespace DeeSynk.Core
 
             _world.LightComps[5].LightObject.BuildUBO(7, 8);
             _world.LightComps[5].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture4);
+
+            AlgorithmEdgeDetectMesh detectMesh = new AlgorithmEdgeDetectMesh(ModelManager.GetInstance().GetModel("TestCube"), _world.LightComps[5]);
+            var edges = detectMesh.Start();
+            int x = 1;
 
         }
 

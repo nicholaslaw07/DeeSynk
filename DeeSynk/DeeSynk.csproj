@@ -84,6 +84,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Algorithms\AlgorithmEdgeDetectMesh.cs" />
     <Compile Include="Core\Algorithms\AlgorithmRectangleCompaction.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Camera.cs" />
     <Compile Include="Core\Components\GraphicsObjects\IUBO.cs" />
