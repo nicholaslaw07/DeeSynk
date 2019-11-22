@@ -3,11 +3,19 @@
 layout (location = 0) in vec4 position;
 layout (location = 1) in vec4 color;
 layout (location = 2) in vec4 offset;
-layout (location = 5) uniform mat4 model_view;
+layout (location = 13) uniform mat4 model_view;
 out vec4 vs_color;
+
+layout(binding = 2) uniform Camera
+{
+	mat4 projection;  //model_view
+	vec4 camLocation; //cameraLoc
+} camera;
 
 void main(void)
 {
- vs_color = color;
- gl_Position = model_view * (vec4(position.x, position.y, position.z, 1) + offset);
+ vs_color = vec4(1, 1, 1, 1);
+ vec4 pos = position;
+ pos.w = 1;
+ gl_Position = camera.projection * model_view * pos;
 }

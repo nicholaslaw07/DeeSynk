@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeeSynk.Core.Algorithms;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.GraphicsObjects.Lights;
 using DeeSynk.Core.Components.Models;
@@ -32,6 +33,8 @@ namespace DeeSynk.Core.Systems
 
         private Camera _camera;
 
+        private VAO TEST_VAO;
+
         //SHADOW END
 
         public SystemRender(World world)
@@ -43,6 +46,8 @@ namespace DeeSynk.Core.Systems
             _renderComps = _world.RenderComps;
             _staticModelComps = _world.StaticModelComps;
             _textureComps = _world.TextureComps;
+
+            TEST_VAO = new VAO(Buffers.VERTICES_ELEMENTS);
 
             //UpdateMonitoredGameObjects();
         }
@@ -181,10 +186,49 @@ namespace DeeSynk.Core.Systems
 
                         _world.LightComps[5].LightObject.ShadowMap.BindTexture(TextureUnit.Texture5, true);
 
-                        GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                        if(idx == 0)
+                            GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }
                 }
             }
+
+            AlgorithmEdgeDetectMesh detectMesh = new AlgorithmEdgeDetectMesh(ModelManager.GetInstance().GetModel("TestCube"), _world.LightComps[4]);
+            var edges = detectMesh.Start();
+            Vector4[] vecs = new Vector4[edges.Length * 2];
+            for(int i=0; i<edges.Length; i++)
+            {
+                vecs[2 * i + 0] = edges[i].p1;
+                vecs[2 * i + 1] = edges[i].p2;
+            }
+            TEST_VAO.BindVAO();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, TEST_VAO.Buffers[0]);
+            uint[] elements = new uint[vecs.Length];
+            for (uint i = 0; i < elements.Length; i++)
+                elements[i] = i;
+            GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out int els);
+            if(els == 0)
+            {
+                GL.NamedBufferStorage(TEST_VAO.Buffers[0], elements.Length * 4, elements, BufferStorageFlags.MapReadBit);
+            }
+
+            //Console.WriteLine("oh my");
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("defaultColored"));
+            int buffer = TEST_VAO.Buffers[1];
+            GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
+            GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out int size);
+            if (size == 0)
+            {
+                GL.NamedBufferStorage(buffer, vecs.Length * 16, vecs, BufferStorageFlags.MapReadBit);
+            }
+            //Console.WriteLine(size);
+            GL.BindVertexBuffer(0, buffer, IntPtr.Zero, 16);
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribFormat(0, 4, VertexAttribType.Float, false, 0);
+            GL.VertexAttribBinding(0, 0);
+            systemTransform.PushModelMatrix(0);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, TEST_VAO.Buffers[0]);
+            GL.DrawElements(PrimitiveType.Lines, elements.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            //Console.WriteLine(GL.GetError());
         }
     }
 }

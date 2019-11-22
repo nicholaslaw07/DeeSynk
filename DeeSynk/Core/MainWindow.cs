@@ -24,7 +24,7 @@ namespace DeeSynk.Core
         private KeyboardState keyState;    // holds current keyboard state, updated every frame
         private Color4 clearColor = Color4.Black;     // the color that OpenGL uses to clear the color buffer on each frame
 
-        private Camera _camera = new Camera();
+        public Camera _camera = new Camera();
 
         private const float v = 1f;
 
@@ -91,11 +91,11 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
-            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Point);
+            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
             GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
             GL.Enable(EnableCap.DepthTest);
 
-            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.01f, 30f);
+            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.001f, 300f);
             _camera.OverrideLookAtVector = true;
             _game = new Game();
             //CursorVisible = true;

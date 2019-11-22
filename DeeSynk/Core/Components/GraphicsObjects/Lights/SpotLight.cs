@@ -20,6 +20,7 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
         private PerspectiveMatrix _projection;
         public PerspectiveMatrix Projection { get => _projection; }
         private Matrix4 _viewProjection;
+        public ref Matrix4 ViewProjection { get => ref _viewProjection; }
 
         public override int BufferSize => 16 * 8; //matrix, location, lookAt, color, fov (assume 1.0 aspect ratio)  (rgb, fov)
 

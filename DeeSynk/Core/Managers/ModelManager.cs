@@ -107,7 +107,6 @@ namespace DeeSynk.Core.Managers
         public void Load()
         {
             LoadColladaModel(@"..\..\Resources\Models\Collada\dragon2.dae");
-
             string[] models = Directory.GetFiles(FILE_PATH);
             string[] fileNames = models.Select(Path.GetFileNameWithoutExtension).ToArray();
             string[] fileExtensions = models.Select(Path.GetExtension).ToArray();
