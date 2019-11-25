@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
@@ -20,6 +21,7 @@ namespace DeeSynk.Core.Managers
         private static ShaderManager _shaderManager;            //--DIF--//
 
         private string _vertPath = @"..\..\Resources\Shaders\Vertex";
+        private string _geomPath = @"..\..\Resources\Shaders\Geometry";
         private string _fragPath = @"..\..\Resources\Shaders\Fragment";
 
         private Dictionary<string, int> _programs;
@@ -75,33 +77,62 @@ namespace DeeSynk.Core.Managers
         /// </summary>
         private void CreatePrograms()
         {
-            string[] vertexShaders = Directory.GetFiles(_vertPath);
-            string[] fragmentShaders = Directory.GetFiles(_fragPath);
+            string[] vertexShadersDirs = Directory.GetFiles(_vertPath);
+            string[] vertFileNames = vertexShadersDirs.Select(vs => Path.GetFileNameWithoutExtension(vs)).ToArray();
 
-            string[] fileNames = Directory.GetFiles(_vertPath)
-                                     .Select(Path.GetFileNameWithoutExtension)
-                                     .ToArray();
+            string[] geometryShadersDirs = Directory.GetFiles(_geomPath);
+            string[] geomFileNames = geometryShadersDirs.Select(gs => Path.GetFileNameWithoutExtension(gs)).ToArray();
 
-            for(int i=0; i < vertexShaders.Length; i++)
+            string[] fragmentShadersDirs = Directory.GetFiles(_fragPath);
+            string[] fragFileNames = fragmentShadersDirs.Select(fs => Path.GetFileNameWithoutExtension(fs)).ToArray();
+
+            for(int i=0; i < vertexShadersDirs.Length; i++)  //we use vertex to index since vertex shaders are not optional
             {
                 var Program = GL.CreateProgram();                                               // creates a new program id in the GL context
                 var Shaders = new List<int>();
 
-                var fileStreamV = new FileStream(vertexShaders[i], FileMode.Open, FileAccess.Read);
-                var fileStreamF = new FileStream(fragmentShaders[i], FileMode.Open, FileAccess.Read);
-
-                using (var StreamReader = new StreamReader(fileStreamV, Encoding.UTF8))
+                using(var fileStreamV = new FileStream(vertexShadersDirs[i], FileMode.Open, FileAccess.Read))
                 {
-                    Shaders.Add(CompileShader(ShaderType.VertexShader, StreamReader.ReadToEnd()));
+                    using (var StreamReader = new StreamReader(fileStreamV, Encoding.UTF8))
+                        Shaders.Add(CompileShader(ShaderType.VertexShader, StreamReader.ReadToEnd()));
                 }
 
-                using (var StreamReader = new StreamReader(fileStreamF, Encoding.UTF8))
+                if (geomFileNames.Contains(vertFileNames[i]))
                 {
-                    Shaders.Add(CompileShader(ShaderType.FragmentShader, StreamReader.ReadToEnd()));
+                    int idx = geomFileNames.Select((s, j) => new {j, s})
+                                            .Where(t => t.s == vertFileNames[i])
+                                            .Select(t => t.j)
+                                            .ToList().First();
+                    using (var fileStreamG = new FileStream(geometryShadersDirs[idx], FileMode.Open, FileAccess.Read))
+                    {
+                        using (var StreamReader = new StreamReader(fileStreamG, Encoding.UTF8))
+                            Shaders.Add(CompileShader(ShaderType.GeometryShader, StreamReader.ReadToEnd()));
+                    }
+                }
+
+                if (fragFileNames.Contains(vertFileNames[i]))
+                {
+                    int idx = fragFileNames.Select((s, j) => new { j, s })
+                                            .Where(t => t.s == vertFileNames[i])
+                                            .Select(t => t.j)
+                                            .ToList().First();
+                    using (var fileStreamF = new FileStream(fragmentShadersDirs[idx], FileMode.Open, FileAccess.Read))
+                    {
+                        using (var StreamReader = new StreamReader(fileStreamF, Encoding.UTF8))
+                            Shaders.Add(CompileShader(ShaderType.FragmentShader, StreamReader.ReadToEnd()));
+                    }
                 }
 
                 foreach (var shader in Shaders)
                     GL.AttachShader(Program, shader);                                           // attaches each type of shader to the generated program
+
+                //TEST
+                if(vertFileNames[i] == "detectEdges")
+                {
+                    string[] vars = { "outputVector" };
+                    GL.TransformFeedbackVaryings(Program, 1, vars, TransformFeedbackMode.InterleavedAttribs);
+                }
+                //ENDTEST
 
                 GL.LinkProgram(Program);                                                        // links the created program to the GL context, does not give this program focus
 
@@ -112,7 +143,7 @@ namespace DeeSynk.Core.Managers
                 }
 
                 Console.WriteLine(GL.GetProgramInfoLog(Program));
-                _programs.Add(fileNames[i], Program);                                            // adds the program created to the shaders dictionary
+                _programs.Add(vertFileNames[i], Program);                                            // adds the program created to the shaders dictionary
             }
         }
         

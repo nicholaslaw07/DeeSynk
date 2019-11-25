@@ -186,49 +186,23 @@ namespace DeeSynk.Core.Systems
 
                         _world.LightComps[5].LightObject.ShadowMap.BindTexture(TextureUnit.Texture5, true);
 
-                        if(idx == 0)
-                            GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                        GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }
                 }
             }
 
-            AlgorithmEdgeDetectMesh detectMesh = new AlgorithmEdgeDetectMesh(ModelManager.GetInstance().GetModel("TestCube"), _world.LightComps[4]);
-            var edges = detectMesh.Start();
-            Vector4[] vecs = new Vector4[edges.Length * 2];
-            for(int i=0; i<edges.Length; i++)
-            {
-                vecs[2 * i + 0] = edges[i].p1;
-                vecs[2 * i + 1] = edges[i].p2;
-            }
-            TEST_VAO.BindVAO();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, TEST_VAO.Buffers[0]);
-            uint[] elements = new uint[vecs.Length];
-            for (uint i = 0; i < elements.Length; i++)
-                elements[i] = i;
-            GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out int els);
-            if(els == 0)
-            {
-                GL.NamedBufferStorage(TEST_VAO.Buffers[0], elements.Length * 4, elements, BufferStorageFlags.MapReadBit);
-            }
+            //TEST
 
-            //Console.WriteLine("oh my");
-            GL.UseProgram(ShaderManager.GetInstance().GetProgram("defaultColored"));
-            int buffer = TEST_VAO.Buffers[1];
-            GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-            GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out int size);
-            if (size == 0)
-            {
-                GL.NamedBufferStorage(buffer, vecs.Length * 16, vecs, BufferStorageFlags.MapReadBit);
-            }
-            //Console.WriteLine(size);
-            GL.BindVertexBuffer(0, buffer, IntPtr.Zero, 16);
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribFormat(0, 4, VertexAttribType.Float, false, 0);
-            GL.VertexAttribBinding(0, 0);
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("detectEdges"));
             systemTransform.PushModelMatrix(0);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, TEST_VAO.Buffers[0]);
-            GL.DrawElements(PrimitiveType.Lines, elements.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            //Console.WriteLine(GL.GetError());
+            Bind(0, false);
+            if(GL.GetInteger(GetPName.TransformFeedbackBinding) != TEST_VAO.Buffers[1])
+                GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, TEST_VAO.Buffers[1]);
+            GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Lines);
+            GL.DrawElements(PrimitiveType.Triangles, ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.EndTransformFeedback();
+
+            //ENDTEST
         }
     }
 }
