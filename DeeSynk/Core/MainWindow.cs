@@ -91,6 +91,7 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
+            GL.LineWidth(3.0f);
             //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
             GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
             GL.Enable(EnableCap.DepthTest);
