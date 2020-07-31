@@ -192,7 +192,7 @@ namespace DeeSynk.Core.Systems
             }
 
             //TEST
-
+            /*
             GL.UseProgram(ShaderManager.GetInstance().GetProgram("detectEdges"));
             systemTransform.PushModelMatrix(0);
             Bind(0, false);
@@ -201,7 +201,7 @@ namespace DeeSynk.Core.Systems
             GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Lines);
             GL.DrawElements(PrimitiveType.Triangles, ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.EndTransformFeedback();
-
+            */
             //ENDTEST
         }
     }

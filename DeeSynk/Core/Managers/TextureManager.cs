@@ -133,7 +133,7 @@ namespace DeeSynk.Core.Managers
             _loadedTextureCount++;
         }
 
-
+        //cannot subdivide folders, is it necessary too though... it depends on the size of textures we want to work with
         private void InitTextureAtlas(string folderPath, int textureCount)
         {
             var filePaths = Directory.GetFiles(folderPath);

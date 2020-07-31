@@ -86,6 +86,7 @@ void main(void)
 	vec4 c = texture(tex, vs_texCoord);
 	c.a = 1;
 	vec4 cNew = vec4(0);
+
 	for(int i=0; i<3; i++)
 	{
 		if(dot(normalize(vs_TransPosiSpot[i]), spotLights[i].spotLightLookAt.xyz) >= spotLights[i].spotLightFOV.x)
@@ -96,6 +97,10 @@ void main(void)
 						 ShadowFactor(i, 0, vs_lightCoord[i]) *
 						 Attenuation(vec4(vs_TransPosiSpot[i], 1.0)) * 1.5;
 	}
+
+	//TEST
+	cNew = vec4(0.0);
+	//TESTEND
 
 	cNew += vec4(sunLamps[0].sunLampColor.x * c.x, 
 						 sunLamps[0].sunLampColor.y * c.y, 

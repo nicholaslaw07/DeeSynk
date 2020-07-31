@@ -205,6 +205,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Models\Collada\Schema\collada_schema_1_5.xml" />
+    <Content Include="Resources\Shaders\Fragment\cellShading.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
     <Content Include="Resources\Shaders\Fragment\detectEdges.txt" />
@@ -215,6 +216,7 @@
     <Content Include="Resources\Shaders\Fragment\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultColored.txt" />
     <Content Include="Resources\Shaders\Geometry\detectEdges.txt" />
+    <Content Include="Resources\Shaders\Vertex\cellShading.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhong.txt" />
     <Content Include="Resources\Shaders\Vertex\detectEdges.txt" />

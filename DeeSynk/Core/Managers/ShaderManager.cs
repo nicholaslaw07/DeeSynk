@@ -127,11 +127,11 @@ namespace DeeSynk.Core.Managers
                     GL.AttachShader(Program, shader);                                           // attaches each type of shader to the generated program
 
                 //TEST
-                if(vertFileNames[i] == "detectEdges")
+                /*if(vertFileNames[i] == "detectEdges")
                 {
                     string[] vars = { "outputVector" };
                     GL.TransformFeedbackVaryings(Program, 1, vars, TransformFeedbackMode.InterleavedAttribs);
-                }
+                }*/
                 //ENDTEST
 
                 GL.LinkProgram(Program);                                                        // links the created program to the GL context, does not give this program focus

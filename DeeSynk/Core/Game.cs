@@ -105,8 +105,8 @@ namespace DeeSynk.Core
 
             _world.LightComps[5] = new ComponentLight(LightType.SUN,
                                                         new SunLamp(Color4.White,
-                                                                    new Vector3(0.0f, 7.0f, -1.0f), new Vector3(0.0f), new Vector3(0.0f, 1.0f, 0.0f),
-                                                                    7.0f, 7.0f, 1.0f, 9.0f));
+                                                                    new Vector3(0.0f, 5.0f, 7.0f), new Vector3(0.0f), new Vector3(0.0f, 1.0f, 0.0f),
+                                                                    7.0f, 7.0f, 1.0f, 11.0f));
 
             _world.LightComps[5].LightObject.BuildUBO(7, 8);
             _world.LightComps[5].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture4);

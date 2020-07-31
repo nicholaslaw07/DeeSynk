@@ -163,6 +163,11 @@ vec3 SunLampIllumination(int sunLampIdx)
 				Ip.y * sunLamps[sunLampIdx].sunLampColor.y,
 				Ip.z * sunLamps[sunLampIdx].sunLampColor.z) *
 				ShadowFactor(sunLampIdx, 1, vs_lightCoordSun[sunLampIdx]);
+
+	Ip *= 4.0;
+	Ip.x = floor(Ip.x) / 4.0;
+	Ip.y = floor(Ip.y) / 4.0;
+	Ip.z = floor(Ip.z) / 4.0;
 	//}
 	//else{
 	//IP *= 0.05;
