@@ -84,6 +84,8 @@ namespace DeeSynk.Core
                                                                       new Vector3(-3.0f, 5.0f, 6.0f), new Vector3(0.0f), new Vector3(0.0f, 1.0f, 0.0f),
                                                                       0.3f, 1.0f, 5f, 11f));
 
+            //Automated UBO managment is a MUST
+
             _world.LightComps[2].LightObject.BuildUBO(3, 8);
             _world.LightComps[2].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture1);
 
