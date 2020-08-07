@@ -23,8 +23,12 @@ namespace DeeSynk.Core
     public class Game
     {
         private World _world;
+
+        //Systems that act as a medium for components to communicate through, specific to certain purposes
+        #region SYSTEMS
         private SystemInput _systemInput;
         public SystemInput SystemInput { get => _systemInput; }
+        #endregion
 
         public Game()
         {
@@ -39,7 +43,9 @@ namespace DeeSynk.Core
             Managers.ShaderManager.GetInstance().Load();
             Managers.TextureManager.GetInstance().Load();
             Managers.ModelManager.GetInstance().Load();
+
             _world = new World();
+
             _systemInput = new SystemInput();
         }
 
@@ -79,12 +85,12 @@ namespace DeeSynk.Core
             _world.RenderComps[0].ValidateData();
             _world.RenderComps[1].ValidateData();
 
+            //Automated UBO managment is a MUST
+
             _world.LightComps[2] = new ComponentLight(LightType.SPOTLIGHT, 
                                                         new SpotLight(Color4.Red, 
                                                                       new Vector3(-3.0f, 5.0f, 6.0f), new Vector3(0.0f), new Vector3(0.0f, 1.0f, 0.0f),
                                                                       0.3f, 1.0f, 5f, 11f));
-
-            //Automated UBO managment is a MUST
 
             _world.LightComps[2].LightObject.BuildUBO(3, 8);
             _world.LightComps[2].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture1);
@@ -111,7 +117,7 @@ namespace DeeSynk.Core
                                                                     7.0f, 7.0f, 1.0f, 11.0f));
 
             _world.LightComps[5].LightObject.BuildUBO(7, 8);
-            _world.LightComps[5].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture4);
+            _world.LightComps[5].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture5);
 
         }
 
@@ -128,6 +134,7 @@ namespace DeeSynk.Core
         public void Render()
         {
             _world.Render();
+            //_ui.Render();
         }
     }
 }

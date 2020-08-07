@@ -157,70 +157,90 @@ namespace DeeSynk.Core.Components
         }
         public Camera(CameraMode cameraMode, float width, float height, float zNear, float zFar)
         {
-            if(cameraMode == CameraMode.ORTHOGRAPHIC)
+            switch(cameraMode)
             {
-                SetView(DEFAULT_LOCATION, DEFAULT_LOOK, DEFAULT_UP);
-                SetOrthographic(width, height, zNear, zFar);
-                BuildQuarternionBlock();
-                UpdateMatrices();
-            }
-            else if(cameraMode == CameraMode.PERSPECTIVE)
-            {
-                SetView(DEFAULT_LOCATION, DEFAULT_LOOK, DEFAULT_UP);
-                SetPerspectiveFOV(DEFAULT_FOV, width, height, zNear, zFar);
-                BuildQuarternionBlock();
-                UpdateMatrices();
+                case (CameraMode.ORTHOGRAPHIC):
+                    SetView(DEFAULT_LOCATION, DEFAULT_LOOK, DEFAULT_UP);
+                    SetOrthographic(width, height, zNear, zFar);
+                    BuildQuarternionBlock();
+                    UpdateMatrices();
+                    return;
+
+                case (CameraMode.PERSPECTIVE):
+                    SetView(DEFAULT_LOCATION, DEFAULT_LOOK, DEFAULT_UP);
+                    SetPerspectiveFOV(DEFAULT_FOV, width, height, zNear, zFar);
+                    BuildQuarternionBlock();
+                    UpdateMatrices();
+                    return;
+
+                default:
+                    return;
             }
         }
         public Camera(CameraMode cameraMode, float width, float height, float zNear, float zFar, Vector3 location, Vector3 lookAt, Vector3 up)
         {
-            if (cameraMode == CameraMode.ORTHOGRAPHIC)
+            switch (cameraMode)
             {
-                SetView(location, lookAt, up);
-                SetOrthographic(width, height, zNear, zFar);
-                BuildQuarternionBlock();
-                UpdateMatrices();
-            }
-            else if (cameraMode == CameraMode.PERSPECTIVE)
-            {
-                SetView(location, lookAt, up);
-                SetPerspectiveFOV(DEFAULT_FOV, width, height, zNear, zFar);
-                BuildQuarternionBlock();
-                UpdateMatrices();
+                case (CameraMode.ORTHOGRAPHIC):
+                    SetView(location, lookAt, up);
+                    SetOrthographic(width, height, zNear, zFar);
+                    BuildQuarternionBlock();
+                    UpdateMatrices();
+                    return;
+
+                case (CameraMode.PERSPECTIVE):
+                    SetView(location, lookAt, up);
+                    SetPerspectiveFOV(DEFAULT_FOV, width, height, zNear, zFar);
+                    BuildQuarternionBlock();
+                    UpdateMatrices();
+                    return;
+
+                default:
+                    return;
             }
         }
         public Camera(CameraMode cameraMode, float left, float right, float bottom, float top, float zNear, float zFar)
         {
-            if(cameraMode == CameraMode.ORTHOGRAPHIC_OFF_CENTER)
+            switch(cameraMode)
             {
-                SetView(DEFAULT_LOCATION, DEFAULT_LOOK, DEFAULT_UP);
-                SetOrthographicOffCenter(left, right, bottom, top, zNear, zFar);
-                BuildQuarternionBlock();
-                UpdateMatrices();
-            }
-            else if(cameraMode == CameraMode.PERSPECTIVE_OFF_CENTER)
-            {
-                SetView(DEFAULT_LOCATION, DEFAULT_LOOK, DEFAULT_UP);
-                SetPerspectiveOffCenter(left, right, bottom, top, zNear, zFar);
-                BuildQuarternionBlock();
-                UpdateMatrices();
+                case (CameraMode.ORTHOGRAPHIC_OFF_CENTER):
+                    SetView(DEFAULT_LOCATION, DEFAULT_LOOK, DEFAULT_UP);
+                    SetOrthographicOffCenter(left, right, bottom, top, zNear, zFar);
+                    BuildQuarternionBlock();
+                    UpdateMatrices();
+                    return;
+
+                case (CameraMode.PERSPECTIVE_OFF_CENTER):
+                    SetView(DEFAULT_LOCATION, DEFAULT_LOOK, DEFAULT_UP);
+                    SetPerspectiveOffCenter(left, right, bottom, top, zNear, zFar);
+                    BuildQuarternionBlock();
+                    UpdateMatrices();
+                    return;
+
+                default:
+                    return;
             }
         }
         public Camera(CameraMode cameraMode, float left, float right, float bottom, float top, float zNear, float zFar, Vector3 location, Vector3 lookAt, Vector3 up)
         {
-            if (cameraMode == CameraMode.ORTHOGRAPHIC_OFF_CENTER)
+            switch (cameraMode)
             {
-                SetView(location, lookAt, up);
-                SetOrthographicOffCenter(left, right, bottom, top, zNear, zFar);
-                BuildQuarternionBlock();
-                UpdateMatrices();
-            }
-            else if (cameraMode == CameraMode.PERSPECTIVE_OFF_CENTER)
-            {
-                SetView(location, lookAt, up);
-                SetPerspectiveOffCenter(left, right, bottom, top, zNear, zFar);
-                BuildQuarternionBlock();
-                UpdateMatrices();
+                case (CameraMode.ORTHOGRAPHIC_OFF_CENTER):
+                    SetView(location, lookAt, up);
+                    SetOrthographicOffCenter(left, right, bottom, top, zNear, zFar);
+                    BuildQuarternionBlock();
+                    UpdateMatrices();
+                    return;
+
+                case (CameraMode.PERSPECTIVE_OFF_CENTER):
+                    SetView(location, lookAt, up);
+                    SetPerspectiveOffCenter(left, right, bottom, top, zNear, zFar);
+                    BuildQuarternionBlock();
+                    UpdateMatrices();
+                    return;
+
+                default:
+                    return;
             }
         }
 

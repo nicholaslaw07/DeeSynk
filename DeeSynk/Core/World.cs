@@ -1,10 +1,11 @@
 ﻿using System;
+using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.Types.Transform;
 using DeeSynk.Core.Components.Types.Render;
+using DeeSynk.Core.Components.Types.UI;
 using OpenTK;
-using DeeSynk.Core.Components;
-using DeeSynk.Core.Managers;
 using OpenTK.Graphics.OpenGL4;
+
 
 namespace DeeSynk.Core
 {
@@ -14,7 +15,6 @@ namespace DeeSynk.Core
     using SystemTransform = Systems.SystemTransform;
     using SystemVAO = Systems.SystemVAO;
     using SystemModel = Systems.SystemModel;
-    using Buffers = Systems.Buffers;
 
 
     //Possible configuations of entities
@@ -69,6 +69,9 @@ namespace DeeSynk.Core
         public  ComponentCamera[]       CameraComps      { get => _cameraComps; }
         private ComponentLight[]        _lightComps;
         public  ComponentLight[]        LightComps       { get => _lightComps; }
+        private ComponentUI[]           _uiComps;
+        public ComponentUI[]            UIComps          { get => _uiComps; }
+
         #endregion
 
         private VAO[] _vaos;
@@ -81,16 +84,14 @@ namespace DeeSynk.Core
         {
             _existingGameObjects = new bool[OBJECT_MEMORY];
             _gameObjects      = new GameObject[OBJECT_MEMORY];
-
-            _systemRender     = new SystemRender(this);
-            _systemTransform  = new SystemTransform(this);
-
+            
             _transComps       = new ComponentTransform[OBJECT_MEMORY];
             _renderComps      = new ComponentRender[OBJECT_MEMORY];
             _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
             _textureComps     = new ComponentTexture[OBJECT_MEMORY];
             _cameraComps      = new ComponentCamera[OBJECT_MEMORY];
             _lightComps       = new ComponentLight[OBJECT_MEMORY];
+            _uiComps          = new ComponentUI[OBJECT_MEMORY];
 
             _vaos             = new VAO[OBJECT_MEMORY];
 
@@ -194,7 +195,8 @@ namespace DeeSynk.Core
 
         public void Render()
         {
-            _systemRender.RenderAll(ref _systemTransform);
+            _systemRender.RenderWorld(ref _systemTransform);
+            _systemRender.RenderUI();
         }
     }
 }

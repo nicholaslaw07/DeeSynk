@@ -69,6 +69,7 @@ namespace DeeSynk.Core.Components.GraphicsObjects.Lights
             GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Add(IntPtr.Zero, _bufferOffset), numOfVec4s * 16, _bufferData);
             AttachUBO(bindingLocation);
             _initUBO = true;
+
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
         }
 

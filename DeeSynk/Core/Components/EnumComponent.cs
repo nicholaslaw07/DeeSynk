@@ -29,6 +29,9 @@ namespace DeeSynk.Core.Components
         MODEL_STATIC  = 1 << 9,
         TEXTURE       = 1 << 10,
         CAMERA        = 1 << 11,
-        LIGHT         = 1 << 12
+        LIGHT         = 1 << 12,
+        UI_CANVAS    = 1 << 13,
+
+        UI_STANDARD   = UI_CANVAS | RENDER | MODEL_STATIC
     }
 }

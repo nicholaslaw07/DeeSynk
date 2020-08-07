@@ -169,6 +169,10 @@
     <Compile Include="Core\Components\Types\IComponent.cs" />
     <Compile Include="Core\Components\Models\Model.cs" />
     <Compile Include="Core\Components\GraphicsObjects\VAO.cs" />
+    <Compile Include="Core\Components\Types\UI\ComponentText.cs" />
+    <Compile Include="Core\Components\Types\UI\ComponentUI.cs" />
+    <Compile Include="Core\Components\UI\IUIElement.cs" />
+    <Compile Include="Core\Components\UI\UICanvas.cs" />
     <Compile Include="Core\Game.cs" />
     <Compile Include="Core\MainWindow.cs" />
     <Compile Include="Core\Managers\ModelManager.cs" />
@@ -182,6 +186,7 @@
     <Compile Include="Core\Systems\SystemRender.cs" />
     <Compile Include="Core\Systems\SystemTransform.cs" />
     <Compile Include="Core\Systems\SystemVAO.cs" />
+    <Compile Include="Core\UI.cs" />
     <Compile Include="Core\World.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -202,6 +207,7 @@
   <ItemGroup>
     <Folder Include="Core\Components\Models\Templates\" />
     <Folder Include="Core\SystemTools\" />
+    <Folder Include="Core\UIComponents\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Models\Collada\Schema\collada_schema_1_5.xml" />

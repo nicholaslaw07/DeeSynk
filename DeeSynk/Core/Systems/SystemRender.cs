@@ -101,15 +101,13 @@ namespace DeeSynk.Core.Systems
 
             int lightNum = 0;
 
-            var gameObjects = _world.GameObjects;
             GL.Enable(EnableCap.CullFace);
 
             GL.CullFace(CullFaceMode.Front);
             for(int jdx = 0; jdx < _world.ObjectMemory; jdx++)
             {
-                if (gameObjects[jdx].Components.HasFlag(Component.LIGHT))
+                if (_world.GameObjects[jdx].Components.HasFlag(Component.LIGHT))
                 {
-
                     if (_world.LightComps[jdx].LightObject.HasShadowMap)
                     {
                         var lightComp = _world.LightComps[jdx];
@@ -128,7 +126,7 @@ namespace DeeSynk.Core.Systems
                         {
                             if (_world.ExistingGameObjects[idx])
                             {
-                                if (gameObjects[idx].Components.HasFlag(RenderQualfier))
+                                if (_world.GameObjects [idx].Components.HasFlag(RenderQualfier))
                                 {
                                     Bind(idx, false);
                                     systemTransform.PushModelMatrix(idx);
@@ -150,17 +148,15 @@ namespace DeeSynk.Core.Systems
             GL.Clear(ClearBufferMask.DepthBufferBit);
         }
 
-        public void RenderAll(ref SystemTransform systemTransform)
+        public void RenderWorld(ref SystemTransform systemTransform)
         {
             RenderDepthMaps(ref systemTransform);
-
-            var gameObjects = _world.GameObjects;
 
             for (int idx=0; idx<_world.ObjectMemory; idx++)
             {
                 if (_world.ExistingGameObjects[idx])
                 {
-                    Component comps = gameObjects[idx].Components;
+                    Component comps = _world.GameObjects[idx].Components;
                     if (comps.HasFlag(RenderQualfier))
                     {
                         Bind(idx, true);
@@ -180,11 +176,12 @@ namespace DeeSynk.Core.Systems
                         systemTransform.PushModelMatrix(idx);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
 
-                        _world.LightComps[2].LightObject.ShadowMap.BindTexture(TextureUnit.Texture1, true);
-                        _world.LightComps[3].LightObject.ShadowMap.BindTexture(TextureUnit.Texture2, true);
-                        _world.LightComps[4].LightObject.ShadowMap.BindTexture(TextureUnit.Texture3, true);
-
-                        _world.LightComps[5].LightObject.ShadowMap.BindTexture(TextureUnit.Texture5, true);
+                        //Bind ShadowMaps to their respective texture units
+                        for(int i=0; i<_world.ObjectMemory; i++)
+                        {
+                            if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
+                                _world.LightComps[i].LightObject.ShadowMap.BindTexture();
+                        }
 
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }
@@ -203,6 +200,11 @@ namespace DeeSynk.Core.Systems
             GL.EndTransformFeedback();
             */
             //ENDTEST
+        }
+
+        public void RenderUI()
+        {
+
         }
     }
 }
