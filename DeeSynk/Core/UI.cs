@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 namespace DeeSynk.Core
 {
     using UICanvas = Components.Types.UI.UICanvas;
-    using IUIElement = Components.Types.UI.IUIElement;
+    using IUIElement = Components.Types.UI.UIElement;
+
+    //LIKELY DEPRICATED
 
     public class UI
     {

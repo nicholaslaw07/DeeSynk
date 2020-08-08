@@ -171,7 +171,7 @@
     <Compile Include="Core\Components\GraphicsObjects\VAO.cs" />
     <Compile Include="Core\Components\Types\UI\ComponentText.cs" />
     <Compile Include="Core\Components\Types\UI\ComponentUI.cs" />
-    <Compile Include="Core\Components\UI\IUIElement.cs" />
+    <Compile Include="Core\Components\UI\UIElement.cs" />
     <Compile Include="Core\Components\UI\UICanvas.cs" />
     <Compile Include="Core\Game.cs" />
     <Compile Include="Core\MainWindow.cs" />
@@ -207,7 +207,6 @@
   <ItemGroup>
     <Folder Include="Core\Components\Models\Templates\" />
     <Folder Include="Core\SystemTools\" />
-    <Folder Include="Core\UIComponents\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Models\Collada\Schema\collada_schema_1_5.xml" />
