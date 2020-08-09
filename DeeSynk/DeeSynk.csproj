@@ -173,6 +173,7 @@
     <Compile Include="Core\Components\Types\UI\ComponentUI.cs" />
     <Compile Include="Core\Components\UI\UIElement.cs" />
     <Compile Include="Core\Components\UI\UICanvas.cs" />
+    <Compile Include="Core\Components\UI\UIElementBox.cs" />
     <Compile Include="Core\Game.cs" />
     <Compile Include="Core\MainWindow.cs" />
     <Compile Include="Core\Managers\ModelManager.cs" />

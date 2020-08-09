@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,14 @@ namespace DeeSynk.Core.Components.Types.UI
     /// </summary>
     public enum UIElementType
     {
-        UI_BOX = 0
+        NONE = 0,
+        UI_BOX = 1
+    }
+
+    public enum UIPositionType
+    {
+        GLOBAL = 0,
+        LOCAL = 1
     }
 
     //Primarily used for organization and debug.  Most of the rendering protocols will be hand coded for each object.
@@ -63,5 +71,50 @@ namespace DeeSynk.Core.Components.Types.UI
         /// Type of object this UIElement is.
         /// </summary>
         public UIElementType ElementType { get => _elementType; }
+
+        private int _width;
+        /// <summary>
+        /// Width of the UIElement
+        /// </summary>
+        public int Width { get => _width; }
+
+        private int _height;
+        /// <summary>
+        /// Height of the UIElement
+        /// </summary>
+        public int Height { get => _height; }
+
+        private Vector2 _position;
+        /// <summary>
+        /// Position of the UIElement within a canvas or element
+        /// </summary>
+        public Vector2 Position { get => _position; }
+
+        private UIPositionType _positionType;
+        /// <summary>
+        /// States whether or not the Position variable dictates global canvas position or local element position.
+        /// </summary>
+        public UIPositionType PositionType { get => _positionType; }
+
+        private int _layer;
+        /// <summary>
+        /// This determines render order with 0 being the back most layer.
+        /// </summary>
+        public int Layer { get => _layer; }
+
+        public UIElement()
+        {
+            _childElementCount = 0;
+            _childElements = new UIElement[0];
+
+            _elementType = UIElementType.NONE;
+
+            _width = 0;
+            _height = 0;
+
+            _position = Vector2.Zero;
+
+            _layer = 0;
+        }
     }
 }

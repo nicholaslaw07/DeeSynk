@@ -188,6 +188,15 @@ namespace DeeSynk.Core.Systems
                 }
             }
 
+            /*
+             * ADD FBO RENDERING FOR POST PROCESSING
+             * THIS CAN JUST BE SIMPLE FOR NOW
+             * ADD LIGHT GLARE
+             *   CREATE POST SHADER
+             *   FIND LIGHT RELATIVE TO SCREEN
+             *   USE GAUSSIAN TO DISTRUBTE ACROSS FRAME
+             */
+
             //TEST
             /*
             GL.UseProgram(ShaderManager.GetInstance().GetProgram("detectEdges"));
