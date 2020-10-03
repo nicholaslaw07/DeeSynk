@@ -5,7 +5,7 @@ using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Components.Types.UI;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
-
+using DeeSynk.Core.Components.GraphicsObjects;
 
 namespace DeeSynk.Core
 {
@@ -23,7 +23,9 @@ namespace DeeSynk.Core
     //  Camera with Objects (Render as above)
     //  Light - Transform?
 
-
+    /// <summary>
+    /// Storage location for everything located within the scene whether direct or not.  This includes all or most rendering components.  These components or objects are then passed down to the respective systems unless they are definitively exclusive to a system.
+    /// </summary>
     public class World
     {
         private const uint OBJECT_MEMORY = 6;
@@ -31,6 +33,13 @@ namespace DeeSynk.Core
         /// Maximum number of GameObjects that can be stored inside of this world.
         /// </summary>
         public uint ObjectMemory { get => OBJECT_MEMORY; }
+
+        private const uint FBO_COUNT = 4;
+        /// <summary>
+        /// Total number of FBO objects available.
+        /// </summary>
+        public uint FBO_COunt { get => FBO_COUNT; }
+
         private GameObject[] _gameObjects;
         /// <summary>
         /// Array containing all GameObjects within this world.
@@ -80,6 +89,12 @@ namespace DeeSynk.Core
         /// </summary>
         public VAO[] VAOs { get => _vaos; }
 
+        private FBO[] _fbos;
+        /// <summary>
+        /// Array of frame buffer objects.
+        /// </summary>
+        public FBO[] FBOs { get => _fbos; }
+
         public World()
         {
             _existingGameObjects = new bool[OBJECT_MEMORY];
@@ -94,6 +109,7 @@ namespace DeeSynk.Core
             _uiComps          = new ComponentUI[OBJECT_MEMORY];
 
             _vaos             = new VAO[OBJECT_MEMORY];
+            _fbos             = new FBO[FBO_COUNT];
 
             _systemRender     = new SystemRender(this);
             _systemModel      = new SystemModel(this);
@@ -103,11 +119,14 @@ namespace DeeSynk.Core
 
         public void InitData()
         {
+            _fbos[0] = new FBO(true);
+
             _systemModel.UpdateMonitoredGameObjects();
             _systemTransform.UpdateMonitoredGameObjects();
 
             _systemModel.InitModel();
             _systemTransform.InitLocation();
+
         }
 
         //CREATE NEW OBJECT WITH BITMASKID
@@ -195,7 +214,7 @@ namespace DeeSynk.Core
 
         public void Render()
         {
-            _systemRender.RenderWorld(ref _systemTransform);
+            _systemRender.Render(ref _systemTransform);
             _systemRender.RenderUI();
         }
     }

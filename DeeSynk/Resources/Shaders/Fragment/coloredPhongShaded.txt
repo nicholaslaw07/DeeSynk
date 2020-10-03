@@ -169,7 +169,6 @@ vec3 SunLampIllumination(int sunLampIdx)
 	//}
 	return Ip;
 }
-
 void main(void)
 {
 	vec3 Ip = vec3(0.0);

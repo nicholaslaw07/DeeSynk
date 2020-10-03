@@ -45,6 +45,13 @@ namespace DeeSynk.Core.Components
             }
         }
 
+        private TextureUnit _textureUnit;
+        public TextureUnit TextureUnit
+        {
+            get => _textureUnit;
+            set => _textureUnit = value;
+        }
+
         private int _width, _height;
         public int Width { get => _width; }
         public int Height { get => _height; }
@@ -61,6 +68,16 @@ namespace DeeSynk.Core.Components
         public int AvailableSubLocations { get => _availableSubLocations; }
 
         public bool IsTextureAtlas { get => (_subTextureCount > 1); }
+
+        public Texture(int width, int height, int subTextureCount = 1)
+        {
+            GL.GenTextures(1, out _textureId);
+            _width = width;
+            _height = height;
+            _subTextureLocations = new SubTextureLocation[subTextureCount];
+            _subTextureCount = subTextureCount;
+            _availableSubLocations = 0;
+        }
 
         public Texture(int textureId, int width, int height, int subTextureCount)
         {
@@ -129,11 +146,18 @@ namespace DeeSynk.Core.Components
             return false;
         }
 
-        public void Bind(TextureUnit textureUnit)
+        public void Bind()
+        {
+            Bind(_textureUnit, false);
+        }
+
+        public void Bind(TextureUnit textureUnit, bool reassignTextureUnit)
         {
             GL.ActiveTexture(textureUnit);
             if (GL.GetInteger(GetPName.ActiveTexture) != _textureId)
                 GL.BindTexture(TextureTarget.Texture2D, _textureId);
+
+            _textureUnit = textureUnit;
         }
     }
 }

@@ -45,13 +45,16 @@ namespace DeeSynk.Core
 
         private MouseState msPrevious;
 
+        public static int width = 700;
+        public static int height = 500;
+
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be
         /// passed to the parent class constructor. The title of the window is then set with
         /// additional information, including the current OpenGL version.
         /// </summary>
-        public MainWindow() : base( 700,                        // initial width
-                                    500,                        // initial height
+        public MainWindow() : base( width,                        // initial width
+                                    height,                        // initial height
                                     GraphicsMode.Default,
                                     "DeeSynk",                  // initial window title
                                     GameWindowFlags.Default,

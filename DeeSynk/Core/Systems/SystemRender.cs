@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Algorithms;
 using DeeSynk.Core.Components;
+using DeeSynk.Core.Components.GraphicsObjects;
 using DeeSynk.Core.Components.GraphicsObjects.Lights;
 using DeeSynk.Core.Components.Models;
 using DeeSynk.Core.Components.Types.Render;
@@ -35,6 +36,8 @@ namespace DeeSynk.Core.Systems
 
         private VAO TEST_VAO;
 
+        private FBO[] _fbos;
+
         //SHADOW END
 
         public SystemRender(World world)
@@ -48,6 +51,8 @@ namespace DeeSynk.Core.Systems
             _textureComps = _world.TextureComps;
 
             TEST_VAO = new VAO(Buffers.VERTICES_ELEMENTS);
+
+            _fbos = _world.FBOs;
 
             //UpdateMonitoredGameObjects();
         }
@@ -91,6 +96,14 @@ namespace DeeSynk.Core.Systems
         }
 
         //RENDER PASS METHOD
+
+        public void Render(ref SystemTransform systemTransform)
+        {
+            RenderDepthMaps(ref systemTransform);
+            RenderScene(ref systemTransform);
+            RenderPost();
+            RenderUI();
+        }
 
         private void RenderDepthMaps(ref SystemTransform systemTransform)
         {
@@ -148,11 +161,10 @@ namespace DeeSynk.Core.Systems
             GL.Clear(ClearBufferMask.DepthBufferBit);
         }
 
-        public void RenderWorld(ref SystemTransform systemTransform)
+        public void RenderScene(ref SystemTransform systemTransform)
         {
-            RenderDepthMaps(ref systemTransform);
 
-            for (int idx=0; idx<_world.ObjectMemory; idx++)
+            for (int idx = 0; idx < _world.ObjectMemory; idx++)
             {
                 if (_world.ExistingGameObjects[idx])
                 {
@@ -177,7 +189,7 @@ namespace DeeSynk.Core.Systems
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
 
                         //Bind ShadowMaps to their respective texture units
-                        for(int i=0; i<_world.ObjectMemory; i++)
+                        for (int i = 0; i < _world.ObjectMemory; i++)
                         {
                             if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
                                 _world.LightComps[i].LightObject.ShadowMap.BindTexture();
@@ -189,6 +201,10 @@ namespace DeeSynk.Core.Systems
             }
 
             /*
+             * ADD FBO CLASS?
+             * THIS IS CONTINGENT ON HOW MUCH INFORMATION IS STORED IN AN FBO
+             * COULD BE EXTENDED TO A BUFFER OBJECT CLASS AND FBO INHERITS?
+             * 
              * ADD FBO RENDERING FOR POST PROCESSING
              * THIS CAN JUST BE SIMPLE FOR NOW
              * ADD LIGHT GLARE
@@ -209,6 +225,11 @@ namespace DeeSynk.Core.Systems
             GL.EndTransformFeedback();
             */
             //ENDTEST
+        }
+
+        public void RenderPost()
+        {
+
         }
 
         public void RenderUI()

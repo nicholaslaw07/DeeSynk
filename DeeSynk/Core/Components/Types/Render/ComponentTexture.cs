@@ -47,12 +47,12 @@ namespace DeeSynk.Core.Components.Types.Render
 
         public void BindTexture()
         {
-            _texture.Bind(DEFAULT_TEXTURE_UNIT);
+            _texture.Bind(DEFAULT_TEXTURE_UNIT, false);
         }
 
         public void BindTexture(TextureUnit textureUnit)
         {
-            _texture.Bind(textureUnit);
+            _texture.Bind(textureUnit, false);
         }
 
         public void Update(float time)
