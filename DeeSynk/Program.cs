@@ -16,10 +16,13 @@ namespace DeeSynk
 
     static class Program
     {
+        public static MainWindow window;
+
         [STAThread]
         static void Main()
         {
-            new MainWindow().Run(60);
+            window = new MainWindow();
+            window.Run(60);
         }
     }
 

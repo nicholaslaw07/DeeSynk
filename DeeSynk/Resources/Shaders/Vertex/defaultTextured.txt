@@ -1,14 +1,22 @@
 ﻿#version 450 core
 
 layout (location = 0) in vec4 position;
-layout (location = 1) in vec2 texCoord;
-layout (location = 2) in vec4 offset;
+layout (location = 2) in vec2 texCoord;
+layout (location = 3) in vec4 offset;
 layout (location = 5) uniform mat4 model_view;
 layout(location = 13) uniform mat4 modelMat;
+
+//UBO_BINDINGS
+layout(binding = 2) uniform Camera
+{
+	mat4 projection;  //model_view
+	vec4 location; //cameraLoc
+} camera;
+
 out vec2 vs_texCoord;
 
 void main(void)
 {
  vs_texCoord = texCoord;
- gl_Position = model_view * modelMat * (position + offset);
+ gl_Position = camera.projection * modelMat * (position + offset);
 }

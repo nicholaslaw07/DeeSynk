@@ -45,8 +45,8 @@ namespace DeeSynk.Core
 
         private MouseState msPrevious;
 
-        public static int width = 700;
-        public static int height = 500;
+        public static int width = 1920;
+        public static int height = 1080;
 
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be
@@ -64,6 +64,10 @@ namespace DeeSynk.Core
                                     GraphicsContextFlags.ForwardCompatible)
         {
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
+
+            Width = width;
+            Height = height;
+
             VSync = VSyncMode.Off;
             center = new Point(Width / 2, Height / 2);
             mousePos = PointToScreen(center);
@@ -82,6 +86,9 @@ namespace DeeSynk.Core
             GL.Viewport(0, 0, Width, Height);
             _camera.Width = Width;
             _camera.Height = Height;
+
+            width = Width;
+            height = Height;
 
             center = new Point(Width / 2, Height / 2);
             mousePos = PointToScreen(center);
@@ -148,14 +155,14 @@ namespace DeeSynk.Core
             frameCount++;
 
             if(sw.ElapsedMilliseconds % 20 == 0)
-                Title = $"DeeSynk | The WIP Student Video Game | Vsync: {VSync} | FPS: {fpsOld} | {_camera.Location.ToString()}";
+                Title = $"DeeSynk | The WIP Student Video Game | Vsync: {VSync} | FPS: {fpsOld} | {_camera.Location.ToString()} | {Width}x{Height}";
 
             if (sw.ElapsedMilliseconds > 1000/80)
             {
                 sw.Stop();
                 //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                 fpsOld = (long)(1f / timeCount * ((float)frameCount));
-                Title = $"DeeSynk | The WIP Student Video Game | Vsync: {VSync} | FPS: {fpsOld} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
+                Title = $"DeeSynk | The WIP Student Video Game | Vsync: {VSync} | FPS: {fpsOld} | {_camera.Location.ToString()} | {Width}x{Height}"; // adds miscellaneous information to the title bar of the window
                 timeCount = 0d;
                 frameCount = 0;
                 sw.Reset();

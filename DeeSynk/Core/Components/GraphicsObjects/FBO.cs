@@ -26,9 +26,6 @@ namespace DeeSynk.Core.Components.GraphicsObjects
         /// </summary>
         public Texture Texture { get => _texture; }
 
-        private int _tex;
-        public int Tex { get => _tex; }
-
         public bool HasTexture2D { get => _texture != null; }
 
         public FBO(bool addTex)
@@ -43,47 +40,25 @@ namespace DeeSynk.Core.Components.GraphicsObjects
         //Maybe this will bite me in the ass as I'm not doing as much preventative maintanence then.
         public void AddTexture()
         {
-            //_texture = new Texture(MainWindow.width, MainWindow.height);
-            //_texture = new Texture(1, 1);
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fboID);
+            _texture = new Texture(Program.window.Width, Program.window.Height);
 
-            int rbo;
-
-            GL.GenRenderbuffers(1, out rbo);
+            GL.GenRenderbuffers(1, out int rbo);
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
-            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent, MainWindow.width, MainWindow.height);
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent, _texture.Width, _texture.Height);
 
-            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, rbo);
-
-            GL.Enable(EnableCap.Texture2D);
-
-            GL.GenTextures(1, out _tex);
-            GL.BindTexture(TextureTarget.Texture2D, _tex); //_texture.TextureId
             //standard texture setup
+            GL.BindTexture(TextureTarget.Texture2D, _texture.TextureId);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, _texture.Width, _texture.Height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, MainWindow.width, MainWindow.height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);  //_texture.Width, _texture.Height
-
-            GL.Disable(EnableCap.Texture2D);
-
-            //GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fboID);
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _tex, 0); //_texture.TextureId
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
 
-            //GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
-            //GL.ReadBuffer(ReadBufferMode.ColorAttachment0);
-
-            /* int rbo;
-             GL.GenRenderbuffers(1, out rbo);
-             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
-             GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, MainWindow.width, MainWindow.height);
-
-             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
-             GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, rbo);*/
-
-            Console.WriteLine(GL.GetError());
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fboID);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _texture.TextureId, 0);
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, rbo);
 
             var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
             if (status != FramebufferErrorCode.FramebufferComplete)
@@ -96,9 +71,12 @@ namespace DeeSynk.Core.Components.GraphicsObjects
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 
-        public void Bind()
+        public void Bind(bool clearBuffer)
         {
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fboID);
+            GL.Viewport(0, 0, _texture.Width, _texture.Height);
+
+            if (clearBuffer) { GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit); }
         }
     }
 }

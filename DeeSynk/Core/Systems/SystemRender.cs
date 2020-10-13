@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -165,10 +166,26 @@ namespace DeeSynk.Core.Systems
             GL.Clear(ClearBufferMask.DepthBufferBit);
         }
 
+
+        /*
+         * ADD FBO CLASS?
+         * THIS IS CONTINGENT ON HOW MUCH INFORMATION IS STORED IN AN FBO
+         * COULD BE EXTENDED TO A BUFFER OBJECT CLASS AND FBO INHERITS?
+         * 
+         * ADD FBO RENDERING FOR POST PROCESSING
+         * THIS CAN JUST BE SIMPLE FOR NOW
+         * ADD LIGHT GLARE
+         *   CREATE POST SHADER
+         *   FIND LIGHT RELATIVE TO SCREEN
+         *   USE GAUSSIAN TO DISTRUBTE ACROSS FRAME
+         */
+
         public void RenderScene(ref SystemTransform systemTransform)
         {
-            _fbos[0].Bind();
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            int[] currentViewPort = new int[4];
+            GL.GetInteger(GetPName.Viewport, currentViewPort);  //automate this somehow, feels clunky
+
+            _fbos[0].Bind(true);
 
             for (int idx = 0; idx < _world.ObjectMemory; idx++)
             {
@@ -200,47 +217,20 @@ namespace DeeSynk.Core.Systems
                             if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
                                 _world.LightComps[i].LightObject.ShadowMap.BindTexture();
                         }
-                        //_fbos[0].Bind();
+
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }
                 }
             }
 
-            //Console.WriteLine(GL.GetError());
-            //GL.Clear(ClearBufferMask.ColorBufferBit);
-
-            /*
-             * ADD FBO CLASS?
-             * THIS IS CONTINGENT ON HOW MUCH INFORMATION IS STORED IN AN FBO
-             * COULD BE EXTENDED TO A BUFFER OBJECT CLASS AND FBO INHERITS?
-             * 
-             * ADD FBO RENDERING FOR POST PROCESSING
-             * THIS CAN JUST BE SIMPLE FOR NOW
-             * ADD LIGHT GLARE
-             *   CREATE POST SHADER
-             *   FIND LIGHT RELATIVE TO SCREEN
-             *   USE GAUSSIAN TO DISTRUBTE ACROSS FRAME
-             */
-
-            //TEST
-            /*
-            GL.UseProgram(ShaderManager.GetInstance().GetProgram("detectEdges"));
-            systemTransform.PushModelMatrix(0);
-            Bind(0, false);
-            if(GL.GetInteger(GetPName.TransformFeedbackBinding) != TEST_VAO.Buffers[1])
-                GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, TEST_VAO.Buffers[1]);
-            GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Lines);
-            GL.DrawElements(PrimitiveType.Triangles, ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            GL.EndTransformFeedback();
-            */
-            //ENDTEST
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.Viewport(currentViewPort[0], currentViewPort[1], currentViewPort[2], currentViewPort[3]);
 
             RenderScene2(ref systemTransform);
         }
 
         public void RenderScene2(ref SystemTransform systemTransform)
         {
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
             for (int idx = 0; idx < _world.ObjectMemory; idx++)
             {
@@ -262,7 +252,7 @@ namespace DeeSynk.Core.Systems
                         {
                             //_textureComps[idx].BindTexture(TextureUnit.Texture0);
                             GL.ActiveTexture(TextureUnit.Texture0);
-                            GL.BindTexture(TextureTarget.Texture2D, _fbos[0].Tex); //_world.LightComps[2].LightObject.ShadowMap.Texture
+                            GL.BindTexture(TextureTarget.Texture2D, _fbos[0].Texture.TextureId); //_world.LightComps[2].LightObject.ShadowMap.Texture
                         }
                         //Console.WriteLine(GL.GetError());
                         systemTransform.PushModelMatrix(idx);
@@ -293,6 +283,33 @@ namespace DeeSynk.Core.Systems
     }
 }
 
+//Outline feature in Render
+//TEST
+
+/*
+GL.UseProgram(ShaderManager.GetInstance().GetProgram("detectEdges"));
+systemTransform.PushModelMatrix(0);
+Bind(0, false);
+if(GL.GetInteger(GetPName.TransformFeedbackBinding) != TEST_VAO.Buffers[1])
+    GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, TEST_VAO.Buffers[1]);
+GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Lines);
+GL.DrawElements(PrimitiveType.Triangles, ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+GL.EndTransformFeedback();
+*/
+
+//ENDTEST
+
+//Possibility for the future
+/*
+ * Add automatic shader attribute assigning so that shaders can be more optimized with layouts.
+ */
+
+//General advice for the future
+/*
+ * Make this game engine even more automated than it is.  A large and daunting, but good goal would be adding rendering cues and batched render calls to reduce load on cpu with gpu calls.
+ * Difficult and long algorithms will need to be written so that more processes can be automated on startup and to make the engine more modular and versailte in its uses.
+ * These algorithms should have the goal of not reducing the efficiency of rendering or real-time side of things but instead should only impact start-up.
+ */
 
 //Notes on ways to optimize for the future
 //    Store multiple objects inside of the same vertex array to eliminate calls that bind the VAO as they are expensive
