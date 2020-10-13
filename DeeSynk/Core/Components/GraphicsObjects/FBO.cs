@@ -26,6 +26,9 @@ namespace DeeSynk.Core.Components.GraphicsObjects
         /// </summary>
         public Texture Texture { get => _texture; }
 
+        private int _tex;
+        public int Tex { get => _tex; }
+
         public bool HasTexture2D { get => _texture != null; }
 
         public FBO(bool addTex)
@@ -35,21 +38,52 @@ namespace DeeSynk.Core.Components.GraphicsObjects
             if (addTex) { AddTexture(); }
         }
 
+        //Ideally this should be more customizable but I can't think of a use case for such customizability now.
+        //The general philsophy that I have right now is if I don't see a need for it I'm not going to implement it.
+        //Maybe this will bite me in the ass as I'm not doing as much preventative maintanence then.
         public void AddTexture()
         {
-            _texture = new Texture(MainWindow.width, MainWindow.height);
-            GL.BindTexture(TextureTarget.Texture2D, _texture.TextureId);
+            //_texture = new Texture(MainWindow.width, MainWindow.height);
+            //_texture = new Texture(1, 1);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fboID);
 
+            int rbo;
+
+            GL.GenRenderbuffers(1, out rbo);
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent, MainWindow.width, MainWindow.height);
+
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, rbo);
+
+            GL.Enable(EnableCap.Texture2D);
+
+            GL.GenTextures(1, out _tex);
+            GL.BindTexture(TextureTarget.Texture2D, _tex); //_texture.TextureId
+            //standard texture setup
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, MainWindow.width, MainWindow.height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);  //_texture.Width, _texture.Height
 
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fboID);
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.Color, TextureTarget.Texture2D, _texture.TextureId, 0);
+            GL.Disable(EnableCap.Texture2D);
 
-            GL.DrawBuffer(DrawBufferMode.None);
-            GL.ReadBuffer(ReadBufferMode.None);
+            //GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fboID);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _tex, 0); //_texture.TextureId
+
+
+            //GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+            //GL.ReadBuffer(ReadBufferMode.ColorAttachment0);
+
+            /* int rbo;
+             GL.GenRenderbuffers(1, out rbo);
+             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
+             GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, MainWindow.width, MainWindow.height);
+
+             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
+             GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, rbo);*/
+
+            Console.WriteLine(GL.GetError());
 
             var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
             if (status != FramebufferErrorCode.FramebufferComplete)
@@ -57,6 +91,7 @@ namespace DeeSynk.Core.Components.GraphicsObjects
             else
                 _init = true;
 
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
             GL.BindTexture(TextureTarget.Texture2D, 0);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }

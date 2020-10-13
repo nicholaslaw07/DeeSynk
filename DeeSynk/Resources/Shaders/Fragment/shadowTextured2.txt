@@ -20,7 +20,7 @@ layout(binding=6) uniform sampler2D sunLamp1;
 layout(binding=7) uniform sampler2D sunLamp2;
 layout(binding=8) uniform sampler2D sunLamp3;
 
-out vec4 color;
+layout(location=0) out vec4 color;
 
 uniform float fallOutDivisor = 5;
 
@@ -84,7 +84,7 @@ float Attenuation(vec4 lightCoord)
 void main(void)
 {
 	vec4 c = texture(tex, vs_texCoord);
-	c.a = 1;
+	//c.a = 1;
 	vec4 cNew = vec4(0);
 
 	for(int i=0; i<3; i++)
@@ -109,5 +109,8 @@ void main(void)
 						 ShadowFactor(0, 1, vs_lightCoordSun[0]) *
 						 Attenuation(vec4(vs_transPosiSun[0], 1.0)) * 1.5;
 	cNew.a = 1;
-	color = cNew;
+	//color = cNew;
+	//if(color == vec4(0))
+	//	color = vec4(1);
+	color = c;
 }

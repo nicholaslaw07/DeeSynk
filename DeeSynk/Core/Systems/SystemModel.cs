@@ -89,7 +89,7 @@ namespace DeeSynk.Core.Systems
                                                             ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_Y | ConstructionFlags.VECTOR3_SCALE |
                                                             ConstructionFlags.VECTOR3_DIMENSIONS |
                                                             ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
-                                                            v10, 3.1415927f / 2f, v14, v11, v12, v13);
+                                                            v10, 0.0f, v14, v11, v12, v13);
         }
 
         //TEST END
