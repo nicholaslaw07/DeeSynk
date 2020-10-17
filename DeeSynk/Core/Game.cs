@@ -24,6 +24,10 @@ namespace DeeSynk.Core
     {
         private World _world;
 
+        //This is used for loading objects into world.  Since each object has its own unique index, we only need a
+        //global index counter that works for all objects.  (i.e. two seperate objects cannot both have index 4)
+        private int _compIdx;
+
         //Systems that act as a medium for components to communicate through, specific to certain purposes
         #region SYSTEMS
         private SystemInput _systemInput;
@@ -45,6 +49,7 @@ namespace DeeSynk.Core
             Managers.ModelManager.GetInstance().Load();
 
             _world = new World();
+            _compIdx = 0;
 
             _systemInput = new SystemInput();
         }
@@ -59,12 +64,15 @@ namespace DeeSynk.Core
             //Create the objects in the world array of GameObjects - these objects are blank and only hold the ComponentMask
             _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM);
             _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
+            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
 
             _world.CreateGameObject(Component.LIGHT);
             _world.CreateGameObject(Component.LIGHT);
             _world.CreateGameObject(Component.LIGHT);
 
             _world.CreateGameObject(Component.LIGHT);
+
+            _world.CreateGameObject(Component.CAMERA);
 
             //Initialize all of the data in the world
             _world.InitData();
@@ -73,52 +81,86 @@ namespace DeeSynk.Core
             //TODO add the ability to load in these objects from a file to make the process act more how it would in a real world scenario
             _world.TextureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
 
-            _world.SystemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, 0, 0);
-            _world.SystemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, 1, 1);
 
 
             var sm = ShaderManager.GetInstance();
 
-            _world.RenderComps[0].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");
-            _world.RenderComps[1].PROGRAM_ID = sm.GetProgram("shadowTextured2");
+            //the models are added via the SystemModel class
 
-            _world.RenderComps[0].ValidateData();
-            _world.RenderComps[1].ValidateData();
+            _world.SystemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
+            _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");
+            _world.RenderComps[_compIdx].ValidateData();
+
+            IncrementComponentIndex();
+            _world.SystemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
+            _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("shadowTextured2");
+            _world.RenderComps[_compIdx].ValidateData();
+
+            IncrementComponentIndex();
+            _world.SystemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
+            _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("defaultPostFinal");
+            _world.RenderComps[_compIdx].IsFinalRenderPlane = true;
+            _world.RenderComps[_compIdx].ValidateData();
 
             //Automated UBO managment is a MUST
 
-            _world.LightComps[2] = new ComponentLight(LightType.SPOTLIGHT, 
+            IncrementComponentIndex();
+            _world.LightComps[_compIdx] = new ComponentLight(LightType.SPOTLIGHT, 
                                                         new SpotLight(Color4.Red, 
                                                                       new Vector3(-3.0f, 5.0f, 6.0f), new Vector3(0.0f), new Vector3(0.0f, 1.0f, 0.0f),
                                                                       0.3f, 1.0f, 5f, 11f));
 
-            _world.LightComps[2].LightObject.BuildUBO(3, 8);
-            _world.LightComps[2].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture1);
+            _world.LightComps[_compIdx].LightObject.BuildUBO(3, 8);
+            _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture1);
 
-            _world.LightComps[3] = new ComponentLight(LightType.SPOTLIGHT,
+            IncrementComponentIndex();
+            _world.LightComps[_compIdx] = new ComponentLight(LightType.SPOTLIGHT,
                                                         new SpotLight(Color4.Blue,
                                                                       new Vector3(3.0f, 5.0f, 6.0f), new Vector3(0.0f), new Vector3(0.0f, 1.0f, 0.0f),
                                                                       0.3f, 1.0f, 5f, 11f));
 
-            _world.LightComps[3].LightObject.BuildUBO(4, 8);
-            _world.LightComps[3].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture2);
+            _world.LightComps[_compIdx].LightObject.BuildUBO(4, 8);
+            _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture2);
 
-            _world.LightComps[4] = new ComponentLight(LightType.SPOTLIGHT,
+            IncrementComponentIndex();
+            _world.LightComps[_compIdx] = new ComponentLight(LightType.SPOTLIGHT,
                                                         new SpotLight(new Color4(0.0f, 1.0f, 0.0f, 1.0f),
                                                                       new Vector3(0.0f, 5.0f, 6.0f * 1.118f), new Vector3(0.0f), new Vector3(0.0f, 1.0f, 0.0f),
                                                                       0.3f, 1.0f, 5.7f, 11.0f));
 
-            _world.LightComps[4].LightObject.BuildUBO(5, 8);
-            _world.LightComps[4].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture3);
+            _world.LightComps[_compIdx].LightObject.BuildUBO(5, 8);
+            _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture3);
 
-            _world.LightComps[5] = new ComponentLight(LightType.SUN,
+            IncrementComponentIndex();
+            _world.LightComps[_compIdx] = new ComponentLight(LightType.SUN,
                                                         new SunLamp(Color4.White,
                                                                     new Vector3(0.0f, 5.0f, 7.0f), new Vector3(0.0f), new Vector3(0.0f, 1.0f, 0.0f),
                                                                     7.0f, 7.0f, 1.0f, 11.0f));
 
-            _world.LightComps[5].LightObject.BuildUBO(7, 8);
-            _world.LightComps[5].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture5);
+            _world.LightComps[_compIdx].LightObject.BuildUBO(7, 8);
+            _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture5);
 
+            IncrementComponentIndex();
+            _world.CameraComps[_compIdx] = new ComponentCamera(new Camera(CameraMode.ORTHOGRAPHIC, 0.5f, 0.5f, -1.0f, 2.0f));
+            _world.CameraComps[_compIdx].Camera.BuildUBO(11, 5);
+
+        }
+
+        /// <summary>
+        /// Increases the current component index by 1 and returns the value.
+        /// </summary>
+        /// <returns></returns>
+        public int NextComponentIndex()
+        {
+            return ++_compIdx;
+        }
+
+        /// <summary>
+        /// Increases the current component index by 1, but does not return the value.
+        /// </summary>
+        public void IncrementComponentIndex()
+        {
+            _compIdx++;
         }
 
         /// <summary>

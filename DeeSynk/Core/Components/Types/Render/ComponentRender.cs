@@ -58,6 +58,10 @@ namespace DeeSynk.Core.Components.Types.Render
 
         private int _indexCount;
         public int IndexCount { get => _indexCount; }
+
+        private bool _isFinalRenderPlane;
+        public bool IsFinalRenderPlane { get => _isFinalRenderPlane; set => _isFinalRenderPlane = value; }
+
         //Render Layer
         //Render method (2D or 3D)
         //Is simple sprite?  Idk

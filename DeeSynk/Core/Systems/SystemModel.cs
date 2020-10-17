@@ -7,6 +7,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -67,14 +68,14 @@ namespace DeeSynk.Core.Systems
             var v01 = new Vector3(5f, 5f, 5f);
             var v02 = new Vector2(0.0f, 0.0f);
             var v03 = new Vector2(1.0f, 1.0f);
-            var v21 = Color4.White;
+            var v04 = Color4.White;
 
             Random r = new Random();
 
 
             _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
                                         ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.COLOR4_COLOR | ConstructionFlags.VECTOR3_SCALE,
-                                        new Vector3(0, 0.5f, 0), new Vector3(5f, 5f, 5f), v21);
+                                        new Vector3(0, 0.5f, 0), new Vector3(5f, 5f, 5f), v04);
 
             Texture t = TextureManager.GetInstance().GetTexture("wood");
             float width = t.Width;
@@ -90,6 +91,14 @@ namespace DeeSynk.Core.Systems
                                                             ConstructionFlags.VECTOR3_DIMENSIONS |
                                                             ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
                                                             v10, 0.0f, v14, v11, v12, v13);
+
+            var v20 = new Vector3(-0.5f, -0.5f, -1.0f);
+            var v21 = new Vector3(1.0f, 1.0f, 0.0f);
+            var v22 = new Vector2(0.0f, 0.0f);
+            var v23 = new Vector2(1.0f, 1.0f);
+            _staticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.TemplatePlaneXY,
+                                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.VECTOR3_DIMENSIONS | ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
+                                                            v20, v21, v22, v23);
         }
 
         //TEST END

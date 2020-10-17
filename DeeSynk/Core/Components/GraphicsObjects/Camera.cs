@@ -133,6 +133,9 @@ namespace DeeSynk.Core.Components
 
         public int BufferOffset => throw new NotImplementedException();
 
+        /// <summary>
+        /// Default constructor, sets to an orthographic view with a space of unit size.  ZFar extends equally far behind as in front.
+        /// </summary>
         public Camera()
         {
             SetView(DEFAULT_LOCATION, DEFAULT_LOOK, DEFAULT_UP);
@@ -140,6 +143,15 @@ namespace DeeSynk.Core.Components
             BuildQuarternionBlock();
             UpdateMatrices();
         }
+
+        /// <summary>
+        /// Creates a centered perspective view with default view parameters.
+        /// </summary>
+        /// <param name="fov">Field of view in radians.</param>
+        /// <param name="width">Width of the camera sensor.</param>
+        /// <param name="height">Height of the camera sensor.</param>
+        /// <param name="zNear">Distance from the camera to begin near-field clipping in world units.</param>
+        /// <param name="zFar">Distance from the camera to begin far-field clipping in world units.</param>
         public Camera(float fov, float width, float height, float zNear, float zFar)
         {
             SetView(Vector3.Zero, new Vector3(0.0f, 0.0f, -1.0f), new Vector3(0.0f, 1.0f, 0.0f));
@@ -148,6 +160,18 @@ namespace DeeSynk.Core.Components
             UpdateMatrices();
 
         }
+
+        /// <summary>
+        /// Creates a centered perspective view with specified view parameters.
+        /// </summary>
+        /// <param name="fov">Field of view in radians.</param>
+        /// <param name="width">Width of the camera sensor.  Mathematically is a ratio, not absolute size.</param>
+        /// <param name="height">Height of the camera sensor.  Mathematically is a ratio, not absolute size.</param>
+        /// <param name="zNear">Distance from the camera to begin near-field clipping in world units.</param>
+        /// <param name="zFar">Distance from the camera to begin far-field clipping in world units.</param>
+        /// <param name="location">Position of the camera in world units.</param>
+        /// <param name="lookAt">The location vector (may be normalized to a rotation) that the camera looks in the direction of.</param>
+        /// <param name="up">The direction that is considered to be up, towards the sky, or always above the camera.</param>
         public Camera(float fov, float width, float height, float zNear, float zFar, Vector3 location, Vector3 lookAt, Vector3 up)
         {
             SetView(location, lookAt, up);
@@ -155,7 +179,16 @@ namespace DeeSynk.Core.Components
             BuildQuarternionBlock();
             UpdateMatrices();
         }
-        public Camera(CameraMode cameraMode, float width, float height, float zNear, float zFar)
+
+        /// <summary>
+        /// Creates a camera with a specified centered view matrix type with default FOV (if applicable) and view parameters.
+        /// </summary>
+        /// <param name="cameraMode">The type of view matrix used by this camera.</param>
+        /// <param name="width">Width of the camera sensor.  Measured in world units for orthographic and unitless for perspective.</param>
+        /// <param name="height">Height of the camera sensor.  Measured in world units for orthographic and unitless for perspective.</param>
+        /// <param name="zNear">Distance from the camera to begin near-field clipping in world units.</param>
+        /// <param name="zFar">Distance from the camera to begin far-field clipping in world units.</param>
+        public Camera(CameraMode cameraMode, float width, float height, float zNear, float zFar)  //perspective should rarely be used here since a specified FOV is much more useful.
         {
             switch(cameraMode)
             {
@@ -174,9 +207,21 @@ namespace DeeSynk.Core.Components
                     return;
 
                 default:
-                    return;
+                    throw new Exception($"Invalid CameraMode for constructor: {cameraMode}.");
             }
         }
+
+        /// <summary>
+        /// Creates a camera with a specified centered view matrix type and view parameters with the default FOV (if applicable).
+        /// </summary>
+        /// <param name="cameraMode">The type of view matrix used by this camera.</param>
+        /// <param name="width">Width of the camera sensor.  Measured in world units for orthographic and unitless for perspective.</param>
+        /// <param name="height">Height of the camera sensor.  Measured in world units for orthographic and unitless for perspective.</param>
+        /// <param name="zNear">Distance from the camera to begin near-field clipping in world units.</param>
+        /// <param name="zFar">Distance from the camera to begin far-field clipping in world units.</param>
+        /// <param name="location">Position of the camera in world units.</param>
+        /// <param name="lookAt">The location vector (may be normalized to a rotation) that the camera looks in the direction of.</param>
+        /// <param name="up">The direction that is considered to be up, towards the sky, or always above the camera.</param>
         public Camera(CameraMode cameraMode, float width, float height, float zNear, float zFar, Vector3 location, Vector3 lookAt, Vector3 up)
         {
             switch (cameraMode)
@@ -196,9 +241,20 @@ namespace DeeSynk.Core.Components
                     return;
 
                 default:
-                    return;
+                    throw new Exception($"Invalid CameraMode for constructor: {cameraMode}");
             }
         }
+
+        /// <summary>
+        /// Creates a camera with a specified off-center view matrix type and default view parameters.
+        /// </summary>
+        /// <param name="cameraMode">The type of view matrix used by this camera.</param>
+        /// <param name="left">The distance to the left edge of the view frustrum.</param>
+        /// <param name="right">The distance to the right edge of the view frustrum.</param>
+        /// <param name="bottom">The distance to the bottom edge of the view frustrum.</param>
+        /// <param name="top">The distance to the top edge of the view frustrum.</param>
+        /// <param name="zNear">Distance from the camera to begin near-field clipping in world units.</param>
+        /// <param name="zFar">Distance from the camera to begin far-field clipping in world units.</param>
         public Camera(CameraMode cameraMode, float left, float right, float bottom, float top, float zNear, float zFar)
         {
             switch(cameraMode)
@@ -218,9 +274,23 @@ namespace DeeSynk.Core.Components
                     return;
 
                 default:
-                    return;
+                    throw new Exception($"Invalid CameraMode for constructor: {cameraMode}.");
             }
         }
+
+        /// <summary>
+        /// Creates a camera with a specified off-center view matrix type and view parameters.
+        /// </summary>
+        /// <param name="cameraMode">The type of view matrix used by this camera.</param>
+        /// <param name="left">The distance to the left edge of the view frustrum.</param>
+        /// <param name="right">The distance to the right edge of the view frustrum.</param>
+        /// <param name="bottom">The distance to the bottom edge of the view frustrum.</param>
+        /// <param name="top">The distance to the top edge of the view frustrum.</param>
+        /// <param name="zNear">Distance from the camera to begin near-field clipping in world units.</param>
+        /// <param name="zFar">Distance from the camera to begin far-field clipping in world units.</param>
+        /// <param name="location">Position of the camera in world units.</param>
+        /// <param name="lookAt">The location vector (may be normalized to a rotation) that the camera looks in the direction of.</param>
+        /// <param name="up">The direction that is considered to be up, towards the sky, or always above the camera.</param>
         public Camera(CameraMode cameraMode, float left, float right, float bottom, float top, float zNear, float zFar, Vector3 location, Vector3 lookAt, Vector3 up)
         {
             switch (cameraMode)
@@ -240,7 +310,7 @@ namespace DeeSynk.Core.Components
                     return;
 
                 default:
-                    return;
+                    throw new Exception($"Invalid CameraMode for constructor: {cameraMode}.");
             }
         }
 

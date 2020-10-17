@@ -98,11 +98,6 @@ void main(void)
 						 Attenuation(vec4(vs_TransPosiSpot[i], 1.0)) * 1.5;
 	}
 
-	//For future reference, when adding a TEST section in the code, be sure to specifiy what the test is so that we don't lose track of it and need to revert without causing other errors.
-	//TEST - Removing all spotlights from the lighting calculations to focus on spotlight testing.  Might be more adventageous to simply create test shaders.
-	//cNew = vec4(0.0);
-	//TESTEND
-
 	cNew += vec4(sunLamps[0].sunLampColor.x * c.x, 
 						 sunLamps[0].sunLampColor.y * c.y, 
 						 sunLamps[0].sunLampColor.z * c.z,
@@ -111,7 +106,4 @@ void main(void)
 						 Attenuation(vec4(vs_transPosiSun[0], 1.0)) * 1.5;
 	cNew.a = 1;
 	color = cNew;
-	//if(color == vec4(0))
-	//	color = vec4(1);
-	//color = c;
 }

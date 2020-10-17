@@ -57,9 +57,6 @@ namespace DeeSynk.Core.Systems
             _fbos = _world.FBOs;
 
             //UpdateMonitoredGameObjects();
-
-            _postCamera = new Camera(CameraMode.ORTHOGRAPHIC, 1.0f, 1.0f, -1.0f, 1.0f);
-            _postCamera.BuildUBO(11, 5);
         }
 
         public void PushCameraRef(ref Camera camera)
@@ -106,7 +103,7 @@ namespace DeeSynk.Core.Systems
         {
             RenderDepthMaps(ref systemTransform);
             RenderScene(ref systemTransform);
-            RenderPost();
+            RenderPost(ref systemTransform);
             RenderUI();
         }
 
@@ -180,6 +177,21 @@ namespace DeeSynk.Core.Systems
          *   USE GAUSSIAN TO DISTRUBTE ACROSS FRAME
          */
 
+
+        /* Steps to add FBO rendering and post.
+         * 
+         * Create seperate orthographic camera sized to fit the window.  (A new camera component).
+         * Create a VAO dedicated to rendering the scene to a quad.  This will need a distinguising qualifier so that it isn't used in the scene.
+         *      A visibility or scene membership attribute might work.
+         * Create a shader dedicated to fbo texture rendering, although defaultTextured should work if there is no post processing.
+         * 
+         * Create the glare shader.
+         */
+
+        /*
+         * For the future, make the creation of FBO rendering and post processing more modular if possible.
+         */
+
         public void RenderScene(ref SystemTransform systemTransform)
         {
             int[] currentViewPort = new int[4];
@@ -192,7 +204,7 @@ namespace DeeSynk.Core.Systems
                 if (_world.ExistingGameObjects[idx])
                 {
                     Component comps = _world.GameObjects[idx].Components;
-                    if (comps.HasFlag(RenderQualfier))
+                    if (comps.HasFlag(RenderQualfier) && !_renderComps[idx].IsFinalRenderPlane)
                     {
                         Bind(idx, true);
 
@@ -225,55 +237,31 @@ namespace DeeSynk.Core.Systems
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Viewport(currentViewPort[0], currentViewPort[1], currentViewPort[2], currentViewPort[3]);
-
-            RenderScene2(ref systemTransform);
         }
-
-        public void RenderScene2(ref SystemTransform systemTransform)
+        public void RenderPost(ref SystemTransform systemTransform)
         {
-
             for (int idx = 0; idx < _world.ObjectMemory; idx++)
             {
                 if (_world.ExistingGameObjects[idx])
                 {
                     Component comps = _world.GameObjects[idx].Components;
-                    if (comps.HasFlag(RenderQualfier))
+                    if (comps.HasFlag(RenderQualfier) && _renderComps[idx].IsFinalRenderPlane)
                     {
                         Bind(idx, true);
 
-                        if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))
-                        {
-                            var colorArr = _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
-                            GL.Uniform4(17, color);
-                        }
-
                         if (comps.HasFlag(Component.TEXTURE))
                         {
-                            //_textureComps[idx].BindTexture(TextureUnit.Texture0);
                             GL.ActiveTexture(TextureUnit.Texture0);
-                            GL.BindTexture(TextureTarget.Texture2D, _fbos[0].Texture.TextureId); //_world.LightComps[2].LightObject.ShadowMap.Texture
+                            GL.BindTexture(TextureTarget.Texture2D, _fbos[0].Texture.TextureId);
                         }
-                        //Console.WriteLine(GL.GetError());
+
                         systemTransform.PushModelMatrix(idx);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
-
-                        //Bind ShadowMaps to their respective texture units
-                        for (int i = 0; i < _world.ObjectMemory; i++)
-                        {
-                            if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
-                                _world.LightComps[i].LightObject.ShadowMap.BindTexture();
-                        }
 
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }
                 }
             }
-        }
-
-        public void RenderPost()
-        {
-
         }
 
         public void RenderUI()

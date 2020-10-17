@@ -13,6 +13,12 @@ layout(binding = 2) uniform Camera
 	vec4 location; //cameraLoc
 } camera;
 
+layout(binding = 11) uniform PostCamera
+{
+	mat4 projection;  //model_view
+	vec4 location; //cameraLoc
+} postCamera;
+
 out vec2 vs_texCoord;
 
 void main(void)

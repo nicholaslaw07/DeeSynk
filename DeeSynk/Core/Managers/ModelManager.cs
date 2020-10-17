@@ -187,7 +187,7 @@ namespace DeeSynk.Core.Managers
 
                 if (superIndex >= MAX_INDEX_SIZE)
                 {
-                    throw new Exception("Woah there cowboy, that's too many object you have there.  You can wrangle that many cows now can you.");
+                    throw new Exception("Woahhhh cowboy, that's too many object you have there.  You can't herd that many cows!");
                 }
                 testName = keyName + ((superIndex > 0) ? "" : ("_" + superIndex.ToString() + "_")) + index.ToString();
                 index++;
@@ -396,9 +396,7 @@ namespace DeeSynk.Core.Managers
             }
             catch(Exception e)
             {
-                Console.WriteLine("Error loading '.DAE' file type at {0}", filePath);
-                Console.WriteLine(e.ToString());
-                return;
+                throw new Exception($@"Error loading '.DAE' file type at {filePath}", e);
             }
         }
 

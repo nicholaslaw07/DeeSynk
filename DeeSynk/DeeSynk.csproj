@@ -177,6 +177,7 @@
     <Compile Include="Core\Components\UI\UIElementBox.cs" />
     <Compile Include="Core\Game.cs" />
     <Compile Include="Core\MainWindow.cs" />
+    <Compile Include="Core\Managers\ComponentManager.cs" />
     <Compile Include="Core\Managers\ModelManager.cs" />
     <Compile Include="Core\Managers\TextureManager.cs" />
     <Compile Include="Core\Managers\IManager.cs" />

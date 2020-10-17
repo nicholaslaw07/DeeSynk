@@ -28,7 +28,7 @@ namespace DeeSynk.Core
     /// </summary>
     public class World
     {
-        private const uint OBJECT_MEMORY = 6;
+        private const uint OBJECT_MEMORY = 8;
         /// <summary>
         /// Maximum number of GameObjects that can be stored inside of this world.
         /// </summary>
@@ -119,7 +119,7 @@ namespace DeeSynk.Core
 
         public void InitData()
         {
-            _fbos[0] = new FBO(true);
+            _fbos[0] = new FBO(Program.window.Width, Program.window.Height);
 
             _systemModel.UpdateMonitoredGameObjects();
             _systemTransform.UpdateMonitoredGameObjects();

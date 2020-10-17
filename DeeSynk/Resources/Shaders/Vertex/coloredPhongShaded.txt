@@ -29,6 +29,12 @@ layout(binding=7) uniform SunLamp
 	vec4 sunLampViewProps;
 } sunLamps[4];
 
+layout(binding = 11) uniform PostCamera
+{
+	mat4 projection;  //model_view
+	vec4 camLocation; //cameraLoc
+} postCamera;
+
 out vec3 vs_eyeCoord;
 out vec3 vs_normal;
 

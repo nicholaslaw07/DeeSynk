@@ -26,21 +26,17 @@ namespace DeeSynk.Core.Components.GraphicsObjects
         /// </summary>
         public Texture Texture { get => _texture; }
 
-        public bool HasTexture2D { get => _texture != null; }
-
-        public FBO(bool addTex)
+        public FBO(int width, int height)
         {
-            GL.CreateFramebuffers(1, out _fboID);
-
-            if (addTex) { AddTexture(); }
+            Build(width, height); //This is a seperate method in case we add modularity to FBO construction or inheritence.
         }
 
-        //Ideally this should be more customizable but I can't think of a use case for such customizability now.
+        //Ideally this should be more modular but I can't think of a use case for such customizability now.
         //The general philsophy that I have right now is if I don't see a need for it I'm not going to implement it.
         //Maybe this will bite me in the ass as I'm not doing as much preventative maintanence then.
-        public void AddTexture()
+        private void Build(int width, int height)
         {
-            _texture = new Texture(Program.window.Width, Program.window.Height);
+            _texture = new Texture(width, height);
 
             GL.GenRenderbuffers(1, out int rbo);
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
@@ -55,7 +51,7 @@ namespace DeeSynk.Core.Components.GraphicsObjects
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
-
+            GL.CreateFramebuffers(1, out _fboID);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fboID);
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _texture.TextureId, 0);
             GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, rbo);
