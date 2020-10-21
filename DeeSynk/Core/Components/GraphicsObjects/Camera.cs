@@ -92,10 +92,13 @@ namespace DeeSynk.Core.Components
         private float _fov;
         public float FOV { get => _fov; set { _fov = value; _projectionUpdate = true; } }
 
-        private float _width, _height, _aspect;
-        public float Width { get => _width; set { _width = value; if (_cameraMode == CameraMode.PERSPECTIVE) { _aspect = _width / _height; } _projectionUpdate = true; } }
-        public float Height { get => _height; set { _height = value; if (_cameraMode == CameraMode.PERSPECTIVE) { _aspect = _width / _height; } _projectionUpdate = true; } }
+        private float _width, _height, _aspect, _diameter;
+        public float Width { get => _width; set { _width = value; if (_cameraMode == CameraMode.PERSPECTIVE) { _aspect = _width / _height; _diameter = (float)Math.Sqrt(_aspect * _aspect + 1); } _projectionUpdate = true; } }
+        public float Height { get => _height; set { _height = value; if (_cameraMode == CameraMode.PERSPECTIVE) { _aspect = _width / _height; _diameter = (float)Math.Sqrt(_aspect * _aspect + 1); } _projectionUpdate = true; } }
         public float Aspect { get => _aspect; }
+        public float AspectDiameter { get => _diameter; }
+
+
 
         private float _left, _right, _bottom, _top;
         public float Left { get => _left; set { _left = value; _projectionUpdate = true; } }
@@ -132,6 +135,8 @@ namespace DeeSynk.Core.Components
         public ref Matrix4 ViewProjection { get => ref _viewProjection; }
 
         public int BufferOffset => throw new NotImplementedException();
+
+        public int VectorCount { get => 6; }
 
         /// <summary>
         /// Default constructor, sets to an orthographic view with a space of unit size.  ZFar extends equally far behind as in front.
@@ -410,13 +415,15 @@ namespace DeeSynk.Core.Components
             GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, _bufferSize, _vec4s);
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
         }
-        public void FillBuffer()
+        public void FillBuffer()  //Maybe: add a flag system to control what is put in the UBO
         {
             _vec4s[0] = _viewProjection.Row0;
             _vec4s[1] = _viewProjection.Row1;
             _vec4s[2] = _viewProjection.Row2;
             _vec4s[3] = _viewProjection.Row3;
             _vec4s[4] = new Vector4(_location);
+            _vec4s[5] = new Vector4(_fov, _width, _height, _aspect);
+            _vec4s[6] = new Vector4(_lookAt, 1.0f);
         }
         #endregion
 

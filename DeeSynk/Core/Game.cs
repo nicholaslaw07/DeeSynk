@@ -98,7 +98,7 @@ namespace DeeSynk.Core
 
             IncrementComponentIndex();
             _world.SystemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
-            _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("defaultPostFinal");
+            _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("postLightGlare");
             _world.RenderComps[_compIdx].IsFinalRenderPlane = true;
             _world.RenderComps[_compIdx].ValidateData();
 
@@ -142,7 +142,7 @@ namespace DeeSynk.Core
 
             IncrementComponentIndex();
             _world.CameraComps[_compIdx] = new ComponentCamera(new Camera(CameraMode.ORTHOGRAPHIC, 0.5f, 0.5f, -1.0f, 2.0f));
-            _world.CameraComps[_compIdx].Camera.BuildUBO(11, 5);
+            _world.CameraComps[_compIdx].Camera.BuildUBO(11, 7);
 
         }
 

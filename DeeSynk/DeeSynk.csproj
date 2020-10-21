@@ -216,6 +216,7 @@
     <Content Include="Resources\Shaders\Fragment\cellShading.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Fragment\postLightGlare.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultPostFinal.txt" />
     <Content Include="Resources\Shaders\Fragment\detectEdges.txt" />
     <Content Include="Resources\Shaders\Fragment\shadowColored.txt" />
@@ -228,6 +229,7 @@
     <Content Include="Resources\Shaders\Vertex\cellShading.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Vertex\postLightGlare.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultPostFinal.txt" />
     <Content Include="Resources\Shaders\Vertex\detectEdges.txt" />
     <Content Include="Resources\Shaders\Vertex\shadowColored.txt" />

@@ -62,7 +62,7 @@ namespace DeeSynk.Core.Systems
         public void PushCameraRef(ref Camera camera)
         {
             _camera = camera;
-            _camera.BuildUBO(2, 5);
+            _camera.BuildUBO(2, 7);
         }
 
         public void UpdateMonitoredGameObjects()
@@ -208,7 +208,7 @@ namespace DeeSynk.Core.Systems
                     {
                         Bind(idx, true);
 
-                        if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))
+                        if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
                         {
                             var colorArr = _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
                             Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
@@ -217,7 +217,9 @@ namespace DeeSynk.Core.Systems
 
                         if (comps.HasFlag(Component.TEXTURE))
                         {
-                            _textureComps[idx].BindTexture(TextureUnit.Texture0);
+                            //_textureComps[idx].BindTexture(TextureUnit.Texture0);
+                            GL.ActiveTexture(TextureUnit.Texture0);
+                            GL.BindTexture(TextureTarget.Texture2D, _world.LightComps[4].LightObject.ShadowMap.Texture);
                         }
 
                         systemTransform.PushModelMatrix(idx);
@@ -257,6 +259,12 @@ namespace DeeSynk.Core.Systems
 
                         systemTransform.PushModelMatrix(idx);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
+
+                        for (int i = 0; i < _world.ObjectMemory; i++)
+                        {
+                            if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
+                                _world.LightComps[i].LightObject.ShadowMap.BindTexture();
+                        }
 
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }

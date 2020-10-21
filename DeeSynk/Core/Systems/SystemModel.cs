@@ -83,7 +83,7 @@ namespace DeeSynk.Core.Systems
 
             var v10 = new Vector3(0);
             var v14 = new Vector3(1 / 20f * t.AspectRatio, 0f, 1 / 20f);
-            var v11 = new Vector3(100f, 0f, 100f);
+            var v11 = new Vector3(100f, 0f, 100f);  //100
             var v12 = t.SubTextureLocations[0].UVOffset;
             var v13 = t.SubTextureLocations[0].UVScale;
             _staticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.TemplatePlaneXZ,

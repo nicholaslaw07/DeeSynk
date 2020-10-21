@@ -1,0 +1,154 @@
+﻿#version 450 core
+
+in vec2 vs_texCoord;
+in vec4 vs_lightPosT[4];
+in vec4 vs_lightCoord[4];
+in vec4 vs_lightCoordSun[4];
+
+uniform sampler2D tex;
+
+layout(binding=1) uniform sampler2D spotLight0;
+layout(binding=2) uniform sampler2D spotLight1;
+layout(binding=3) uniform sampler2D spotLight2;
+layout(binding=4) uniform sampler2D spotLight3;
+
+layout(binding=5) uniform sampler2D sunLamp0;//not in use currently
+layout(binding=6) uniform sampler2D sunLamp1;
+layout(binding=7) uniform sampler2D sunLamp2;
+layout(binding=8) uniform sampler2D sunLamp3;
+
+out vec4 color;
+
+layout(binding = 2) uniform Camera
+{
+	mat4 projection;  //model_view
+	vec4 location; //cameraLoc
+	vec4 sizeParams; //fov, width, height, diameter
+	vec4 lookAt;
+} camera;
+
+layout(binding = 3) uniform SpotLight
+{
+	mat4 spotLightView;
+	vec4 spotLightLocation;
+	vec4 spotLightLookAt;
+	vec4 spotLightColor;
+	vec4 spotLightFOV;
+} spotLights[4];
+
+layout(binding=7) uniform SunLamp
+{
+	mat4 sunLampView;
+	vec4 sunLampLocation;
+	vec4 sunLampLookAt;
+	vec4 sunLampColor;
+	vec4 sunLampViewProps;
+} sunLamps[4];
+
+float width = 2/(min(camera.sizeParams.y, camera.sizeParams.z));
+float height = 20 * width;
+
+float rand(vec2 co)
+{
+    float a = fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+	a = (a+10)/10;
+	return a;
+}
+
+bool isInCross(vec2 t)
+{
+	t.x *= camera.sizeParams.w;
+	if(t.x <= width && t.x >= -width && t.y <= height && t.y >= -height)
+		return true;
+	if(t.x <= height && t.x >= -height && t.y <= width && t.y >= -width)
+		return true;
+	return false;
+}
+
+bool isInFrame(vec3 light, vec3 lightPos)
+{
+	float aspect = camera.sizeParams.w;
+	if(light.x <= 2 && light.x >= -2 && light.y <= 2/aspect && light.y >= -2/aspect && dot(lightPos - camera.location.xyz, camera.lookAt.xyz - camera.location.xyz) > 0)
+		return true;
+	return false;
+}
+
+bool Blocked(int index, int lightType, vec4 lightCoord)  // 0=spot 1=sun
+{
+	vec3 ProjCoords = lightCoord.xyz / lightCoord.w;
+	vec2 UVCoords;
+	UVCoords.x = 0.5 * (ProjCoords.x) + 0.5;
+	UVCoords.y = 0.5 * (ProjCoords.y) + 0.5;
+	float z = ProjCoords.z;
+
+	float Depth = 0.0f;
+
+ 	switch(index)
+	{
+		case(0): Depth = texture((lightType == 0) ? spotLight0 : sunLamp0, UVCoords).x; break;
+		case(1): Depth = texture((lightType == 0) ? spotLight1 : sunLamp1, UVCoords).x; break;
+		case(2): Depth = texture((lightType == 0) ? spotLight2 : sunLamp2, UVCoords).x; break;
+		case(3): Depth = texture((lightType == 0) ? spotLight3 : sunLamp3, UVCoords).x; break;
+	}
+
+	float bias = 0.0001;
+
+	if(Depth < (z+bias))
+		return true;
+	else 
+		return false;
+}
+
+float Depth(int index, int lightType, vec4 lightCoord)  // 0=spot 1=sun
+{
+	vec3 ProjCoords = lightCoord.xyz / lightCoord.w;
+	vec2 UVCoords;
+	UVCoords.x = 0.5 * (ProjCoords.x) + 0.5;
+	UVCoords.y = 0.5 * (ProjCoords.y) + 0.5;
+	float z = ProjCoords.z;
+
+	float Depth = 0.0f;
+
+ 	switch(index)
+	{
+		case(0): Depth = texture((lightType == 0) ? spotLight0 : sunLamp0, UVCoords).x; break;
+		case(1): Depth = texture((lightType == 0) ? spotLight1 : sunLamp1, UVCoords).x; break;
+		case(2): Depth = texture((lightType == 0) ? spotLight2 : sunLamp2, UVCoords).x; break;
+		case(3): Depth = texture((lightType == 0) ? spotLight3 : sunLamp3, UVCoords).x; break;
+	}
+
+	return z;
+}
+
+void main(void)
+{
+	vec4 c = texture(tex, vs_texCoord);
+	if(c.a < 0.9)
+		discard;
+	
+	vec2 newTex = (vs_texCoord - vec2(0.5, 0.5)) * 2;
+
+	for(int i=0; i<3; i++)
+	{
+		vec3 a = (vs_lightPosT[i].xyz) / vs_lightPosT[i].w;
+		vec2 b = newTex;
+		if(isInFrame(a, spotLights[i].spotLightLocation.xyz) && !Blocked(i, 0, vs_lightCoord[i]))
+		{
+			float p = camera.sizeParams.w*(a.x-b.x);
+			float q = (a.y-b.y);
+			float dist = p*p + q*q;
+			c += rand(newTex+camera.location.xy)*1/(2000*dist)*spotLights[i].spotLightColor; // * Depth(i, 0, vs_lightCoord[i]);
+		}
+	}
+
+	if(isInCross(newTex))
+		c = vec4(1);
+	
+	float d =  Depth(0, 0, vs_lightCoord[0]);
+	if(d < 1.1)
+		color = vec4(d, d, d, 1);
+	else
+		color = c;
+
+	
+}
