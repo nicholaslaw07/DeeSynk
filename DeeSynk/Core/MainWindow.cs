@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
 using OpenTK;
@@ -154,49 +155,17 @@ namespace DeeSynk.Core
             timeCount += e.Time;
             frameCount++;
 
-            //TEST - DETERMINING HOW VP MATRICES OPERATE
-            Matrix4 _vp = _camera.ViewProjection;
-            Matrix4 _p = _camera.Projection;
-            Vector4 _loc1 = new Vector4(-3.0f, 5.0f, 6.0f, 1.0f);
-            Vector4 _loc2 = new Vector4(0.0f, 5.0f, 6.71f, 1.0f);
-            Vector4 _loc3 = new Vector4(3.0f, 5.0f, 6.0f, 1.0f);
-
-            Vector4 _center = new Vector4(0, 0, 0, 1);
-
-            Vector4 _loc11 = _camera.View * _loc1;
-            Vector4 _loc22 = _camera.Projection * _loc1;
-            Vector4 _loc33 = _camera.ViewProjection * _loc1;
-
-            Vector3 _diff = _camera.Location - _center.Xyz;
-            float _length = _diff.Length;
-
-            //_loc11.W /= _length;
-
-            Vector3 _la = Vector3.Normalize(_camera.LookAt - _camera.Location);
-            Vector3 _l3 = Vector3.Normalize(_loc11.Xyz);
-
-            //{Math.Sin(Math.Atan(_camera.AspectDiameter * Math.Tan(_camera.FOV)))}
-            //{Math.Atan(_camera.AspectDiameter*Math.Tan(_camera.FOV))}
-            //{RoundVector(_loc11, 2)} | {_camera.FOV} | {Math.Asin(_loc11.W)} | 
-            //{Vector3.Dot(_la, _l3)} | {_la} | {_l3}
-            //{ RoundVector(_loc11, 2)} | { RoundVector(_loc22, 2)} | { RoundVector(_loc33, 2)} | { RoundVector(_la * 8.4f, 2)} | { RoundVector(_p * new Vector4(_camera.Location, 1.0f), 4)}
-
-            //_loc33.X /= _loc33.Z;
-            //_loc33.Y /= _loc33.Z;
-            //Console.WriteLine(_loc11);
-            //TEST END
-
             //| The WIP Student Video Game
 
             if (sw.ElapsedMilliseconds % 20 == 0)
-                Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {_loc22}";
+                Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)}";
 
             if (sw.ElapsedMilliseconds > 1000/80)
             {
                 sw.Stop();
                 //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                 fpsOld = (long)(1f / timeCount * ((float)frameCount));
-                Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {_loc22}"; // adds miscellaneous information to the title bar of the window
+                Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)}"; // adds miscellaneous information to the title bar of the window
                 timeCount = 0d;
                 frameCount = 0;
                 sw.Reset();
@@ -205,6 +174,8 @@ namespace DeeSynk.Core
             GL.ClearColor(clearColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             _game.Render();
+
+            Thread.Sleep(8);
 
             SwapBuffers();
         }

@@ -46,12 +46,12 @@ layout(binding=7) uniform SunLamp
 } sunLamps[4];
 
 float width = 2/(min(camera.sizeParams.y, camera.sizeParams.z));
-float height = 20 * width;
+float height = 12 * width;
 
 float rand(vec2 co)
 {
     float a = fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-	a = (a+10)/10;
+	a = (a+6)/6;
 	return a;
 }
 
@@ -117,7 +117,7 @@ float Depth(int index, int lightType, vec4 lightCoord)  // 0=spot 1=sun
 		case(3): Depth = texture((lightType == 0) ? spotLight3 : sunLamp3, UVCoords).x; break;
 	}
 
-	return z;
+	return ProjCoords.z;
 }
 
 void main(void)
@@ -137,18 +137,15 @@ void main(void)
 			float p = camera.sizeParams.w*(a.x-b.x);
 			float q = (a.y-b.y);
 			float dist = p*p + q*q;
-			c += rand(newTex+camera.location.xy)*1/(2000*dist)*spotLights[i].spotLightColor; // * Depth(i, 0, vs_lightCoord[i]);
+			float d = Depth(0, 0, vs_lightCoord[0])/2;
+			c += rand(newTex+camera.location.xy)*1/(2000*dist)*spotLights[i].spotLightColor;
 		}
 	}
 
 	if(isInCross(newTex))
-		c = vec4(1);
+		c = vec4(0.9);
 	
-	float d =  Depth(0, 0, vs_lightCoord[0]);
-	if(d < 1.1)
-		color = vec4(d, d, d, 1);
-	else
-		color = c;
+	color = c;
 
 	
 }

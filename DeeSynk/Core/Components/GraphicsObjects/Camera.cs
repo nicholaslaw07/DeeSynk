@@ -421,7 +421,7 @@ namespace DeeSynk.Core.Components
             _vec4s[1] = _viewProjection.Row1;
             _vec4s[2] = _viewProjection.Row2;
             _vec4s[3] = _viewProjection.Row3;
-            _vec4s[4] = new Vector4(_location);
+            _vec4s[4] = new Vector4(_location, 1.0f);
             _vec4s[5] = new Vector4(_fov, _width, _height, _aspect);
             _vec4s[6] = new Vector4(_lookAt, 1.0f);
         }

@@ -217,9 +217,7 @@ namespace DeeSynk.Core.Systems
 
                         if (comps.HasFlag(Component.TEXTURE))
                         {
-                            //_textureComps[idx].BindTexture(TextureUnit.Texture0);
-                            GL.ActiveTexture(TextureUnit.Texture0);
-                            GL.BindTexture(TextureTarget.Texture2D, _world.LightComps[4].LightObject.ShadowMap.Texture);
+                            _textureComps[idx].BindTexture(TextureUnit.Texture0);
                         }
 
                         systemTransform.PushModelMatrix(idx);
