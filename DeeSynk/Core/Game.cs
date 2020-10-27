@@ -32,6 +32,15 @@ namespace DeeSynk.Core
         #region SYSTEMS
         private SystemInput _systemInput;
         public SystemInput SystemInput { get => _systemInput; }
+
+        private SystemRender _systemRender;
+        public SystemRender SystemRender { get => _systemRender; }
+        private SystemTransform _systemTransform;
+        public SystemTransform SystemTransform { get => _systemTransform; }
+        private SystemVAO _systemVAO;
+        public SystemVAO SystemVAO { get => _systemVAO; }
+        private SystemModel _systemModel;
+        public SystemModel SystemModel { get => _systemModel; }
         #endregion
 
         public Game()
@@ -49,18 +58,28 @@ namespace DeeSynk.Core
             Managers.ModelManager.GetInstance().Load();
 
             _world = new World();
+
             _compIdx = 0;
 
             _systemInput = new SystemInput();
+
+            _systemRender = new SystemRender(_world);
+            _systemModel = new SystemModel(_world);
+            _systemTransform = new SystemTransform(_world);
+            _systemVAO = new SystemVAO(_world);
         }
 
         public void PushCameraRef(ref Camera camera)
         {
-            _world.PushCameraRef(ref camera);
+            _systemTransform.PushCameraRef(ref camera);
+            _systemRender.PushCameraRef(ref camera);
         }
 
         public void LoadGameData()
         {
+
+            _world.InitData();
+
             //Create the objects in the world array of GameObjects - these objects are blank and only hold the ComponentMask
             _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM);
             _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
@@ -74,8 +93,12 @@ namespace DeeSynk.Core
 
             _world.CreateGameObject(Component.CAMERA);
 
+            _systemModel.UpdateMonitoredGameObjects();
+            _systemModel.InitModel();
+            _systemTransform.UpdateMonitoredGameObjects();
+            _systemTransform.InitLocation();
+
             //Initialize all of the data in the world
-            _world.InitData();
 
             //Essentially, for each object we initialize its unique characteristics
             //TODO add the ability to load in these objects from a file to make the process act more how it would in a real world scenario
@@ -87,17 +110,17 @@ namespace DeeSynk.Core
 
             //the models are added via the SystemModel class
 
-            _world.SystemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
+            _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
             _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");
             _world.RenderComps[_compIdx].ValidateData();
 
             IncrementComponentIndex();
-            _world.SystemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
+            _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
             _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("shadowTextured2");
             _world.RenderComps[_compIdx].ValidateData();
 
             IncrementComponentIndex();
-            _world.SystemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
+            _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
             _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("postLightGlare");
             _world.RenderComps[_compIdx].IsFinalRenderPlane = true;
             _world.RenderComps[_compIdx].ValidateData();
@@ -170,13 +193,14 @@ namespace DeeSynk.Core
         public void Update(float time)
         {
             _world.Update(time);
+            _systemTransform.Update(time);
             //Console.WriteLine(GL.GetError().ToString());
         }
 
         public void Render()
         {
-            _world.Render();
-            //_ui.Render();
+            _systemRender.Render(ref _systemTransform);
+            _systemRender.RenderUI();
         }
     }
 }

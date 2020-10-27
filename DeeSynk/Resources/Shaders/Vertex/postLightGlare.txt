@@ -40,9 +40,9 @@ layout(binding = 11) uniform PostCamera
 } postCamera;
 
 out vec2 vs_texCoord;
-out vec4 vs_lightPosT[4];
-
-out vec4 vs_lightCoord[4];
+out vec4 vs_lightPosTSpot[4];
+out vec4 vs_lightPosTSun[4];
+out vec4 vs_lightCoordSpot[4];
 out vec4 vs_lightCoordSun[4];
 
 void main(void)
@@ -51,9 +51,10 @@ void main(void)
 
 	for(int i=0; i<4; i++)
 	{
-		vs_lightPosT[i] = camera.projection * spotLights[i].spotLightLocation;
-		vs_lightCoord[i] = spotLights[i].spotLightView * (camera.location);
-		//vs_lightCoordSun[i] = sunLamps[i].sunLampView * (camera.location);
+		vs_lightPosTSpot[i] = camera.projection * spotLights[i].spotLightLocation;
+		vs_lightPosTSun[i] = camera.projection * sunLamps[i].sunLampLocation;
+		vs_lightCoordSpot[i] = spotLights[i].spotLightView * (camera.location);
+		vs_lightCoordSun[i] = sunLamps[i].sunLampView * (camera.location);
 	}
 
 	gl_Position = postCamera.projection * modelMat * (position + offset);

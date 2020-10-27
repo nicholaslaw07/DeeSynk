@@ -33,6 +33,7 @@ layout(binding=7) uniform SunLamp
 out vs_Out
 {
 	vec3 vs_normal;
+	vec4 vs_vMinSll;
 } vs_out;
 
 void main(void)
@@ -41,7 +42,12 @@ void main(void)
 	mmN[3] = vec4(0.0,0.0,0.0,1.0);
 	mmN = inverse(mmN);
 
-	vs_out.vs_normal = (mmN * vec4(normal, 1.0)).xyz;
+	//vec4 loc = 2 * (modelMat * position) - sunLamps[0].sunLampLocation;
+	vec4 loc = 2 * (modelMat * position) - spotLights[0].spotLightLocation;
+	loc.w = 1.0;
 
-	gl_Position = camera.projection * modelMat * position;
+	vs_out.vs_normal = (mmN * vec4(normal, 1.0)).xyz;
+	vs_out.vs_vMinSll = camera.projection * (loc);
+
+	gl_Position = camera.projection * modelMat * (position);
 }

@@ -199,6 +199,54 @@ namespace DeeSynk.Core.Systems
 
             _fbos[0].Bind(true);
 
+            //StencilTest(ref systemTransform);
+
+            for (int idx = 0; idx < _world.ObjectMemory; idx++)
+            {
+                if (_world.ExistingGameObjects[idx])                {
+                    Component comps = _world.GameObjects[idx].Components;
+                    if (comps.HasFlag(RenderQualfier) && !_renderComps[idx].IsFinalRenderPlane)
+                    {
+                        Bind(idx, true);
+
+                        if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
+                        {
+                            var colorArr = _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
+                            Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
+                            GL.Uniform4(17, color);
+                        }
+
+                        if (comps.HasFlag(Component.TEXTURE))
+                        {
+                            _textureComps[idx].BindTexture(TextureUnit.Texture0);
+                        }
+
+                        systemTransform.PushModelMatrix(idx);
+                        int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
+
+                        //Bind ShadowMaps to their respective texture units
+                        for (int i = 0; i < _world.ObjectMemory; i++)
+                        {
+                            if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
+                                _world.LightComps[i].LightObject.ShadowMap.BindTexture();
+                        }
+
+                        GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                    }
+                }
+            }
+
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.Viewport(currentViewPort[0], currentViewPort[1], currentViewPort[2], currentViewPort[3]);
+        }
+
+        public void ShadowVolumes(ref SystemTransform systemTransform)
+        {
+            //using http://ogldev.org/www/tutorial40/tutorial40.html
+            GL.Enable(EnableCap.StencilTest);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            GL.DepthMask(true);
+            GL.DrawBuffer(DrawBufferMode.None);
             for (int idx = 0; idx < _world.ObjectMemory; idx++)
             {
                 if (_world.ExistingGameObjects[idx])
@@ -234,9 +282,107 @@ namespace DeeSynk.Core.Systems
                     }
                 }
             }
+            GL.DepthMask(false);
+            GL.Enable(EnableCap.DepthClamp);
+            GL.Disable(EnableCap.CullFace);
+            GL.StencilFunc(StencilFunction.Always, 0, 0xff);
+            GL.StencilOpSeparate(StencilFace.Back, StencilOp.Keep, StencilOp.IncrWrap, StencilOp.Keep);
+            GL.StencilOpSeparate(StencilFace.Front, StencilOp.Keep, StencilOp.DecrWrap, StencilOp.Keep);
 
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            GL.Viewport(currentViewPort[0], currentViewPort[1], currentViewPort[2], currentViewPort[3]);
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowVolume"));
+            systemTransform.PushModelMatrix(0);
+            Bind(0, false);
+            if (GL.GetInteger(GetPName.TransformFeedbackBinding) != TEST_VAO.Buffers[1])
+                GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, TEST_VAO.Buffers[1]);
+            GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Triangles);
+            GL.DrawElements(PrimitiveType.Triangles, ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.EndTransformFeedback();
+
+            GL.Disable(EnableCap.DepthClamp);
+            GL.Enable(EnableCap.CullFace);
+            ShadowVolumePart2(ref systemTransform);
+        }
+
+        public void ShadowVolumePart2(ref SystemTransform systemTransform)
+        {
+            GL.DrawBuffer(DrawBufferMode.Back);
+            GL.StencilFunc(StencilFunction.Equal, 0x0, 0xFF);
+            GL.StencilOpSeparate(StencilFace.Back, StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+        }
+
+        public void StencilTest(ref SystemTransform systemTransform)
+        {
+            GL.Enable(EnableCap.StencilTest);
+            GL.Disable(EnableCap.CullFace);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            GL.StencilOp(StencilOp.Replace, StencilOp.Replace, StencilOp.IncrWrap);
+            GL.StencilFunc(StencilFunction.Always, 1, 0xFF);
+            GL.StencilMask(0xFF);
+
+            GL.Disable(EnableCap.DepthTest);
+
+            //GL.DrawBuffer(DrawBufferMode.None);
+            //RenderVolume(ref systemTransform);
+            //GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+            RenderObject(ref systemTransform, 1);
+
+            GL.StencilFunc(StencilFunction.Equal, 1, 0xFF);
+            GL.StencilMask(0x00);
+
+            RenderObject(ref systemTransform, 0);
+            GL.Enable(EnableCap.DepthTest);
+            GL.StencilMask(0xFF);
+            GL.StencilFunc(StencilFunction.Always, 1, 0xFF);
+            GL.Disable(EnableCap.StencilTest);
+            GL.Enable(EnableCap.CullFace);
+        }
+
+        public void RenderVolume(ref SystemTransform systemTransform)
+        {
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowVolume"));
+            systemTransform.PushModelMatrix(0);
+            Bind(0, false);
+            if (GL.GetInteger(GetPName.TransformFeedbackBinding) != TEST_VAO.Buffers[1])
+                GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, TEST_VAO.Buffers[1]);
+            GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Triangles);
+            GL.DrawElements(PrimitiveType.Triangles, ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.EndTransformFeedback();
+        }
+
+        public void RenderObject(ref SystemTransform systemTransform, int idx)
+        {
+            if (_world.ExistingGameObjects[idx])
+            {
+                Component comps = _world.GameObjects[idx].Components;
+                if (comps.HasFlag(RenderQualfier) && !_renderComps[idx].IsFinalRenderPlane)
+                {
+                    Bind(idx, true);
+
+                    if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
+                    {
+                        var colorArr = _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
+                        Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
+                        GL.Uniform4(17, color);
+                    }
+
+                    if (comps.HasFlag(Component.TEXTURE))
+                    {
+                        _textureComps[idx].BindTexture(TextureUnit.Texture0);
+                    }
+
+                    systemTransform.PushModelMatrix(idx);
+                    int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
+
+                    //Bind ShadowMaps to their respective texture units
+                    for (int i = 0; i < _world.ObjectMemory; i++)
+                    {
+                        if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
+                            _world.LightComps[i].LightObject.ShadowMap.BindTexture();
+                    }
+
+                    GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                }
+            }
         }
         public void RenderPost(ref SystemTransform systemTransform)
         {

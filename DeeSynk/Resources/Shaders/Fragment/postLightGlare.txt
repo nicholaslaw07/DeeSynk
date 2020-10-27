@@ -1,8 +1,9 @@
 ﻿#version 450 core
 
 in vec2 vs_texCoord;
-in vec4 vs_lightPosT[4];
-in vec4 vs_lightCoord[4];
+in vec4 vs_lightPosTSpot[4];
+in vec4 vs_lightPosTSun[4];
+in vec4 vs_lightCoordSpot[4];
 in vec4 vs_lightCoordSun[4];
 
 uniform sampler2D tex;
@@ -128,17 +129,31 @@ void main(void)
 	
 	vec2 newTex = (vs_texCoord - vec2(0.5, 0.5)) * 2;
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<3; i++)  //index i_max depends on number of registered lights, should be updated using a global uniform or a UBO of world_params
 	{
-		vec3 a = (vs_lightPosT[i].xyz) / vs_lightPosT[i].w;
+		vec3 a = (vs_lightPosTSpot[i].xyz) / vs_lightPosTSpot[i].w;
 		vec2 b = newTex;
-		if(isInFrame(a, spotLights[i].spotLightLocation.xyz) && !Blocked(i, 0, vs_lightCoord[i]))
+		if(isInFrame(a, spotLights[i].spotLightLocation.xyz) && !Blocked(i, 0, vs_lightCoordSpot[i]))
 		{
 			float p = camera.sizeParams.w*(a.x-b.x);
 			float q = (a.y-b.y);
 			float dist = p*p + q*q;
-			float d = Depth(0, 0, vs_lightCoord[0])/2;
+			float d = Depth(0, 0, vs_lightCoordSpot[0])/2;
 			c += rand(newTex+camera.location.xy)*1/(2000*dist)*spotLights[i].spotLightColor;
+		}
+	}
+
+	for(int i=0; i<1; i++)
+	{
+		vec3 a = (vs_lightPosTSun[i].xyz) / vs_lightPosTSun[i].w;
+		vec2 b = newTex;
+		if(isInFrame(a, sunLamps[i].sunLampLocation.xyz) && !Blocked(i, 0, vs_lightCoordSun[i]))
+		{
+			float p = camera.sizeParams.w*(a.x-b.x);
+			float q = (a.y-b.y);
+			float dist = p*p + q*q;
+			float d = Depth(0, 0, vs_lightCoordSun[0])/2;
+			c += rand(newTex+camera.location.xy)*1/(2000*dist)*sunLamps[i].sunLampColor;
 		}
 	}
 

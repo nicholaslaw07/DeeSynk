@@ -75,7 +75,7 @@ namespace DeeSynk.Core.Systems
 
             _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
                                         ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.COLOR4_COLOR | ConstructionFlags.VECTOR3_SCALE,
-                                        new Vector3(0, 0.29f, 0), (float)(Math.PI / 2),new Vector3(5f, 5f, 5f), v04);
+                                        new Vector3(0, 0.29f, 0), (float)(Math.PI / 2),new Vector3(0.25f, 0.25f, 0.25f), v04);
 
             Texture t = TextureManager.GetInstance().GetTexture("wood");
             float width = t.Width;

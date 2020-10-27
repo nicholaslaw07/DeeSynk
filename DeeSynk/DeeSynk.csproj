@@ -188,6 +188,7 @@
     <Compile Include="Core\Systems\SystemModel.cs" />
     <Compile Include="Core\Systems\SystemRender.cs" />
     <Compile Include="Core\Systems\SystemTransform.cs" />
+    <Compile Include="Core\Systems\SystemUI.cs" />
     <Compile Include="Core\Systems\SystemVAO.cs" />
     <Compile Include="Core\UI.cs" />
     <Compile Include="Core\World.cs" />
@@ -216,6 +217,8 @@
     <Content Include="Resources\Shaders\Fragment\cellShading.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Fragment\shadowVolume.txt" />
+    <Content Include="Resources\Shaders\Fragment\detectEdgesTest.txt" />
     <Content Include="Resources\Shaders\Fragment\postLightGlare.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultPostFinal.txt" />
     <Content Include="Resources\Shaders\Fragment\detectEdges.txt" />
@@ -225,10 +228,14 @@
     <Content Include="Resources\Shaders\Fragment\defaultTextured_Instanced.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultTextured.txt" />
     <Content Include="Resources\Shaders\Fragment\defaultColored.txt" />
+    <Content Include="Resources\Shaders\Geometry\shadowVolume.txt" />
+    <Content Include="Resources\Shaders\Geometry\detectEdgesTest.txt" />
     <Content Include="Resources\Shaders\Geometry\detectEdges.txt" />
     <Content Include="Resources\Shaders\Vertex\cellShading.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Vertex\shadowVolume.txt" />
+    <Content Include="Resources\Shaders\Vertex\detectEdgesTest.txt" />
     <Content Include="Resources\Shaders\Vertex\postLightGlare.txt" />
     <Content Include="Resources\Shaders\Vertex\defaultPostFinal.txt" />
     <Content Include="Resources\Shaders\Vertex\detectEdges.txt" />

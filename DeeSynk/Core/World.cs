@@ -11,10 +11,6 @@ namespace DeeSynk.Core
 {
     using GameObject = Components.GameObject;
     using Component = Components.Component;
-    using SystemRender = Systems.SystemRender;
-    using SystemTransform = Systems.SystemTransform;
-    using SystemVAO = Systems.SystemVAO;
-    using SystemModel = Systems.SystemModel;
 
 
     //Possible configuations of entities
@@ -38,7 +34,7 @@ namespace DeeSynk.Core
         /// <summary>
         /// Total number of FBO objects available.
         /// </summary>
-        public uint FBO_COunt { get => FBO_COUNT; }
+        public uint FBO_Count { get => FBO_COUNT; }
 
         private GameObject[] _gameObjects;
         /// <summary>
@@ -51,18 +47,6 @@ namespace DeeSynk.Core
         /// </summary>
         public bool[] ExistingGameObjects { get => _existingGameObjects; }
         private int MaxObjectCount;
-
-        //Systems that act as a medium for components to communicate through, specific to certain purposes
-        #region SYSTEMS
-        private SystemRender    _systemRender;
-        public  SystemRender     SystemRender    { get => _systemRender; }
-        private SystemTransform _systemTransform;
-        public  SystemTransform  SystemTransform { get => _systemTransform; }
-        private SystemVAO       _systemVAO;
-        public  SystemVAO        SystemVAO       { get => _systemVAO; }
-        private SystemModel     _systemModel;
-        public  SystemModel      SystemModel     { get => _systemModel; }
-        #endregion
 
         //The arrays that store all of the components inside of this world object, their capactiy is limited by OBJECT_MEMORY
         #region COMPONENT_ARRAYS
@@ -110,23 +94,11 @@ namespace DeeSynk.Core
 
             _vaos             = new VAO[OBJECT_MEMORY];
             _fbos             = new FBO[FBO_COUNT];
-
-            _systemRender     = new SystemRender(this);
-            _systemModel      = new SystemModel(this);
-            _systemTransform  = new SystemTransform(this);
-            _systemVAO        = new SystemVAO(this);
         }
 
         public void InitData()
         {
             _fbos[0] = new FBO(Program.window.Width, Program.window.Height);
-
-            _systemModel.UpdateMonitoredGameObjects();
-            _systemTransform.UpdateMonitoredGameObjects();
-
-            _systemModel.InitModel();
-            _systemTransform.InitLocation();
-
         }
 
         //CREATE NEW OBJECT WITH BITMASKID
@@ -134,12 +106,6 @@ namespace DeeSynk.Core
         //IF GAMEOBJECT AT SPECIFIED INDEX ALLOWS COMPONENT, ADD IT
         //OTHERWISE DO NOTHING
         //ALLOW TEMPLATING (ADD CAMERA, ADD PLAYER, ETC)
-
-        public void PushCameraRef(ref Camera camera)
-        {
-            _systemTransform.PushCameraRef(ref camera);
-            _systemRender.PushCameraRef(ref camera);
-        }
 
         /// <summary>
         /// Decides where in the allocated memory a new GameObject can be created.
@@ -209,13 +175,7 @@ namespace DeeSynk.Core
         /// <param name="time"></param>
         public void Update(float time)
         {
-            _systemTransform.Update(time);
-        }
 
-        public void Render()
-        {
-            _systemRender.Render(ref _systemTransform);
-            _systemRender.RenderUI();
         }
     }
 }
