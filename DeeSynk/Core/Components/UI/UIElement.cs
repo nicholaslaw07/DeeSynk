@@ -13,7 +13,7 @@ namespace DeeSynk.Core.Components.Types.UI
     public enum UIElementType
     {
         NONE = 0,
-        UI_BOX = 1
+        UI_CONTAINER = 1
     }
 
     public enum UIPositionType
@@ -38,27 +38,35 @@ namespace DeeSynk.Core.Components.Types.UI
 
         //for now these uiElements are static and cannot be modified after creation like most objects
 
-        private int _childElementCount;
+        public abstract string ID_GLOBAL_DEFAULT { get; }
+
+        protected int _childElementCount;
         /// <summary>
         /// Number of child UIElements this Element contains
         /// </summary>
         public int ChildElementCount { get => _childElementCount; }
 
-        private UIElement[] _childElements;
+        protected int[] _childElementIDs;
         /// <summary>
-        /// Array of UIElements this UIElement is a parent to.
+        /// The integer indexes within the component arrays of the UI class for all UIElements in the layer directly above the layer of this UIElement.
         /// </summary>
-        public UIElement[] ChildElements
+        public int[] ChildElementIDs
         {
-            get => _childElements;
+            get => _childElementIDs;
 
             set
             {
                 if (value.Length != _childElementCount)
                     throw new Exception("Element count does not match the expected count.");
-                else _childElements = value;
+                else _childElementIDs = value;
             }
         }
+
+        protected bool[] _existingElements;
+        /// <summary>
+        /// Each index is true if the corresponding _elementID exists.
+        /// </summary>
+        public bool[] ExistingElement { get => _existingElements; }
 
         /// <summary>
         /// States whether or not this UIElement has children.
@@ -66,46 +74,77 @@ namespace DeeSynk.Core.Components.Types.UI
         public bool HasChildElements { get => _childElementCount == 0; }
 
 
-        private UIElementType _elementType;
+        protected UIElementType _elementType;
         /// <summary>
         /// Type of object this UIElement is.
         /// </summary>
         public UIElementType ElementType { get => _elementType; }
 
-        private int _width;
+        protected int _width;
         /// <summary>
         /// Width of the UIElement
         /// </summary>
         public int Width { get => _width; }
 
-        private int _height;
+        protected int _height;
         /// <summary>
         /// Height of the UIElement
         /// </summary>
         public int Height { get => _height; }
 
-        private Vector2 _position;
+        protected Vector2 _position;
         /// <summary>
         /// Position of the UIElement within a canvas or element
         /// </summary>
         public Vector2 Position { get => _position; }
 
-        private UIPositionType _positionType;
+        protected UIPositionType _positionType;
         /// <summary>
         /// States whether or not the Position variable dictates global canvas position or local element position.
         /// </summary>
         public UIPositionType PositionType { get => _positionType; }
 
-        private int _layer;
+        protected int _layer;
         /// <summary>
         /// This determines render order with 0 being the back most layer.
         /// </summary>
         public int Layer { get => _layer; }
 
+        protected string _globalID;  //examples include "healthBarContainer"
+        /// <summary>
+        /// A unique ID that is distinct from any other UIElement.
+        /// </summary>
+        public string GlobalID { get => _globalID; }
+
+        protected int _globalIndex;
+        /// <summary>
+        /// The index of this UIElement in the component arrays of the UI class
+        /// </summary>
+        public int GlobalIndex { get => _globalIndex; }
+
+        protected int _localID;
+        /// <summary>
+        /// An incrementing integer ID that represents the unique identifier of this UIElement within the current layer.  Two objects with different parents can have the same LocalID.
+        /// </summary>
+        public int LocalID { get => _localID; }
+
+        protected string _canvasID;
+        /// <summary>
+        /// The ID that represents the canvas which contains this UIElement.
+        /// </summary>
+        public string CanvasID { get => _canvasID; }
+
+        protected string _path;
+        /// <summary>
+        /// Path of the UIElement within the canvas.
+        /// </summary>
+        public string Path { get => _path; }
+
         public UIElement()
         {
             _childElementCount = 0;
-            _childElements = new UIElement[0];
+            _childElementIDs = new int[0];
+            _existingElements = new bool[_childElementCount];
 
             _elementType = UIElementType.NONE;
 
@@ -115,6 +154,73 @@ namespace DeeSynk.Core.Components.Types.UI
             _position = Vector2.Zero;
 
             _layer = 0;
+
+            _canvasID = UICanvas.ID_DEFAULT;
         }
+
+        public UIElement(int[] childElementIDs, UIElementType elementType, int width, int height, Vector2 position, 
+                         UIPositionType positionType, int layer, int globalIndex, string canvasID, string parentPath)
+        {
+            _childElementCount = childElementIDs.Length;
+            _childElementIDs = childElementIDs;
+            _existingElements = new bool[_childElementCount];
+            _elementType = elementType;
+            _width = width;
+            _height = height;
+            _position = position;
+            _positionType = positionType;
+            _layer = layer;
+            _globalIndex = globalIndex;
+            //_localID = localID;
+            _canvasID = canvasID;
+            _path = parentPath + "\\" + ID_GLOBAL_DEFAULT + "_" + _globalIndex;
+        }
+
+        public UIElement(int childElementCount, UIElementType elementType, int width, int height, Vector2 position,
+                 UIPositionType positionType, int layer, int globalIndex, string canvasID, string parentPath)
+        {
+            _childElementCount = childElementCount;
+            _childElementIDs = new int[_childElementCount];
+            _existingElements = new bool[_childElementCount];
+            _elementType = elementType;
+            _width = width;
+            _height = height;
+            _position = position;
+            _positionType = positionType;
+            _layer = layer;
+            _globalIndex = globalIndex;
+            //_localID = localID;
+            _canvasID = canvasID;
+            _path = parentPath + "\\" + ID_GLOBAL_DEFAULT + "_" + _globalIndex;
+        }
+
+        public virtual void AddChild(UIElement e)
+        {
+            try
+            {
+                int idx = FindEmptyElementSpot();
+                _childElementIDs[idx] = e._globalIndex;
+                _existingElements[idx] = true;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("Element not added.");
+            }
+        }
+
+        private int FindEmptyElementSpot()
+        {
+            for(int i=0; i<_childElementCount; i++)
+            {
+                if (!_existingElements[i])
+                {
+                    return i;
+                }
+            }
+            throw new Exception("Allocated element memory full.");
+        }
+
+        public abstract bool Update(float time);
     }
 }

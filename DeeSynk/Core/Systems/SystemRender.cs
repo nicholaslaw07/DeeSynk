@@ -23,9 +23,12 @@ namespace DeeSynk.Core.Systems
                                                 Component.MODEL_STATIC |
                                                 Component.TEXTURE;
 
-        private static readonly Component RenderQualfier = Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM;
+        public static readonly Component RenderQualfier = Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM;
+
+        public static readonly int FinalFBO_ID = 0;
 
         private World _world;
+        private UI _ui;
 
         private bool[] _monitoredGameObjects;
 
@@ -42,9 +45,10 @@ namespace DeeSynk.Core.Systems
 
         //SHADOW END
 
-        public SystemRender(World world)
+        public SystemRender(World world, UI ui)
         {
             _world = world;
+            _ui = ui;
 
             _monitoredGameObjects = new bool[_world.ObjectMemory];
 

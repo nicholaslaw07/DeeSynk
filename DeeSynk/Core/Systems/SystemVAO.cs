@@ -56,6 +56,7 @@ namespace DeeSynk.Core.Systems
         private const int UINT_SIZE = 4;
 
         private World _world;
+        private UI _ui;
 
         private bool[] _monitoredGameObjects;
 
@@ -69,9 +70,10 @@ namespace DeeSynk.Core.Systems
         private int _vaoCount;
         public int VAOCount {get => _vaoCount;}
 
-        public SystemVAO(World world)
+        public SystemVAO(World world, UI ui)
         {
             _world = world;
+            _ui = ui;
 
             _monitoredGameObjects = new bool[_world.ObjectMemory];
 

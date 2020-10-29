@@ -12,10 +12,12 @@ namespace DeeSynk.Core.Systems
         public Component MonitoredComponents => throw new NotImplementedException();
 
         private World _world;
+        private UI _ui;
 
-        public SystemUI(World world)
+        public SystemUI(World world, UI ui)
         {
             _world = world;
+            _ui = ui;
         }
 
 

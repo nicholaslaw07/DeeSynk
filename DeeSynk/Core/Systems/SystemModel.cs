@@ -20,15 +20,16 @@ namespace DeeSynk.Core.Systems
         public Component MonitoredComponents => Component.MODEL_STATIC;
 
         private World _world;
+        private UI _ui;
 
         private bool[] _monitoredGameObjects;
 
         private ComponentModelStatic[] _staticModelComps;
 
-        public SystemModel(World world)
+        public SystemModel(World world, UI ui)
         {
             _world = world;
-
+            _ui = ui;
 
             _monitoredGameObjects = new bool[_world.ObjectMemory];
 

@@ -62,6 +62,9 @@ namespace DeeSynk.Core.Components.Types.Render
         private bool _isFinalRenderPlane;
         public bool IsFinalRenderPlane { get => _isFinalRenderPlane; set => _isFinalRenderPlane = value; }
 
+        private bool _visible;
+        public bool Visible { get => _visible; set => _visible = value; }
+
         //Render Layer
         //Render method (2D or 3D)
         //Is simple sprite?  Idk
@@ -74,6 +77,8 @@ namespace DeeSynk.Core.Components.Types.Render
             _bufferFlags = bufferFlags;
 
             _init = false;
+
+            _visible = true;
         }
 
         public void AddVAOData(int vaoID, int iboID, int programID)
@@ -136,6 +141,22 @@ namespace DeeSynk.Core.Components.Types.Render
             {
                 _vao.Bind();
             }
+        }
+
+        public bool ToggleVisible()
+        {
+            _visible = !_visible;
+            return _visible;
+        }
+
+        public void Show()
+        {
+            _visible = true;
+        }
+
+        public void Hide()
+        {
+            _visible = false;
         }
 
         public void Update(float time)

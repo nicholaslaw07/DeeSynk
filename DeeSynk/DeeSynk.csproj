@@ -172,12 +172,14 @@
     <Compile Include="Core\Components\Types\IComponent.cs" />
     <Compile Include="Core\Components\Models\Model.cs" />
     <Compile Include="Core\Components\GraphicsObjects\VAO.cs" />
+    <Compile Include="Core\Components\Types\UI\ComponentCanvas.cs" />
+    <Compile Include="Core\Components\Types\UI\ComponentElement.cs" />
     <Compile Include="Core\Components\Types\UI\ComponentText.cs" />
-    <Compile Include="Core\Components\Types\UI\ComponentUI.cs" />
     <Compile Include="Core\Components\UI\UIElement.cs" />
     <Compile Include="Core\Components\UI\UICanvas.cs" />
-    <Compile Include="Core\Components\UI\UIElementBox.cs" />
+    <Compile Include="Core\Components\UI\UIElementContainer.cs" />
     <Compile Include="Core\Game.cs" />
+    <Compile Include="Core\GameObjectContainer.cs" />
     <Compile Include="Core\MainWindow.cs" />
     <Compile Include="Core\Managers\ComponentManager.cs" />
     <Compile Include="Core\Managers\ModelManager.cs" />
@@ -211,6 +213,7 @@
     <None Include="Resources\Models\dragon_vripPLY.ply" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Core\Components\Models\Templates\UI\" />
     <Folder Include="Core\SystemTools\" />
   </ItemGroup>
   <ItemGroup>

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Components.Types.UI
 {
-    class ComponentText
+    public class ComponentText : IComponent
     {
+        public Component BitMaskID => throw new NotImplementedException();
     }
 }

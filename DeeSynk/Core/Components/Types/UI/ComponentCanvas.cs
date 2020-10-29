@@ -8,14 +8,14 @@ using DeeSynk.Core.Components;
 namespace DeeSynk.Core.Components.Types.UI
 {
 
-    public class ComponentUI : IComponent
+    public class ComponentCanvas : IComponent
     {
         public Component BitMaskID => Component.UI_CANVAS;
 
         private UICanvas _canvas;
         public UICanvas Canvas { get => _canvas; }
 
-        public ComponentUI(UICanvas canvas)
+        public ComponentCanvas(UICanvas canvas)
         {
             _canvas = canvas;
         }
