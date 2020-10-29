@@ -153,6 +153,8 @@
     <Compile Include="Core\Components\GraphicsObjects\Lights\SunLamp.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Shadows\ShadowMap.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Texture.cs" />
+    <Compile Include="Core\Components\Models\Templates\ModelTemplates.cs" />
+    <Compile Include="Core\Components\Models\Templates\Plane.cs" />
     <Compile Include="Core\Components\Types\Matrices\OrthographicMatrix.cs" />
     <Compile Include="Core\Components\Types\Matrices\PerspectiveMatrix.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentCamera.cs" />
@@ -209,7 +211,6 @@
     <None Include="Resources\Models\dragon_vripPLY.ply" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Core\Components\Models\Templates\" />
     <Folder Include="Core\SystemTools\" />
   </ItemGroup>
   <ItemGroup>

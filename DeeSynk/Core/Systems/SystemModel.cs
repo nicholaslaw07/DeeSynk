@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Systems
 {
+    using ModelTemplates = DeeSynk.Core.Components.Models.Templates.ModelTemplates;
     public class SystemModel : ISystem
     {
         public Component MonitoredComponents => Component.MODEL_STATIC;
@@ -51,17 +52,13 @@ namespace DeeSynk.Core.Systems
         //TEST START
         public void InitModel()
         {
-
             CreateModels();
-
-            var modelManager = ModelManager.GetInstance();
-            for(int idx = 0; idx < _staticModelComps.Length; idx++)
-            {
-                if(_monitoredGameObjects[idx])
-                    modelManager.InitModel(ref _staticModelComps[idx]);
-            }
+            LinkModels();
         }
 
+        /// <summary>
+        /// Creates a ComponentModelStatic for each model that is to be registered.
+        /// </summary>
         private void CreateModels()
         {
             var v00 = new Vector3(0, 8, 0);
@@ -86,7 +83,7 @@ namespace DeeSynk.Core.Systems
             var v11 = new Vector3(100f, 0f, 100f);  //100
             var v12 = t.SubTextureLocations[0].UVOffset;
             var v13 = t.SubTextureLocations[0].UVScale;
-            _staticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.TemplatePlaneXZ,
+            _staticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXZ,
                                                             ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_Y | ConstructionFlags.VECTOR3_SCALE |
                                                             ConstructionFlags.VECTOR3_DIMENSIONS |
                                                             ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
@@ -96,9 +93,22 @@ namespace DeeSynk.Core.Systems
             var v21 = new Vector3(1.0f, 1.0f, 0.0f);
             var v22 = new Vector2(0.0f, 0.0f);
             var v23 = new Vector2(1.0f, 1.0f);
-            _staticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.TemplatePlaneXY,
+            _staticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
                                                             ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.VECTOR3_DIMENSIONS | ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
                                                             v20, v21, v22, v23);
+        }
+
+        /// <summary>
+        /// Links models from ModelManager, either prexisting or registered from template, to each ComponentModelStatic based on the specifications stored in CreateModels.
+        /// </summary>
+        private void LinkModels()
+        {
+            var modelManager = ModelManager.GetInstance();
+            for (int idx = 0; idx < _staticModelComps.Length; idx++)
+            {
+                if (_monitoredGameObjects[idx])
+                    modelManager.InitModel(ref _staticModelComps[idx]);
+            }
         }
 
         //TEST END

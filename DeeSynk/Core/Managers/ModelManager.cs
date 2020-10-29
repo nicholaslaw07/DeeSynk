@@ -17,6 +17,8 @@ using System.Xml.Schema;
 namespace DeeSynk.Core.Managers
 {
     using Model = DeeSynk.Core.Components.Models.Model;
+    using Templates = DeeSynk.Core.Components.Models.Templates;
+    using ModelTemplates = DeeSynk.Core.Components.Models.Templates.ModelTemplates;
 
     public enum PlyProperties : byte
     {
@@ -161,12 +163,12 @@ namespace DeeSynk.Core.Managers
         {
             switch (modelComp.TemplateID)
             {
-                case (ModelTemplates.TemplatePlaneXZ):
-                    return Model.CreateTemplatePlaneXZ(ref modelComp);
-                case (ModelTemplates.TemplatePlaneXY):
-                    return Model.CreateTemplatePlaneXY(ref modelComp);
-                case (ModelTemplates.TemplatePlaneYZ):
-                    return Model.CreateTemplatePlaneYZ(ref modelComp);
+                case (ModelTemplates.PlaneXZ):
+                    return Templates.Plane.XZ(ref modelComp);
+                case (ModelTemplates.PlaneXY):
+                    return Templates.Plane.XY(ref modelComp);
+                case (ModelTemplates.PlaneYZ):
+                    return Templates.Plane.YZ(ref modelComp);
             }
 
             return null;

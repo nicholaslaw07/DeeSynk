@@ -41,6 +41,8 @@ namespace DeeSynk.Core
         public SystemVAO SystemVAO { get => _systemVAO; }
         private SystemModel _systemModel;
         public SystemModel SystemModel { get => _systemModel; }
+        private SystemUI _systemUI;
+        public SystemUI SystemUI { get => _systemUI; }
         #endregion
 
         public Game()
@@ -67,6 +69,7 @@ namespace DeeSynk.Core
             _systemModel = new SystemModel(_world);
             _systemTransform = new SystemTransform(_world);
             _systemVAO = new SystemVAO(_world);
+            _systemUI = new SystemUI(_world);
         }
 
         public void PushCameraRef(ref Camera camera)

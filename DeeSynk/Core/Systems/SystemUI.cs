@@ -13,6 +13,10 @@ namespace DeeSynk.Core.Systems
 
         private World _world;
 
+        public SystemUI(World world)
+        {
+            _world = world;
+        }
 
 
         public void Update(float time)

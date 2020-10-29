@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Components.Types.Render
 {
+    using ModelTemplates = DeeSynk.Core.Components.Models.Templates.ModelTemplates;
+
     [Flags]
     public enum ModelProperties
     {
@@ -133,8 +135,8 @@ namespace DeeSynk.Core.Components.Types.Render
             //_isLoadedIntoVAO = false; //Enum of states instead?
         }
 
-        public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType,
-            ModelTemplates template, ConstructionFlags parameterFlags,
+        public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, 
+                            ModelTemplates template, ConstructionFlags parameterFlags,
             params object[] constructionData)
         {
             _modelProperties = modelProperties;
