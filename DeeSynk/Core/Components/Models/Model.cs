@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Components.Models
 {
-    using ModelTemplates = DeeSynk.Core.Components.Models.Templates.ModelTemplates;
+    using Templates = DeeSynk.Core.Components.Models.Templates.ModelTemplates;
     public enum ModelDataState : int
     {
         ReadOnly = 0,
@@ -345,10 +345,22 @@ namespace DeeSynk.Core.Components.Models
             }
             if (props.HasFlag(ModelProperties.UVS))
             {
-                for (int idx = 0; idx < _normals.Length; idx++)
+                for (int idx = 0; idx < _uvs.Length; idx++)
                 {
                     data[idx * stride + offset + 0] = _uvs[idx].X;
                     data[idx * stride + offset + 1] = _uvs[idx].Y;
+                }
+
+                offset += PropertyDimensions(ModelProperties.UVS);
+            }
+            if (props.HasFlag(ModelProperties.COLORS))
+            {
+                for (int idx = 0; idx < _colors.Length; idx++)
+                {
+                    data[idx * stride + offset + 0] = _colors[idx].R;
+                    data[idx * stride + offset + 1] = _colors[idx].G;
+                    data[idx * stride + offset + 2] = _colors[idx].B;
+                    data[idx * stride + offset + 3] = _colors[idx].A;
                 }
 
                 offset += PropertyDimensions(ModelProperties.UVS);
@@ -363,6 +375,7 @@ namespace DeeSynk.Core.Components.Models
             stride += (props.HasFlag(ModelProperties.VERTICES)) ? VERTEX_DIMS : 0;
             stride += (props.HasFlag(ModelProperties.NORMALS )) ? NORMAL_DIMS : 0;
             stride += (props.HasFlag(ModelProperties.UVS     )) ? UV_DIMS     : 0;
+            stride += (props.HasFlag(ModelProperties.COLORS  )) ? COLOR_DIMS  : 0;
             return stride;
         }
         public static int ByteStride(ModelProperties props)
@@ -371,6 +384,7 @@ namespace DeeSynk.Core.Components.Models
             stride += (props.HasFlag(ModelProperties.VERTICES)) ? VERTEX_SIZE : 0;
             stride += (props.HasFlag(ModelProperties.NORMALS )) ? NORMAL_SIZE : 0;
             stride += (props.HasFlag(ModelProperties.UVS     )) ? UV_SIZE     : 0;
+            stride += (props.HasFlag(ModelProperties.COLORS  )) ? COLOR_SIZE  : 0;
             return stride;
         }
 

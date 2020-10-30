@@ -155,6 +155,7 @@
     <Compile Include="Core\Components\GraphicsObjects\Texture.cs" />
     <Compile Include="Core\Components\Models\Templates\ModelTemplates.cs" />
     <Compile Include="Core\Components\Models\Templates\Plane.cs" />
+    <Compile Include="Core\Components\Models\Templates\Template.cs" />
     <Compile Include="Core\Components\Types\Matrices\OrthographicMatrix.cs" />
     <Compile Include="Core\Components\Types\Matrices\PerspectiveMatrix.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentCamera.cs" />

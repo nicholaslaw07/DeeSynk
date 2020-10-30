@@ -1,4 +1,5 @@
 ﻿using DeeSynk.Core.Components.Models;
+using DeeSynk.Core.Components.Models.Templates;
 using DeeSynk.Core.Managers;
 using DeeSynk.Core.Systems;
 using OpenTK;
@@ -48,14 +49,7 @@ namespace DeeSynk.Core.Components.Types.Render
         FLOAT_ROTATION_X = 1 << 1,
         FLOAT_ROTATION_Y = 1 << 2,
         FLOAT_ROTATION_Z = 1 << 3,
-        VECTOR3_SCALE    = 1 << 4,
-
-        VECTOR3_DIMENSIONS = 1 << 5,
-
-        COLOR4_COLOR = 1 << 6,
-
-        VECTOR2_UV_OFFSET  = 1 << 7,
-        VECTOR2_UV_SCALE   = 1 << 8
+        VECTOR3_SCALE    = 1 << 4
     }
 
     public enum ModelReferenceType
@@ -123,6 +117,9 @@ namespace DeeSynk.Core.Components.Types.Render
             }
         }
 
+        private ITemplate _templateData;
+        public ITemplate TemplateData { get => _templateData; set => _templateData = value; }
+
         public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID,
                             ConstructionFlags parameterFlags, params object[] constructionData)
         {
@@ -177,26 +174,6 @@ namespace DeeSynk.Core.Components.Types.Render
                 totalFloats += VECTOR3;
                 objectCount++;
             }
-            if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS))
-            {
-                totalFloats += VECTOR3;
-                objectCount++;
-            }
-            if (_constructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))
-            {
-                totalFloats += COLOR4;
-                objectCount++;
-            }
-            if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_OFFSET))
-            {
-                totalFloats += VECTOR2;
-                objectCount++;
-            }
-            if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE))
-            {
-                totalFloats += VECTOR2;
-                objectCount++;
-            }
 
             if (objectCount == constructionData.Length)
             {
@@ -236,37 +213,6 @@ namespace DeeSynk.Core.Components.Types.Render
                     _constructionData[offset + 2] = ((Vector3)constructionData[objectIndex]).Z;
                     objectIndex++;
                     offset += VECTOR3;
-                }
-                if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS))
-                {
-                    _constructionData[offset] = ((Vector3)constructionData[objectIndex]).X;
-                    _constructionData[offset + 1] = ((Vector3)constructionData[objectIndex]).Y;
-                    _constructionData[offset + 2] = ((Vector3)constructionData[objectIndex]).Z;
-                    objectIndex++;
-                    offset += VECTOR3;
-                }
-                if (_constructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))
-                {
-                    _constructionData[offset] = ((Color4)constructionData[objectIndex]).R;
-                    _constructionData[offset + 1] = ((Color4)constructionData[objectIndex]).G;
-                    _constructionData[offset + 2] = ((Color4)constructionData[objectIndex]).B;
-                    _constructionData[offset + 3] = ((Color4)constructionData[objectIndex]).A;
-                    objectIndex++;
-                    offset += COLOR4;
-                }
-                if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_OFFSET))
-                {
-                    _constructionData[offset] = ((Vector2)constructionData[objectIndex]).X;
-                    _constructionData[offset + 1] = ((Vector2)constructionData[objectIndex]).Y;
-                    objectIndex++;
-                    offset += VECTOR2;
-                }
-                if (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE))
-                {
-                    _constructionData[offset] = ((Vector2)constructionData[objectIndex]).X;
-                    _constructionData[offset + 1] = ((Vector2)constructionData[objectIndex]).Y;
-                    objectIndex++;
-                    offset += VECTOR2;
                 }
             }
             else
@@ -323,18 +269,6 @@ namespace DeeSynk.Core.Components.Types.Render
             if (flag == ConstructionFlags.VECTOR3_SCALE) { return offset; }
             offset += (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_SCALE)) ? VECTOR3 : 0;
 
-            if (flag == ConstructionFlags.VECTOR3_DIMENSIONS) { return offset; }
-            offset += (_constructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS)) ? VECTOR3 : 0;
-
-            if (flag == ConstructionFlags.COLOR4_COLOR) { return offset; }
-            offset += (_constructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR)) ? COLOR4: 0;
-
-            if (flag == ConstructionFlags.VECTOR2_UV_OFFSET) { return offset; }
-            offset += (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE)) ? VECTOR2 : 0;
-
-            if (flag == ConstructionFlags.VECTOR2_UV_SCALE) { return offset; }
-            offset += (_constructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE)) ? VECTOR2: 0;
-
             return offset; //Don't need to check since this is the last parameter, for now
         }
 
@@ -352,14 +286,6 @@ namespace DeeSynk.Core.Components.Types.Render
                     return FLOAT;
                 case (ConstructionFlags.VECTOR3_SCALE):
                     return VECTOR3;
-                case (ConstructionFlags.VECTOR3_DIMENSIONS):
-                    return VECTOR3;
-                case (ConstructionFlags.COLOR4_COLOR):
-                    return COLOR4;
-                case (ConstructionFlags.VECTOR2_UV_OFFSET):
-                    return VECTOR2;
-                case (ConstructionFlags.VECTOR2_UV_SCALE):
-                    return VECTOR2;
                 default:
                     return 0;
             }

@@ -138,9 +138,9 @@ namespace DeeSynk.Core
                 var v04 = Color4.White;
 
 
-                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
-                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.COLOR4_COLOR | ConstructionFlags.VECTOR3_SCALE,
-                                            new Vector3(0, 0.29f, 0), (float)(0), new Vector3(0.25f, 0.25f, 0.25f), v04);
+                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
+                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.VECTOR3_SCALE,
+                                            new Vector3(0, 0.29f, 0), (float)(0), new Vector3(0.25f, 0.25f, 0.25f));
 
                 Texture t = TextureManager.GetInstance().GetTexture("wood");
                 float width = t.Width;
@@ -148,22 +148,19 @@ namespace DeeSynk.Core
 
                 var v10 = new Vector3(0);
                 var v14 = new Vector3(1 / 20f * t.AspectRatio, 0f, 1 / 20f);
-                var v11 = new Vector3(100f, 0f, 100f);  //100
-                var v12 = t.SubTextureLocations[0].UVOffset;
-                var v13 = t.SubTextureLocations[0].UVScale;
                 _world.StaticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXZ,
-                                                                ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.VECTOR3_SCALE |
-                                                                ConstructionFlags.VECTOR3_DIMENSIONS |
-                                                                ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
-                                                                v10, 0.0f, v14, v11, v12, v13);
+                                                                ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.VECTOR3_SCALE,
+                                                                v10, 0.0f, v14);
+                _world.StaticModelComps[1].TemplateData = new Plane(_world.StaticModelComps[1].ModelProperties, new Vector2(100.0f, 100.0f), t.SubTextureLocations[0].UVOffset, t.SubTextureLocations[0].UVScale);
 
                 var v20 = new Vector3(-0.5f, -0.5f, -1.0f);
                 var v21 = new Vector3(1.0f, 1.0f, 0.0f);
                 var v22 = new Vector2(0.0f, 0.0f);
                 var v23 = new Vector2(1.0f, 1.0f);
+
                 _world.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
-                                                                ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.VECTOR3_DIMENSIONS | ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
-                                                                v20, v21, v22, v23);
+                                                                ConstructionFlags.VECTOR3_OFFSET, v20);
+                _world.StaticModelComps[2].TemplateData = new Plane(_world.StaticModelComps[1].ModelProperties, new Vector2(1.0f, 1.0f), new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f));
             }
             _systemModel.LinkModels(_world);
             _systemTransform.CreateComponents(_world);
@@ -238,7 +235,7 @@ namespace DeeSynk.Core
             var sm = ShaderManager.GetInstance();
 
             _compIdx = _ui.CompIdx;
-            var uiCamera = new Camera(CameraMode.ORTHOGRAPHIC, MainWindow.width/2.0f, MainWindow.height/2.0f, -1.0f, 2.0f);
+            var uiCamera = new Camera(CameraMode.ORTHOGRAPHIC, MainWindow.width/1.0f, MainWindow.height/1.0f, -1.0f, 2.0f);
             _world.CameraComps[_compIdx] = new ComponentCamera(uiCamera);
             _world.CameraComps[_compIdx].Camera.BuildUBO(15, 7);
 
@@ -248,7 +245,7 @@ namespace DeeSynk.Core
 
 
             _compIdx = _ui.NextComponentIndex();
-            UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, 100, 100, new Vector2(200, 200), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
+            UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, 512, 512, new Vector2(200, 200), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
             activeCanvas.AddChild(element);
 
             _ui.ElementComps[_compIdx] = new ComponentElement(element);
@@ -256,14 +253,14 @@ namespace DeeSynk.Core
                 var v30 = new Vector3(-0.5f + element.Position.X, -0.5f + element.Position.Y, -1.0f);
                 var v31 = new Vector3(element.Width, element.Height, 0.0f);
                 _ui.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
-                                                                ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.VECTOR3_DIMENSIONS | ConstructionFlags.COLOR4_COLOR,
-                                                                v30, v31, new Color4(255, 0, 255, 255));
-                //new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f)
+                                                                ConstructionFlags.VECTOR3_OFFSET,
+                                                                v30);
+                _ui.StaticModelComps[2].TemplateData = new Plane(_ui.StaticModelComps[2].ModelProperties, new Vector2(element.Width, element.Height), Color4.Red);
             }
 
             _systemModel.LinkModels(_ui);
             _systemTransform.CreateComponents(_ui);
-            _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _ui);
+            _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _ui);
             _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
             _ui.RenderComps[_compIdx].ValidateData();
             //_ui.TextureComps[_compIdx] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);

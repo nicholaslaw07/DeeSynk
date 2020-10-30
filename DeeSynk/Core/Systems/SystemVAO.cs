@@ -313,6 +313,13 @@ namespace DeeSynk.Core.Systems
                 GL.VertexAttribBinding(2, 0);
                 offset += Model.UV_SIZE;
             }
+            else if (properties.HasFlag(ModelProperties.COLORS))
+            {
+                GL.EnableVertexAttribArray(2);
+                GL.VertexAttribFormat(2, Model.COLOR_DIMS, VertexAttribType.Float, false, offset);
+                GL.VertexAttribBinding(2, 0);
+                offset += Model.COLOR_SIZE;
+            }
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
@@ -328,7 +335,7 @@ namespace DeeSynk.Core.Systems
             Buffers buffers = Buffers.NONE;
             buffers |= (properties.HasFlag(ModelProperties.VERTICES)) ? Buffers.VERTICES : Buffers.NONE;
             buffers |= (properties.HasFlag(ModelProperties.NORMALS )) ? Buffers.NORMALS  : Buffers.NONE;
-            //buffers |= (properties.HasFlag(ModelProperties.COLORS  )) ? Buffers.COLORS   : Buffers.NONE;
+            buffers |= (properties.HasFlag(ModelProperties.COLORS  )) ? Buffers.COLORS   : Buffers.NONE;
             buffers |= (properties.HasFlag(ModelProperties.UVS     )) ? Buffers.UVS      : Buffers.NONE;
             return buffers;
         }
@@ -338,7 +345,7 @@ namespace DeeSynk.Core.Systems
             ModelProperties props = ModelProperties.NONE;
             props |= (buffers.HasFlag(Buffers.VERTICES)) ? ModelProperties.VERTICES : ModelProperties.NONE;
             props |= (buffers.HasFlag(Buffers.NORMALS )) ? ModelProperties.NORMALS  : ModelProperties.NONE;
-            //props |= (buffers.HasFlag(Buffers.COLORS  )) ? ModelProperties.COLORS   : ModelProperties.NONE;
+            props |= (buffers.HasFlag(Buffers.COLORS  )) ? ModelProperties.COLORS   : ModelProperties.NONE;
             props |= (buffers.HasFlag(Buffers.UVS     )) ? ModelProperties.UVS      : ModelProperties.NONE;
             return props;
         }
@@ -497,6 +504,9 @@ namespace DeeSynk.Core.Systems
             {
                 var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
 
+                if (!model.Properties.HasFlag(ModelProperties.COLORS))
+                    throw new Exception("Invalid operation: cannot construct color buffer when no color data exists.");
+
                 if (!model.HasValidData)
                     continue;
 
@@ -508,13 +518,6 @@ namespace DeeSynk.Core.Systems
                     modelColorCount = model.ColorCount;
                 else if (model.Properties.HasFlag(ModelProperties.VERTICES))
                     modelColorCount = (model.Properties.HasFlag(ModelProperties.ELEMENTS)) ? model.ElementCount : model.VertexCount;
-
-                if (!model.Properties.HasFlag(ModelProperties.COLORS))
-                {
-                    c.StaticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR, out float[] data);
-                    color = new Color4(data[0], data[1], data[2], data[3]);
-                    useColorFromComponent = true;
-                }
 
                 for (int jdx = 0; jdx < modelColorCount; jdx++)
                 {

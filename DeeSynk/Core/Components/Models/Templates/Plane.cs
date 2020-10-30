@@ -9,19 +9,70 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Components.Models.Templates
 {
-    public static class Plane
+    public class Plane : ITemplate
     {
-        //A static helper class to create certain templates
         public static string NameXZ => "PlaneXZ";
         public static string NameXY => "PlaneXY";
         public static string NameYZ => "PlaneYZ";
+
+
+        private Vector2 _dimensions;
+        public Vector2 Dimension { get => _dimensions; }
+        private Color4 _color;
+        public Color4 Color { get => _color; }
+        private Vector2 _uvOffset;
+        public Vector2 UVOffset { get => _uvOffset; }
+        private Vector2 _uvScale;
+        public Vector2 UVScale { get => _uvScale; }
+
+        //In the future, maybe use Color as a form of tint.  Then add a tint factor.
+
+        //Add error handling for invalid configurations???
+
+        public Plane(ModelProperties properties, Vector2 dimensions, Color4 color)
+        {
+            _dimensions = dimensions;
+            if (properties.HasFlag(ModelProperties.COLORS))
+                _color = color;
+            else
+                throw new Exception("Invalid configuration: model does not support color designation.");
+        }
+
+        public Plane(ModelProperties properties, Vector2 dimensions, Vector2 uvOffset, Vector2 uvScale)
+        {
+            _dimensions = dimensions;
+            if (properties.HasFlag(ModelProperties.UVS))
+            {
+                _uvOffset = uvOffset;
+                _uvScale = uvScale;
+            }
+            else
+                throw new Exception("Invalid configuration: model does not support uv designation.");
+        }
+
+        public Model ConstructModel(ComponentModelStatic modelComp)
+        {
+            switch (modelComp.TemplateID)
+            {
+                case (ModelTemplates.PlaneXZ):
+                    return Plane.XZ(modelComp, this);
+                case (ModelTemplates.PlaneXY):
+                    return Plane.XY(modelComp, this);
+                case (ModelTemplates.PlaneYZ):
+                    return Plane.YZ(modelComp, this);
+                default:
+                    return null;
+            }
+        }
+
+        //====================================STATICS====================================//
 
         /// <summary>
         /// Constructs a model object for a plane of dimensions specified by the model component.  Created in the XZ plane.
         /// </summary>
         /// <param name="modelComp">Model component that holds data for the creation of this object.</param>
         /// <returns></returns>
-        public static Model XZ(ref ComponentModelStatic modelComp)
+        public static Model XZ(ComponentModelStatic modelComp, Plane templateData)
         {
             Model model = new Model();
 
@@ -32,16 +83,11 @@ namespace DeeSynk.Core.Components.Models.Templates
                 Vector2[] uvs;
                 uint[] elements;
 
-                //CreateStaticModelMatrix(ref modelComp, out Matrix4 modelMatrix);
-                //model = new Model(modelMatrix);
+                var size = templateData._dimensions;
 
-                //no error checking since this should almost always be the case, if not we compensate for it by having defaults (1.0f)
-                bool hasDimensionFlag = modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS);
-                float[] WH = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_DIMENSIONS);
-
-                float width = (hasDimensionFlag) ? WH[0] : 1.0f;  //X
+                float width = size.X;  //X
                 width /= 2.0f;
-                float height = (hasDimensionFlag) ? WH[2] : 1.0f;  //Z
+                float height = size.Y;  //Z
                 height /= 2.0f;
 
                 if (modelComp.ModelProperties.HasFlag(ModelProperties.ELEMENTS))
@@ -74,23 +120,13 @@ namespace DeeSynk.Core.Components.Models.Templates
                         }
                         model.Elements = elements;
 
-                        float offsetU = 0.0f;
-                        float offsetV = 0.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_OFFSET))
-                        {
-                            float[] UVOffsetRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_OFFSET);
-                            offsetU = UVOffsetRaw[0];
-                            offsetV = UVOffsetRaw[1];
-                        }
+                        var offset = templateData._uvOffset;
+                        float offsetU = offset.X;
+                        float offsetV = offset.Y;
 
-                        float scaleU = 1.0f;
-                        float scaleV = 1.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE))
-                        {
-                            float[] UVScaleRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_SCALE);
-                            scaleU = UVScaleRaw[0];
-                            scaleV = UVScaleRaw[1];
-                        }
+                        var scale = templateData._uvScale;
+                        float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
+                        float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
                         //Add uv data, offset on the UV is not affected by the scaling (dimensions)
                         {
@@ -131,13 +167,9 @@ namespace DeeSynk.Core.Components.Models.Templates
                         //Add colors
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-
-                            float[] ColorRaw = modelComp.GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(ColorRaw[0], ColorRaw[1], ColorRaw[2], ColorRaw[3]);
-
+                            Color4 color = templateData._color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
-
                         }
 
                         //the default return if it doesn't have the property for some reason
@@ -171,23 +203,13 @@ namespace DeeSynk.Core.Components.Models.Templates
                     {
                         uvs = new Vector2[6];
 
-                        float offsetU = 0.0f;
-                        float offsetV = 0.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_OFFSET))
-                        {
-                            float[] UVOffsetRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_OFFSET);
-                            offsetU = UVOffsetRaw[0];
-                            offsetV = UVOffsetRaw[1];
-                        }
+                        var offset = templateData._uvOffset;
+                        float offsetU = offset.X;
+                        float offsetV = offset.Y;
 
-                        float scaleU = 1.0f;
-                        float scaleV = 1.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE))
-                        {
-                            float[] UVScaleRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_SCALE);
-                            scaleU = UVScaleRaw[0];
-                            scaleV = UVScaleRaw[1];
-                        }
+                        var scale = templateData._uvScale;
+                        float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
+                        float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
                         //Add uv data, offset on the UV is not affected by the scaling (dimensions)
                         {
@@ -207,8 +229,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         colors = new Color4[6];
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-                            float[] ColorRaw = modelComp.GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(ColorRaw[0], ColorRaw[1], ColorRaw[2], ColorRaw[3]);
+                            Color4 color = templateData._color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
                         }
@@ -235,7 +256,7 @@ namespace DeeSynk.Core.Components.Models.Templates
         /// </summary>
         /// <param name="modelComp">Model component that holds data for the creation of this object.</param>
         /// <returns></returns>
-        public static Model XY(ref ComponentModelStatic modelComp)
+        public static Model XY(ComponentModelStatic modelComp, Plane templateData)
         {
             Model model = new Model();
 
@@ -246,17 +267,11 @@ namespace DeeSynk.Core.Components.Models.Templates
                 Vector2[] uvs;
                 uint[] elements;
 
-                //CreateStaticModelMatrix(ref modelComp, out Matrix4 modelMatrix);
-                //model = new Model(modelMatrix);
+                var size = templateData._dimensions;
 
-                //no error checking since this should almost always be the case, if not we compensate for it by having defaults (1.0f)
-                //checks for an instance of a dimension flag - if none is present use default values
-                bool hasDimensionFlag = modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS);
-                float[] WH = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_DIMENSIONS);
-
-                float width = (hasDimensionFlag) ? WH[0] : 1.0f;  //X
+                float width = size.X;  //X
                 width /= 2.0f;
-                float height = (hasDimensionFlag) ? WH[1] : 1.0f;  //Y
+                float height = size.Y;  //Y
                 height /= 2.0f;
 
                 if (modelComp.ModelProperties.HasFlag(ModelProperties.ELEMENTS))
@@ -289,23 +304,13 @@ namespace DeeSynk.Core.Components.Models.Templates
                         }
                         model.Elements = elements;
 
-                        float offsetU = 0.0f;
-                        float offsetV = 0.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_OFFSET))
-                        {
-                            float[] UVOffsetRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_OFFSET);
-                            offsetU = UVOffsetRaw[0];
-                            offsetV = UVOffsetRaw[1];
-                        }
+                        var offset = templateData._uvOffset;
+                        float offsetU = offset.X;
+                        float offsetV = offset.Y;
 
-                        float scaleU = 1.0f;
-                        float scaleV = 1.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE))
-                        {
-                            float[] UVScaleRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_SCALE);
-                            scaleU = UVScaleRaw[0];
-                            scaleV = UVScaleRaw[1];
-                        }
+                        var scale = templateData._uvScale;
+                        float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
+                        float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
                         //Add uv data, offset on the UV is not affected by the scaling (dimensions)
                         {
@@ -346,13 +351,9 @@ namespace DeeSynk.Core.Components.Models.Templates
                         //Add colors
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-
-                            float[] ColorRaw = modelComp.GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(ColorRaw[0], ColorRaw[1], ColorRaw[2], ColorRaw[3]);
-
+                            Color4 color = templateData._color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
-
                         }
 
                         //the default return if it doesn't have the property for some reason
@@ -386,23 +387,13 @@ namespace DeeSynk.Core.Components.Models.Templates
                     {
                         uvs = new Vector2[6];
 
-                        float offsetU = 0.0f;
-                        float offsetV = 0.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_OFFSET))
-                        {
-                            float[] UVOffsetRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_OFFSET);
-                            offsetU = UVOffsetRaw[0];
-                            offsetV = UVOffsetRaw[1];
-                        }
+                        var offset = templateData._uvOffset;
+                        float offsetU = offset.X;
+                        float offsetV = offset.Y;
 
-                        float scaleU = 1.0f;
-                        float scaleV = 1.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE))
-                        {
-                            float[] UVScaleRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_SCALE);
-                            scaleU = UVScaleRaw[0];
-                            scaleV = UVScaleRaw[1];
-                        }
+                        var scale = templateData._uvScale;
+                        float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
+                        float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
                         //Add uv data, offset on the UV is not affected by the scaling (dimensions)
                         {
@@ -422,8 +413,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         colors = new Color4[6];
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-                            float[] ColorRaw = modelComp.GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(ColorRaw[0], ColorRaw[1], ColorRaw[2], ColorRaw[3]);
+                            Color4 color = templateData._color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
                         }
@@ -450,7 +440,7 @@ namespace DeeSynk.Core.Components.Models.Templates
         /// </summary>
         /// <param name="modelComp">Model component that holds data for the creation of this object.</param>
         /// <returns></returns>
-        public static Model YZ(ref ComponentModelStatic modelComp)
+        public static Model YZ(ComponentModelStatic modelComp, Plane templateData)
         {
 
             Model model = new Model();
@@ -462,16 +452,11 @@ namespace DeeSynk.Core.Components.Models.Templates
                 Vector2[] uvs;
                 uint[] elements;
 
-                //CreateStaticModelMatrix(ref modelComp, out Matrix4 modelMatrix);
-                //model = new Model(modelMatrix);
+                var size = templateData._dimensions;
 
-                //no error checking since this should almost always be the case, if not we compensate for it by having defaults (1.0f)
-                bool hasDimensionFlag = modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR3_DIMENSIONS);
-                float[] WH = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR3_DIMENSIONS);
-
-                float width = (hasDimensionFlag) ? WH[1] : 1.0f;  //Y
+                float width = size.X;  //Y
                 width /= 2.0f;
-                float height = (hasDimensionFlag) ? WH[2] : 1.0f;  //Z
+                float height = size.Y;  //Z
                 height /= 2.0f;
 
                 if (modelComp.ModelProperties.HasFlag(ModelProperties.ELEMENTS))
@@ -504,23 +489,13 @@ namespace DeeSynk.Core.Components.Models.Templates
                         }
                         model.Elements = elements;
 
-                        float offsetU = 0.0f;
-                        float offsetV = 0.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_OFFSET))
-                        {
-                            float[] UVOffsetRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_OFFSET);
-                            offsetU = UVOffsetRaw[0];
-                            offsetV = UVOffsetRaw[1];
-                        }
+                        var offset = templateData._uvOffset;
+                        float offsetU = offset.X;
+                        float offsetV = offset.Y;
 
-                        float scaleU = 1.0f;
-                        float scaleV = 1.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE))
-                        {
-                            float[] UVScaleRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_SCALE);
-                            scaleU = UVScaleRaw[0];
-                            scaleV = UVScaleRaw[1];
-                        }
+                        var scale = templateData._uvScale;
+                        float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
+                        float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
                         //Add uv data, offset on the UV is not affected by the scaling (dimensions)
                         {
@@ -561,13 +536,9 @@ namespace DeeSynk.Core.Components.Models.Templates
                         //Add colors
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-
-                            float[] ColorRaw = modelComp.GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(ColorRaw[0], ColorRaw[1], ColorRaw[2], ColorRaw[3]);
-
+                            Color4 color = templateData._color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
-
                         }
 
                         //the default return if it doesn't have the property for some reason
@@ -601,23 +572,13 @@ namespace DeeSynk.Core.Components.Models.Templates
                     {
                         uvs = new Vector2[6];
 
-                        float offsetU = 0.0f;
-                        float offsetV = 0.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_OFFSET))
-                        {
-                            float[] UVOffsetRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_OFFSET);
-                            offsetU = UVOffsetRaw[0];
-                            offsetV = UVOffsetRaw[1];
-                        }
+                        var offset = templateData._uvOffset;
+                        float offsetU = offset.X;
+                        float offsetV = offset.Y;
 
-                        float scaleU = 1.0f;
-                        float scaleV = 1.0f;
-                        if (modelComp.ConstructionFlags.HasFlag(ConstructionFlags.VECTOR2_UV_SCALE))
-                        {
-                            float[] UVScaleRaw = modelComp.GetConstructionParameter(ConstructionFlags.VECTOR2_UV_SCALE);
-                            scaleU = UVScaleRaw[0];
-                            scaleV = UVScaleRaw[1];
-                        }
+                        var scale = templateData._uvScale;
+                        float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
+                        float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
                         //Add uv data, offset on the UV is not affected by the scaling (dimensions)
                         {
@@ -637,8 +598,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         colors = new Color4[6];
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-                            float[] ColorRaw = modelComp.GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(ColorRaw[0], ColorRaw[1], ColorRaw[2], ColorRaw[3]);
+                            Color4 color = templateData._color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
                         }

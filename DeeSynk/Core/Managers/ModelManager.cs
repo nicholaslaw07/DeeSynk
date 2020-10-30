@@ -161,17 +161,7 @@ namespace DeeSynk.Core.Managers
 
         private Model GetModelFromTemplate(ref ComponentModelStatic modelComp)
         {
-            switch (modelComp.TemplateID)
-            {
-                case (ModelTemplates.PlaneXZ):
-                    return Templates.Plane.XZ(ref modelComp);
-                case (ModelTemplates.PlaneXY):
-                    return Templates.Plane.XY(ref modelComp);
-                case (ModelTemplates.PlaneYZ):
-                    return Templates.Plane.YZ(ref modelComp);
-            }
-
-            return null;
+            return modelComp.TemplateData.ConstructModel(modelComp);
         }
 
         private string GetValidNameForModel(string keyName)

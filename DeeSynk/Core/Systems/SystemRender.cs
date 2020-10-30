@@ -222,12 +222,11 @@ namespace DeeSynk.Core.Systems
 
                         Bind(idx, true, _world);
 
-                        if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
-                        {
-                            var colorArr = _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
-                            GL.Uniform4(17, color);
-                        }
+                        //if (_staticModelComps[idx].ModelProperties.HasFlag(ModelProperties.COLORS))  //incorporate into the model, material, or render comp when binding
+                        //{
+                        //    var colorArr = _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
+                        //    GL.Uniform4(17, _staticModelComps[idx].Co);
+                        //}
 
                         if (comps.HasFlag(Component.TEXTURE))
                         {
@@ -268,13 +267,6 @@ namespace DeeSynk.Core.Systems
                     if (comps.HasFlag(RenderQualfier) && !_renderComps[idx].IsFinalRenderPlane)
                     {
                         Bind(idx, true, _world);
-
-                        if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
-                        {
-                            var colorArr = _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
-                            GL.Uniform4(17, color);
-                        }
 
                         if (comps.HasFlag(Component.TEXTURE))
                         {
@@ -367,13 +359,6 @@ namespace DeeSynk.Core.Systems
                 {
                     Bind(idx, true, _world);
 
-                    if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
-                    {
-                        var colorArr = _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                        Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
-                        GL.Uniform4(17, color);
-                    }
-
                     if (comps.HasFlag(Component.TEXTURE))
                     {
                         _textureComps[idx].BindTexture(TextureUnit.Texture0);
@@ -439,12 +424,12 @@ namespace DeeSynk.Core.Systems
                     {
                         Bind(idx, true, _ui);
 
-                        if (_ui.StaticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
-                        {
-                            var colorArr = _ui.StaticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
-                            Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
-                            GL.Uniform4(17, color);
-                        }
+                        //if (_ui.StaticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
+                        //{
+                        //    var colorArr = _ui.StaticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
+                        //    Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
+                        //    GL.Uniform4(17, color);
+                        //}
 
                         if (comps.HasFlag(Component.TEXTURE))
                         {
