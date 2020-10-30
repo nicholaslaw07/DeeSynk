@@ -31,23 +31,6 @@ namespace DeeSynk.Core
         /// </summary>
         public uint FBO_Count { get => FBO_COUNT; }
 
-        //The arrays that store all of the components inside of this world object, their capactiy is limited by OBJECT_MEMORY
-        #region COMPONENT_ARRAYS
-        private ComponentTransform[]    _transComps;
-        public ComponentTransform[]     TransComps       { get => _transComps; }
-        private ComponentRender[]       _renderComps;
-        public  ComponentRender[]       RenderComps      { get => _renderComps; }
-        private ComponentModelStatic[]  _staticModelComps;
-        public  ComponentModelStatic[]  StaticModelComps { get => _staticModelComps; }
-        private ComponentTexture[]      _textureComps;
-        public  ComponentTexture[]      TextureComps     { get => _textureComps; }
-        private ComponentCamera[]       _cameraComps;
-        public  ComponentCamera[]       CameraComps      { get => _cameraComps; }
-        private ComponentLight[]        _lightComps;
-        public  ComponentLight[]        LightComps       { get => _lightComps; }
-
-        #endregion
-
         private VAO[] _vaos;
         /// <summary>
         /// The array containing all VAOs that are in use by the GameObjects in this world object.
@@ -62,17 +45,8 @@ namespace DeeSynk.Core
 
         public World(uint objectMemory) : base(objectMemory)
         {   
-            _transComps       = new ComponentTransform[OBJECT_MEMORY];
-            _renderComps      = new ComponentRender[OBJECT_MEMORY];
-            _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
-            _textureComps     = new ComponentTexture[OBJECT_MEMORY];
-            _cameraComps      = new ComponentCamera[OBJECT_MEMORY];
-            _lightComps       = new ComponentLight[OBJECT_MEMORY];
-
             _vaos             = new VAO[OBJECT_MEMORY];
             _fbos             = new FBO[FBO_COUNT];
-
-            _compIdx = 0;
         }
 
         public override void InitData()

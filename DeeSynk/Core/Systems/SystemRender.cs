@@ -30,7 +30,8 @@ namespace DeeSynk.Core.Systems
         private World _world;
         private UI _ui;
 
-        private bool[] _monitoredGameObjects;
+        private bool[] _monitoredGameObjects_W;
+        private bool[] _monitoredGameObjects_U;
 
         private ComponentRender[] _renderComps;
         private ComponentModelStatic[] _staticModelComps;
@@ -50,7 +51,8 @@ namespace DeeSynk.Core.Systems
             _world = world;
             _ui = ui;
 
-            _monitoredGameObjects = new bool[_world.ObjectMemory];
+            _monitoredGameObjects_W = new bool[_world.ObjectMemory];
+            _monitoredGameObjects_U = new bool[_ui.ObjectMemory];
 
             _renderComps = _world.RenderComps;
             _staticModelComps = _world.StaticModelComps;
@@ -71,13 +73,19 @@ namespace DeeSynk.Core.Systems
 
         public void UpdateMonitoredGameObjects()
         {
-            for (int i = 0; i < _world.ObjectMemory; i++)
+            UpdateMonitoredGameObjects(_world, _monitoredGameObjects_W);
+            UpdateMonitoredGameObjects(_ui, _monitoredGameObjects_U);
+        }
+
+        private void UpdateMonitoredGameObjects(GameObjectContainer c, bool[] monitor)
+        {
+            for (int i = 0; i < c.ObjectMemory; i++)
             {
-                if (_world.ExistingGameObjects[i])
+                if (c.ExistingGameObjects[i])
                 {
-                    if ((_world.GameObjects[i].Components | MonitoredComponents) == MonitoredComponents)
+                    if (c.GameObjects[i].Components.HasFlag(MonitoredComponents))
                     {
-                        _monitoredGameObjects[i] = true;
+                        monitor[i] = true;
                     }
                 }
             }
@@ -87,12 +95,12 @@ namespace DeeSynk.Core.Systems
         {
         }
 
-        public void Bind(int idx, bool useShader)
+        public void Bind(int idx, bool useShader, GameObjectContainer c)
         {
             if (useShader)
-                _renderComps[idx].BindData();
+                c.RenderComps[idx].BindData();
             else
-                _renderComps[idx].BindDataNoShader();
+                c.RenderComps[idx].BindDataNoShader();
         }
 
         public void UnBind()
@@ -108,7 +116,7 @@ namespace DeeSynk.Core.Systems
             RenderDepthMaps(ref systemTransform);
             RenderScene(ref systemTransform);
             RenderPost(ref systemTransform);
-            RenderUI();
+            RenderUI(ref systemTransform);
         }
 
         private void RenderDepthMaps(ref SystemTransform systemTransform)
@@ -147,8 +155,8 @@ namespace DeeSynk.Core.Systems
                             {
                                 if (_world.GameObjects [idx].Components.HasFlag(RenderQualfier))
                                 {
-                                    Bind(idx, false);
-                                    systemTransform.PushModelMatrix(idx);
+                                    Bind(idx, false, _world);
+                                    systemTransform.PushModelMatrix(idx, _world);
                                     int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
                                     GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                                 }
@@ -207,11 +215,12 @@ namespace DeeSynk.Core.Systems
 
             for (int idx = 0; idx < _world.ObjectMemory; idx++)
             {
-                if (_world.ExistingGameObjects[idx])                {
+                if (_world.ExistingGameObjects[idx]){
                     Component comps = _world.GameObjects[idx].Components;
                     if (comps.HasFlag(RenderQualfier) && !_renderComps[idx].IsFinalRenderPlane)
                     {
-                        Bind(idx, true);
+
+                        Bind(idx, true, _world);
 
                         if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
                         {
@@ -225,7 +234,7 @@ namespace DeeSynk.Core.Systems
                             _textureComps[idx].BindTexture(TextureUnit.Texture0);
                         }
 
-                        systemTransform.PushModelMatrix(idx);
+                        systemTransform.PushModelMatrix(idx, _world);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
 
                         //Bind ShadowMaps to their respective texture units
@@ -258,7 +267,7 @@ namespace DeeSynk.Core.Systems
                     Component comps = _world.GameObjects[idx].Components;
                     if (comps.HasFlag(RenderQualfier) && !_renderComps[idx].IsFinalRenderPlane)
                     {
-                        Bind(idx, true);
+                        Bind(idx, true, _world);
 
                         if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
                         {
@@ -272,7 +281,7 @@ namespace DeeSynk.Core.Systems
                             _textureComps[idx].BindTexture(TextureUnit.Texture0);
                         }
 
-                        systemTransform.PushModelMatrix(idx);
+                        systemTransform.PushModelMatrix(idx, _world);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
 
                         //Bind ShadowMaps to their respective texture units
@@ -294,8 +303,8 @@ namespace DeeSynk.Core.Systems
             GL.StencilOpSeparate(StencilFace.Front, StencilOp.Keep, StencilOp.DecrWrap, StencilOp.Keep);
 
             GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowVolume"));
-            systemTransform.PushModelMatrix(0);
-            Bind(0, false);
+            systemTransform.PushModelMatrix(0, _world);
+            Bind(0, false, _world);
             if (GL.GetInteger(GetPName.TransformFeedbackBinding) != TEST_VAO.Buffers[1])
                 GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, TEST_VAO.Buffers[1]);
             GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Triangles);
@@ -306,14 +315,12 @@ namespace DeeSynk.Core.Systems
             GL.Enable(EnableCap.CullFace);
             ShadowVolumePart2(ref systemTransform);
         }
-
         public void ShadowVolumePart2(ref SystemTransform systemTransform)
         {
             GL.DrawBuffer(DrawBufferMode.Back);
             GL.StencilFunc(StencilFunction.Equal, 0x0, 0xFF);
             GL.StencilOpSeparate(StencilFace.Back, StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
         }
-
         public void StencilTest(ref SystemTransform systemTransform)
         {
             GL.Enable(EnableCap.StencilTest);
@@ -340,19 +347,17 @@ namespace DeeSynk.Core.Systems
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.CullFace);
         }
-
         public void RenderVolume(ref SystemTransform systemTransform)
         {
             GL.UseProgram(ShaderManager.GetInstance().GetProgram("shadowVolume"));
-            systemTransform.PushModelMatrix(0);
-            Bind(0, false);
+            systemTransform.PushModelMatrix(0, _world);
+            Bind(0, false, _world);
             if (GL.GetInteger(GetPName.TransformFeedbackBinding) != TEST_VAO.Buffers[1])
                 GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, TEST_VAO.Buffers[1]);
             GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Triangles);
             GL.DrawElements(PrimitiveType.Triangles, ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.EndTransformFeedback();
         }
-
         public void RenderObject(ref SystemTransform systemTransform, int idx)
         {
             if (_world.ExistingGameObjects[idx])
@@ -360,7 +365,7 @@ namespace DeeSynk.Core.Systems
                 Component comps = _world.GameObjects[idx].Components;
                 if (comps.HasFlag(RenderQualfier) && !_renderComps[idx].IsFinalRenderPlane)
                 {
-                    Bind(idx, true);
+                    Bind(idx, true, _world);
 
                     if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
                     {
@@ -374,7 +379,7 @@ namespace DeeSynk.Core.Systems
                         _textureComps[idx].BindTexture(TextureUnit.Texture0);
                     }
 
-                    systemTransform.PushModelMatrix(idx);
+                    systemTransform.PushModelMatrix(idx, _world);
                     int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
 
                     //Bind ShadowMaps to their respective texture units
@@ -388,6 +393,8 @@ namespace DeeSynk.Core.Systems
                 }
             }
         }
+
+
         public void RenderPost(ref SystemTransform systemTransform)
         {
             for (int idx = 0; idx < _world.ObjectMemory; idx++)
@@ -397,7 +404,7 @@ namespace DeeSynk.Core.Systems
                     Component comps = _world.GameObjects[idx].Components;
                     if (comps.HasFlag(RenderQualfier) && _renderComps[idx].IsFinalRenderPlane)
                     {
-                        Bind(idx, true);
+                        Bind(idx, true, _world);
 
                         if (comps.HasFlag(Component.TEXTURE))
                         {
@@ -405,7 +412,7 @@ namespace DeeSynk.Core.Systems
                             GL.BindTexture(TextureTarget.Texture2D, _fbos[0].Texture.TextureId);
                         }
 
-                        systemTransform.PushModelMatrix(idx);
+                        systemTransform.PushModelMatrix(idx, _world);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
 
                         for (int i = 0; i < _world.ObjectMemory; i++)
@@ -420,9 +427,35 @@ namespace DeeSynk.Core.Systems
             }
         }
 
-        public void RenderUI()
+        public void RenderUI(ref SystemTransform systemTransform)
         {
+            for(int idx = 0; idx < _ui.ObjectMemory; idx++)
+            {
+                if (_ui.ExistingGameObjects[idx])
+                {
+                    Component comps = _ui.GameObjects[idx].Components;
+                    if (comps.HasFlag(RenderQualfier) && !_ui.RenderComps[idx].IsFinalRenderPlane && comps.HasFlag(Component.UI_ELEMENT))
+                    {
+                        Bind(idx, true, _ui);
 
+                        if (comps.HasFlag(Component.TEXTURE))
+                        {
+                            _world.TextureComps[1].BindTexture();
+                        }
+
+                        systemTransform.PushModelMatrix(idx, _ui);
+                        int elementCount = ModelManager.GetInstance().GetModel(ref _ui.StaticModelComps[idx]).ElementCount;
+
+                        for (int i = 0; i < _world.ObjectMemory; i++)
+                        {
+                            if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
+                                _world.LightComps[i].LightObject.ShadowMap.BindTexture();
+                        }
+
+                        GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                    }
+                }
+            }
         }
     }
 }

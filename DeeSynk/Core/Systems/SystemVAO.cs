@@ -60,12 +60,6 @@ namespace DeeSynk.Core.Systems
 
         private bool[] _monitoredGameObjects;
 
-        private ComponentRender[] _renderComps;
-        private ComponentModelStatic[] _staticModelComps;
-        private ComponentTexture[] _textureComps;
-
-        private ComponentTransform[] _transComps;
-
         private VAO[] _vaos;
         private int _vaoCount;
         public int VAOCount {get => _vaoCount;}
@@ -75,13 +69,7 @@ namespace DeeSynk.Core.Systems
             _world = world;
             _ui = ui;
 
-            _monitoredGameObjects = new bool[_world.ObjectMemory];
-
-            _renderComps = _world.RenderComps;
-            _staticModelComps = _world.StaticModelComps;
-            _textureComps = _world.TextureComps;
-
-            _transComps = _world.TransComps;
+            _monitoredGameObjects = new bool[_world.ObjectMemory]; 
 
             _vaos = _world.VAOs;
             _vaoCount = -1;
@@ -102,22 +90,23 @@ namespace DeeSynk.Core.Systems
         /// <param name="buffers">A bitmask specifying the configuration of the buffers within the vao.</param>
         /// <param name="start">The starting index in the components arrays, or the starting id of the range of GameObjects.</param>
         /// <param name="end">The ending index in the components arrays, or the ending id of the range of GameObjects.</param>
-        public void InitVAORange(Buffers buffers, int start, int end)
+        /// <param name="c">The source to pull all buffer data from.</param>>
+        public void InitVAORange(Buffers buffers, int start, int end, GameObjectContainer c)
         {
 
-            if (start <= end && start >= 0 && start < _world.ObjectMemory &&
-                end >= 0 && end < _world.ObjectMemory)
+            if (start <= end && start >= 0 && start < c.ObjectMemory &&
+                end >= 0 && end < c.ObjectMemory)
             {
                 //Creates a new VAO and adds it to the vao array
                 VAO vao = new VAO(buffers);
                 _vaos[NextArrayIndex()] = vao;
-                AddBuffers(vao, start, end);
+                AddBuffers(vao, start, end, c);
 
                 //After the vao has its data, initialize the render components associated with the GameObjects in this vao
                 for(int idx = start; idx <= end; idx++)
                 {
-                    _renderComps[idx] = new ComponentRender(buffers);
-                    _renderComps[idx].VAO = vao;
+                    c.RenderComps[idx] = new ComponentRender(buffers);
+                    c.RenderComps[idx].VAO = vao;
                 }
 
                 //Clear bindings
@@ -131,7 +120,8 @@ namespace DeeSynk.Core.Systems
         /// <param name="vao"></param>
         /// <param name="start"></param>
         /// <param name="end"></param>
-        private void AddBuffers(VAO vao, int start, int end)
+        /// <param name="c"></param>>
+        private void AddBuffers(VAO vao, int start, int end, GameObjectContainer c)
         {
             Buffers buffers = vao.BufferConfig;
 
@@ -141,7 +131,7 @@ namespace DeeSynk.Core.Systems
             if (buffers.HasFlag(Buffers.FACE_ELEMENTS))
             {
                 dataStart = VAO.VertexDataWithIBO;
-                AddElementsBuffer(vao.Buffers[VAO.IndexData], start, end);
+                AddElementsBuffer(vao.Buffers[VAO.IndexData], start, end, c);
             }
             else
             {
@@ -151,7 +141,7 @@ namespace DeeSynk.Core.Systems
             //Adds an interleaved buffer if specified (multiple sets of data in one buffer)
             if (buffers.HasFlag(Buffers.INTERLEAVED))
             {
-                AddInterleavedBuffer(vao.Buffers[dataStart++], buffers, start, end); //instanced buffers would go right after this
+                AddInterleavedBuffer(vao.Buffers[dataStart++], buffers, start, end, c); //instanced buffers would go right after this
                 int dataCount = 0;
                 if (buffers.HasFlag(Buffers.FACE_ELEMENTS))
                 {
@@ -160,30 +150,30 @@ namespace DeeSynk.Core.Systems
                     dataCount = size / 4;
                 }
                 if (buffers.HasFlag(Buffers.INSTANCES))
-                    AddLocationBuffer(vao.Buffers[dataStart++], start, end, dataCount);
+                    AddLocationBuffer(vao.Buffers[dataStart++], start, end, dataCount, c);
             }
             //If there isn't an interleaved buffer, then just add all of the different types of data in their own buffers
             else
             {
                 if (buffers.HasFlag(Buffers.VERTICES))
-                    AddVertices(vao.Buffers[dataStart++], start, end);
+                    AddVertices(vao.Buffers[dataStart++], start, end, c);
                 if(buffers.HasFlag(Buffers.NORMALS))
-                    AddNormalBuffer(vao.Buffers[dataStart++], start, end);
+                    AddNormalBuffer(vao.Buffers[dataStart++], start, end, c);
                 if (buffers.HasFlag(Buffers.UVS))
-                    AddColorBuffer(vao.Buffers[dataStart++], start, end);
+                    AddColorBuffer(vao.Buffers[dataStart++], start, end, c);
                 if (buffers.HasFlag(Buffers.INSTANCES))
                 {
                     if (buffers.HasFlag(Buffers.FACE_ELEMENTS))
                     {
                         GL.BindBuffer(BufferTarget.ElementArrayBuffer, vao.Buffers[VAO.IndexData]);
                         GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out int size);
-                        AddLocationBuffer(vao.Buffers[dataStart++], start, end, size / 4);
+                        AddLocationBuffer(vao.Buffers[dataStart++], start, end, size / 4, c);
                     }
                 }
             }
         }
 
-        private void AddElementsBuffer(int bufferId, int lowerBound, int upperBound)
+        private void AddElementsBuffer(int bufferId, int lowerBound, int upperBound, GameObjectContainer c)
         {
             var modelManager = ModelManager.GetInstance();
 
@@ -192,7 +182,7 @@ namespace DeeSynk.Core.Systems
             int indexCount = 0; 
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
                 if (!model.HasValidData)
                     continue;
                 indexCount += model.ElementCount;
@@ -203,7 +193,7 @@ namespace DeeSynk.Core.Systems
             uint[] indices = new uint[indexCount];
             for(int idx = lowerBound; idx <= upperBound; idx++)
             {
-                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
                 if (!model.HasValidData)
                     continue;
                 for (int jdx = 0; jdx < model.ElementCount; jdx++)
@@ -222,17 +212,17 @@ namespace DeeSynk.Core.Systems
 
 
         //Not a good version, will be replaced with something more robust and worth while once we figure out how we want to handle transformation updates
-        private void AddLocationBuffer(int bufferId, int start, int count, int verticesPerInstance)
+        private void AddLocationBuffer(int bufferId, int start, int count, int verticesPerInstance, GameObjectContainer c)
         {
             Vector4[] offsets = new Vector4[count];
             for (int idx = start; idx < start + count; idx++)
             {
-                if (_staticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.VECTOR3_OFFSET) &&
-                    _staticModelComps[idx].ConstructionData.Length >= 3)
+                if (c.StaticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.VECTOR3_OFFSET) &&
+                    c.StaticModelComps[idx].ConstructionData.Length >= 3)
                 {
-                    offsets[idx - start] = new Vector4(_staticModelComps[idx].ConstructionData[0],
-                                                       _staticModelComps[idx].ConstructionData[1],
-                                                       _staticModelComps[idx].ConstructionData[2],
+                    offsets[idx - start] = new Vector4(c.StaticModelComps[idx].ConstructionData[0],
+                                                       c.StaticModelComps[idx].ConstructionData[1],
+                                                       c.StaticModelComps[idx].ConstructionData[2],
                                                        0.0f);
                 }
             }
@@ -262,7 +252,7 @@ namespace DeeSynk.Core.Systems
         /// <param name="bufferMask">Which data to interleave into the buffer.</param>
         /// <param name="start">Starting index or id.</param>
         /// <param name="end">Ending index or id.</param>
-        private void AddInterleavedBuffer(int bufferId, Buffers bufferMask, int start, int end)
+        private void AddInterleavedBuffer(int bufferId, Buffers bufferMask, int start, int end, GameObjectContainer c)
         {
             ModelProperties properties = BuffersToModelProps(bufferMask);
             ModelManager modelManager = ModelManager.GetInstance();
@@ -272,7 +262,7 @@ namespace DeeSynk.Core.Systems
             int count = 0;
             for (int idx = start; idx <= end; idx++)
             {
-                var model = modelManager.GetModel(ref _staticModelComps[idx]);
+                var model = modelManager.GetModel(ref c.StaticModelComps[idx]);
                 if (!model.HasValidData)
                 {
                     Console.WriteLine("Model at index {0} has invalid data, not writing to buffer", idx);
@@ -287,7 +277,7 @@ namespace DeeSynk.Core.Systems
             //interleave data
             for(int idx = start; idx <= end; idx++)
             {
-                Model model = modelManager.GetModel(ref _staticModelComps[idx]);
+                Model model = modelManager.GetModel(ref c.StaticModelComps[idx]);
                 int length = model.VertexCount * fStride;
                 Span<float> subData = data.AsSpan().Slice(offset, length);
                 model.GetInterleavedData(properties, subData);
@@ -363,7 +353,8 @@ namespace DeeSynk.Core.Systems
         /// <param name="start">The starting index in the GameObject components to pull data from.</param>
         /// <param name="end">The ending index in the GameObject components to pull data from (inclusive).</param>
         /// <param name="groupTogether">Determines whether or not group the objects within the specified range under the same VAO or with a unique VAO for each.</param>
-        public void InitVAOInRange(Buffers bufferMask, int start, int end, bool groupTogether)
+        /// <param name="c">The source to pull all buffer data from.</param>>
+        public void InitVAOInRange(Buffers bufferMask, int start, int end, bool groupTogether, GameObjectContainer c)
         {
             if (start <= end &&
                start >= 0 &&
@@ -378,7 +369,7 @@ namespace DeeSynk.Core.Systems
                 var modelManager = ModelManager.GetInstance();
 
                 for (int idx = start; idx <= start; idx++)
-                    _renderComps[idx] = new ComponentRender(bufferMask);
+                    c.RenderComps[idx] = new ComponentRender(bufferMask);
 
                 if (groupTogether)
                 {
@@ -387,7 +378,7 @@ namespace DeeSynk.Core.Systems
                     int dataStart;
                     if (bufferMask.HasFlag(Buffers.FACE_ELEMENTS))
                     {
-                        AddElementsBuffer(vao.Buffers[VAO.IndexData], start, end);
+                        AddElementsBuffer(vao.Buffers[VAO.IndexData], start, end, c);
                         dataStart = VAO.VertexDataWithIBO;
                     }
                     else
@@ -396,10 +387,10 @@ namespace DeeSynk.Core.Systems
                     }
 
                     if (bufferMask.HasFlag(Buffers.VERTICES))
-                        AddVertices(vao.Buffers[dataStart++], start, end);
+                        AddVertices(vao.Buffers[dataStart++], start, end, c);
                     if (bufferMask.HasFlag(Buffers.COLORS) && !bufferMask.HasFlag(Buffers.UVS))
                     {
-                        AddColorBuffer(vao.Buffers[dataStart++], start, end);
+                        AddColorBuffer(vao.Buffers[dataStart++], start, end, c);
                         if (bufferMask.HasFlag(Buffers.NORMALS))
                         {
                             programID = shaderManager.GetProgram("coloredPhong");
@@ -411,22 +402,22 @@ namespace DeeSynk.Core.Systems
                     }
                     else if (!bufferMask.HasFlag(Buffers.COLORS) && bufferMask.HasFlag(Buffers.UVS))
                     {
-                        AddUVBuffer(vao.Buffers[dataStart++], start, end);
+                        AddUVBuffer(vao.Buffers[dataStart++], start, end, c);
                         programID = shaderManager.GetProgram("shadowTextured2");
                     }
                     if (bufferMask.HasFlag(Buffers.INSTANCES))
-                        AddLocationBuffer(vao.Buffers[dataStart++], start, end - start + 1, 1);
+                        AddLocationBuffer(vao.Buffers[dataStart++], start, end - start + 1, 1, c);
 
                     if (bufferMask.HasFlag(Buffers.NORMALS))
-                        AddNormalBuffer(vao.Buffers[dataStart++], start, end);
+                        AddNormalBuffer(vao.Buffers[dataStart++], start, end, c);
 
 
                     GL.UseProgram(programID);
 
                     for (int idx = start; idx <= start; idx++)
                     {
-                        _renderComps[idx].AddBufferData();
-                        bool result = _renderComps[idx].ValidateData();
+                        c.RenderComps[idx].AddBufferData();
+                        bool result = c.RenderComps[idx].ValidateData();
                     }
 
                     GL.BindVertexArray(0);
@@ -434,7 +425,7 @@ namespace DeeSynk.Core.Systems
             }
         }
 
-        private void AddVertices(int bufferId, int lowerBound, int upperBound)
+        private void AddVertices(int bufferId, int lowerBound, int upperBound, GameObjectContainer c)
         {
             var modelManager = ModelManager.GetInstance();
 
@@ -442,7 +433,7 @@ namespace DeeSynk.Core.Systems
             int vertexCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                var model = modelManager.GetModel(ref _staticModelComps[idx]);
+                var model = modelManager.GetModel(ref c.StaticModelComps[idx]);
                 if (!model.HasValidData)
                     continue;
 
@@ -453,12 +444,12 @@ namespace DeeSynk.Core.Systems
             Vector4[] vertices = new Vector4[vertexCount];
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
                 if (!model.HasValidData)
                     continue;
 
-                int modelVertexCount = modelManager.GetModel(_staticModelComps[idx].ModelID).VertexCount;
-                Matrix4 modelMatrix = _transComps[idx].GetModelMatrix;
+                int modelVertexCount = modelManager.GetModel(c.StaticModelComps[idx].ModelID).VertexCount;
+                Matrix4 modelMatrix = c.TransComps[idx].GetModelMatrix;
 
                 for (int jdx = 0; jdx < modelVertexCount; jdx++)
                 {
@@ -478,14 +469,14 @@ namespace DeeSynk.Core.Systems
             GL.VertexAttribBinding(0, 0);
         }
 
-        private void AddColorBuffer(int bufferId, int lowerBound, int upperBound)
+        private void AddColorBuffer(int bufferId, int lowerBound, int upperBound, GameObjectContainer c)
         {
             var modelManager = ModelManager.GetInstance();
 
             int colorCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
                 if (model.Properties.HasFlag(ModelProperties.COLORS))
                     colorCount += model.ColorCount;
                 else if (model.Properties.HasFlag(ModelProperties.VERTICES))
@@ -504,7 +495,7 @@ namespace DeeSynk.Core.Systems
 
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
 
                 if (!model.HasValidData)
                     continue;
@@ -520,7 +511,7 @@ namespace DeeSynk.Core.Systems
 
                 if (!model.Properties.HasFlag(ModelProperties.COLORS))
                 {
-                    _staticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR, out float[] data);
+                    c.StaticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR, out float[] data);
                     color = new Color4(data[0], data[1], data[2], data[3]);
                     useColorFromComponent = true;
                 }
@@ -543,14 +534,14 @@ namespace DeeSynk.Core.Systems
             GL.VertexAttribBinding(1, 1);
         }
 
-        private void AddUVBuffer(int bufferId, int lowerBound, int upperBound)
+        private void AddUVBuffer(int bufferId, int lowerBound, int upperBound, GameObjectContainer c)
         {
             ModelManager modelManager = ModelManager.GetInstance();
 
             int uvCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
                 if (!model.HasValidData)
                     continue;
 
@@ -561,7 +552,7 @@ namespace DeeSynk.Core.Systems
             Vector2[] uvCoords = new Vector2[uvCount];
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
                 if (!model.HasValidData)
                     continue;
 
@@ -583,7 +574,7 @@ namespace DeeSynk.Core.Systems
             GL.VertexAttribBinding(2, 2);
         }
 
-        private void AddNormalBuffer(int bufferId, int lowerBound, int upperBound)
+        private void AddNormalBuffer(int bufferId, int lowerBound, int upperBound, GameObjectContainer c)
         {
             var modelManager = ModelManager.GetInstance();
 
@@ -591,7 +582,7 @@ namespace DeeSynk.Core.Systems
             int normalCount = 0;
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
                 if (!model.HasValidData)
                     continue;
 
@@ -602,7 +593,7 @@ namespace DeeSynk.Core.Systems
             Vector3[] normals = new Vector3[normalCount];
             for (int idx = lowerBound; idx <= upperBound; idx++)
             {
-                var model = modelManager.GetModel(_staticModelComps[idx].ModelID);
+                var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
                 if (!model.HasValidData)
                     continue;
 

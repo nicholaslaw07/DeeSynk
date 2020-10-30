@@ -23,27 +23,6 @@ namespace DeeSynk.Core
         public uint FBO_Count { get => FBO_COUNT; }
 
         //CURRENTLY NO LIGHT COMPS, NO OBVIOUS PURPOSE YET
-        #region COMPONENT_ARRAYS
-        private ComponentTransform[] _transComps;
-        public ComponentTransform[] TransComps { get => _transComps; }
-        private ComponentRender[] _renderComps;
-        public ComponentRender[] RenderComps { get => _renderComps; }
-        private ComponentModelStatic[] _staticModelComps;
-        public ComponentModelStatic[] StaticModelComps { get => _staticModelComps; }
-        private ComponentTexture[] _textureComps;
-        public ComponentTexture[] TextureComps { get => _textureComps; }
-        private ComponentCamera[] _cameraComps;
-        public ComponentCamera[] CameraComps { get => _cameraComps; }
-        private ComponentLight[] _lightComps;
-        public ComponentLight[] LightComps { get => _lightComps; }
-        private ComponentCanvas[] _canvasComps;
-        public ComponentCanvas[] CanvasComps { get => _canvasComps; }
-        private ComponentElement[] _elementComps;
-        public ComponentElement[] ElementComps { get => _elementComps; }
-        private ComponentText[] _textComps;
-        public ComponentText[] TextComps { get => _textComps; }
-        #endregion
-
         private FBO[] _fbos;
         /// <summary>
         /// Array of frame buffer objects.
@@ -52,26 +31,12 @@ namespace DeeSynk.Core
 
         public UI(uint objectMemory) : base(objectMemory)
         {
-            _existingGameObjects = new bool[OBJECT_MEMORY];
-            _gameObjects = new GameObject[OBJECT_MEMORY];
-
-            _transComps = new ComponentTransform[OBJECT_MEMORY];
-            _renderComps = new ComponentRender[OBJECT_MEMORY];
-            _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
-            _textureComps = new ComponentTexture[OBJECT_MEMORY];
-            _cameraComps = new ComponentCamera[OBJECT_MEMORY];
-            _canvasComps = new ComponentCanvas[OBJECT_MEMORY];
-            _elementComps = new ComponentElement[OBJECT_MEMORY];
-            _textComps = new ComponentText[OBJECT_MEMORY];
-
             _fbos = new FBO[FBO_COUNT];
-
-            _compIdx = 0;
         }
 
         public void AddCanvas(UICanvas canvas, int idx)
         {
-
+             
         }
 
         public override void InitData()

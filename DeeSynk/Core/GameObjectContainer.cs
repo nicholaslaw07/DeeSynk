@@ -1,4 +1,7 @@
 ﻿using DeeSynk.Core.Components;
+using DeeSynk.Core.Components.Types.Render;
+using DeeSynk.Core.Components.Types.Transform;
+using DeeSynk.Core.Components.Types.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,9 +36,47 @@ namespace DeeSynk.Core
         /// </summary>
         public int CompIdx { get => _compIdx; }
 
+        //The arrays that store all of the components inside of this world object, their capactiy is limited by OBJECT_MEMORY
+        #region COMPONENT_ARRAYS
+        private ComponentTransform[] _transComps;
+        public ComponentTransform[] TransComps { get => _transComps; }
+        private ComponentRender[] _renderComps;
+        public ComponentRender[] RenderComps { get => _renderComps; }
+        private ComponentModelStatic[] _staticModelComps;
+        public ComponentModelStatic[] StaticModelComps { get => _staticModelComps; }
+        private ComponentTexture[] _textureComps;
+        public ComponentTexture[] TextureComps { get => _textureComps; }
+        private ComponentCamera[] _cameraComps;
+        public ComponentCamera[] CameraComps { get => _cameraComps; }
+        private ComponentLight[] _lightComps;
+        public ComponentLight[] LightComps { get => _lightComps; }
+        private ComponentCanvas[] _canvasComps;
+        public ComponentCanvas[] CanvasComps { get => _canvasComps; }
+        private ComponentElement[] _elementComps;
+        public ComponentElement[] ElementComps { get => _elementComps; }
+        private ComponentText[] _textComps;
+        public ComponentText[] TextComps { get => _textComps; }
+        #endregion
+
+
         public GameObjectContainer(uint objectMemory)
         {
             OBJECT_MEMORY = objectMemory;
+
+            _existingGameObjects = new bool[OBJECT_MEMORY];
+            _gameObjects = new GameObject[OBJECT_MEMORY];
+
+            _transComps = new ComponentTransform[OBJECT_MEMORY];
+            _renderComps = new ComponentRender[OBJECT_MEMORY];
+            _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
+            _textureComps = new ComponentTexture[OBJECT_MEMORY];
+            _cameraComps = new ComponentCamera[OBJECT_MEMORY];
+            _lightComps = new ComponentLight[OBJECT_MEMORY];
+            _canvasComps = new ComponentCanvas[OBJECT_MEMORY];
+            _elementComps = new ComponentElement[OBJECT_MEMORY];
+            _textComps = new ComponentText[OBJECT_MEMORY];
+
+            _compIdx = 0;
         }
 
         public abstract void InitData();

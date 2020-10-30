@@ -87,34 +87,44 @@ namespace DeeSynk.Core
 
         public void LoadGameData()
         {
+            CreateComponents();
             InjectWorldData();
             InjectUIData();
         }
 
-        public void InjectWorldData()
+        public void CreateComponents()
         {
             _world.InitData();
 
             //Create the objects in the world array of GameObjects - these objects are blank and only hold the ComponentMask
-            {
-                _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM);
-                _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
-                _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
 
-                _world.CreateGameObject(Component.LIGHT);
-                _world.CreateGameObject(Component.LIGHT);
-                _world.CreateGameObject(Component.LIGHT);
+            //=====WORLD=====//
+            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM);
+            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
+            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
 
-                _world.CreateGameObject(Component.LIGHT);
+            _world.CreateGameObject(Component.LIGHT);
+            _world.CreateGameObject(Component.LIGHT);
+            _world.CreateGameObject(Component.LIGHT);
 
-                _world.CreateGameObject(Component.CAMERA);
+            _world.CreateGameObject(Component.LIGHT);
 
-                _systemModel.UpdateMonitoredGameObjects();
-                _systemModel.InitModel();
-                _systemTransform.UpdateMonitoredGameObjects();
-                _systemTransform.InitLocation();
-            }
-            //Initialize all of the data in the world
+            _world.CreateGameObject(Component.CAMERA);
+
+            //=====UI=====//
+            _ui.CreateGameObject(Component.CAMERA);
+
+            _ui.CreateGameObject(Component.UI_CANVAS);
+            _ui.CreateGameObject(Component.UI_STANDARD | Component.TEXTURE);
+
+            _systemModel.UpdateMonitoredGameObjects();
+            _systemModel.InitModel();
+            _systemTransform.UpdateMonitoredGameObjects();
+            _systemTransform.InitLocation();
+        }
+
+        private void InjectWorldData()
+        {
 
             //Essentially, for each object we initialize its unique characteristics
             //TODO add the ability to load in these objects from a file to make the process act more how it would in a real world scenario
@@ -125,17 +135,17 @@ namespace DeeSynk.Core
 
                 var sm = ShaderManager.GetInstance();
 
-                _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
+                _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _world);
                 _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");
                 _world.RenderComps[_compIdx].ValidateData();
 
                 _compIdx = _world.NextComponentIndex();
-                _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
+                _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _world);
                 _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("shadowTextured2");
                 _world.RenderComps[_compIdx].ValidateData();
 
                 _compIdx = _world.NextComponentIndex();
-                _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx);
+                _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _world);
                 _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("postLightGlare");
                 _world.RenderComps[_compIdx].IsFinalRenderPlane = true;
                 _world.RenderComps[_compIdx].ValidateData();
@@ -184,23 +194,25 @@ namespace DeeSynk.Core
             }
         }
 
-        public void InjectUIData()
+        private void InjectUIData()
         {
+            var sm = ShaderManager.GetInstance();
+
             _compIdx = _ui.CompIdx;
-            _ui.CreateGameObject(Component.CAMERA);
             _world.CameraComps[_compIdx] = new ComponentCamera(new Camera(CameraMode.ORTHOGRAPHIC, 0.5f, 0.5f, -1.0f, 2.0f));
             _world.CameraComps[_compIdx].Camera.BuildUBO(15, 7);
 
             _compIdx = _ui.NextComponentIndex();
             UICanvas activeCanvas = new UICanvas(16, MainWindow.width, MainWindow.height, _compIdx);
-            _ui.CreateGameObject(Component.UI_CANVAS);
             _ui.CanvasComps[_compIdx] = new ComponentCanvas(activeCanvas);
 
             _compIdx = _ui.NextComponentIndex();
-            _ui.CreateGameObject(Component.UI_STANDARD);
             UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, 100, 100, new Vector2(200, 200), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
             activeCanvas.AddChild(element);
             _ui.ElementComps[_compIdx] = new ComponentElement(element);
+            _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _ui);
+            _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("shadowTextured2");
+            _ui.RenderComps[_compIdx].ValidateData();
 
             //SystemUI.AddElementToCanvas(Canvas c, Element e)  => returns Element e
             //or
@@ -223,7 +235,6 @@ namespace DeeSynk.Core
         public void Render()
         {
             _systemRender.Render(ref _systemTransform);
-            _systemRender.RenderUI();
         }
     }
 }

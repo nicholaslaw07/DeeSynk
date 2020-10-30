@@ -22,29 +22,39 @@ namespace DeeSynk.Core.Systems
         private World _world;
         private UI _ui;
 
-        private bool[] _monitoredGameObjects;
+        private bool[] _monitoredGameObjects_W;
+        private bool[] _monitoredGameObjects_U;
 
-        private ComponentModelStatic[] _staticModelComps;
+        private ComponentModelStatic[] _staticModelComps_W;
+        private ComponentModelStatic[] _staticModelComps_U;
 
         public SystemModel(World world, UI ui)
         {
             _world = world;
             _ui = ui;
 
-            _monitoredGameObjects = new bool[_world.ObjectMemory];
+            _monitoredGameObjects_W = new bool[_world.ObjectMemory];
+            _monitoredGameObjects_U = new bool[_ui.ObjectMemory];
 
-            _staticModelComps = _world.StaticModelComps;
+            _staticModelComps_W = _world.StaticModelComps;
+            _staticModelComps_U = _ui.StaticModelComps;
         }
 
         public void UpdateMonitoredGameObjects()
         {
-            for (int i = 0; i < _world.ObjectMemory; i++)
+            UpdateMonitoredGameObjects(_world, _monitoredGameObjects_W);
+            UpdateMonitoredGameObjects(_ui, _monitoredGameObjects_U);
+        }
+
+        private void UpdateMonitoredGameObjects(GameObjectContainer c, bool[] monitor)
+        {
+            for (int i = 0; i < c.ObjectMemory; i++)
             {
-                if (_world.ExistingGameObjects[i])
+                if (c.ExistingGameObjects[i])
                 {
-                    if (_world.GameObjects[i].Components.HasFlag(MonitoredComponents))
+                    if (c.GameObjects[i].Components.HasFlag(MonitoredComponents))
                     {
-                        _monitoredGameObjects[i] = true;
+                        monitor[i] = true;
                     }
                 }
             }
@@ -54,7 +64,8 @@ namespace DeeSynk.Core.Systems
         public void InitModel()
         {
             CreateModels();
-            LinkModels();
+            LinkModels(_world, _monitoredGameObjects_W);
+            LinkModels(_ui, _monitoredGameObjects_U);
         }
 
         /// <summary>
@@ -71,7 +82,7 @@ namespace DeeSynk.Core.Systems
             Random r = new Random();
 
 
-            _staticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
+            _staticModelComps_W[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
                                         ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.COLOR4_COLOR | ConstructionFlags.VECTOR3_SCALE,
                                         new Vector3(0, 0.29f, 0), (float)(Math.PI / 2),new Vector3(0.25f, 0.25f, 0.25f), v04);
 
@@ -84,7 +95,7 @@ namespace DeeSynk.Core.Systems
             var v11 = new Vector3(100f, 0f, 100f);  //100
             var v12 = t.SubTextureLocations[0].UVOffset;
             var v13 = t.SubTextureLocations[0].UVScale;
-            _staticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXZ,
+            _staticModelComps_W[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXZ,
                                                             ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_Y | ConstructionFlags.VECTOR3_SCALE |
                                                             ConstructionFlags.VECTOR3_DIMENSIONS |
                                                             ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
@@ -94,21 +105,31 @@ namespace DeeSynk.Core.Systems
             var v21 = new Vector3(1.0f, 1.0f, 0.0f);
             var v22 = new Vector2(0.0f, 0.0f);
             var v23 = new Vector2(1.0f, 1.0f);
-            _staticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
+            _staticModelComps_W[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
                                                             ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.VECTOR3_DIMENSIONS | ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
                                                             v20, v21, v22, v23);
+
+            //===UI===//
+
+            var v30 = new Vector3(-2.0f, 2.0f, 2.0f);
+            var v31 = new Vector3(1.0f, 1.0f, 0.0f);
+            var v32 = v12;
+            var v33 = v13;
+            _staticModelComps_U[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
+                                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.VECTOR3_DIMENSIONS | ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
+                                                            v30, v31, v32, v33);
         }
 
         /// <summary>
         /// Links models from ModelManager, either prexisting or registered from template, to each ComponentModelStatic based on the specifications stored in CreateModels.
         /// </summary>
-        private void LinkModels()
+        private void LinkModels(GameObjectContainer c, bool[] monitor)
         {
             var modelManager = ModelManager.GetInstance();
-            for (int idx = 0; idx < _staticModelComps.Length; idx++)
+            for (int idx = 0; idx < c.ObjectMemory; idx++)
             {
-                if (_monitoredGameObjects[idx])
-                    modelManager.InitModel(ref _staticModelComps[idx]);
+                if (monitor[idx])
+                    modelManager.InitModel(ref c.StaticModelComps[idx]);
             }
         }
 

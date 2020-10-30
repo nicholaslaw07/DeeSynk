@@ -53,53 +53,44 @@ namespace DeeSynk.Core.Systems
 
         public void UpdateMonitoredGameObjects()
         {
-            for (int i=0; i < _world.ObjectMemory; i++)
+            UpdateMonitoredGameObjects(_world, _monitoredGameObjects_W);
+            UpdateMonitoredGameObjects(_ui, _monitoredGameObjects_U);
+        }
+
+        private void UpdateMonitoredGameObjects(GameObjectContainer c, bool[] monitor)
+        {
+            for (int i = 0; i < c.ObjectMemory; i++)
             {
-                if (_world.ExistingGameObjects[i])
+                if (c.ExistingGameObjects[i])
                 {
-                    if (_world.GameObjects[i].Components.HasFlag(MonitoredComponents))
+                    if (c.GameObjects[i].Components.HasFlag(MonitoredComponents))
                     {
-                        _monitoredGameObjects_W[i] = true;
+                        monitor[i] = true;
                     }
                 }
             }
-
-            for (int i = 0; i < _ui.ObjectMemory; i++)
-            {
-                if (_ui.ExistingGameObjects[i])
-                {
-                    if (_ui.GameObjects[i].Components.HasFlag(MonitoredComponents))
-                    {
-                        _monitoredGameObjects_U[i] = true;
-                    }
-                }
-            }
-
         }
 
         public void Update(float time)
         {
-            for(int i=0; i< _world.ObjectMemory; i++)
-            {
-                if(_monitoredGameObjects_W[i])
-                    _transComps_W[i].Update(time);
-            }
-            for(int i=0; i< _ui.ObjectMemory; i++)
-            {
-                if (_monitoredGameObjects_U[i])
-                    _transComps_U[i].Update(time);
-            }
+            Update(time, _world, _monitoredGameObjects_W);
+            Update(time, _ui, _monitoredGameObjects_U);
             _camera.UpdateMatrices();
+        }
+
+        private void Update(float time, GameObjectContainer c, bool[] monitor)
+        {
+            for (int i = 0; i < c.ObjectMemory; i++)
+            {
+                if (monitor[i])
+                    c.TransComps[i].Update(time);
+            }
         }
 
         public void InitLocation()
         {
             //TEST START
-            for (int i = 0; i < _world.ObjectMemory; i++)
-            {
-                if(_monitoredGameObjects_W[i])
-                    _transComps_W[i] = new ComponentTransform(ref _modelCompsStatic_W[i]);
-            }
+            CreateComponents(_world, _monitoredGameObjects_W);
 
             //_transComps[0].RotationXComp.InterpolateRotation(-5f, 30f, InterpolationMode.LINEAR);
             //_transComps[0].RotationYComp.InterpolateRotation(2f, 30f, InterpolationMode.LINEAR);
@@ -108,23 +99,22 @@ namespace DeeSynk.Core.Systems
             //_transComps[1].RotationXComp.InterpolateRotation(5f, 5f, InterpolationMode.LINEAR);
             //_transComps[1].LocationComp.InterpolateTranslation(new Vector3(0, 0, 20), 15, InterpolationMode.LINEAR);
             //TEST END
+            CreateComponents(_ui, _monitoredGameObjects_U);
 
-            for (int i = 0; i < _ui.ObjectMemory; i++)
+        }
+
+        private void CreateComponents(GameObjectContainer c, bool[] monitor)
+        {
+            for (int i = 0; i < c.ObjectMemory; i++)
             {
-                if (_monitoredGameObjects_U[i])
-                    _transComps_U[i] = new ComponentTransform(ref _modelCompsStatic_U[i]);
+                if (monitor[i])
+                    c.TransComps[i] = new ComponentTransform(ref c.StaticModelComps[i]);
             }
         }
 
-        public void PushMatrixData(int index)
+        public void PushMatrixData(int index, GameObjectContainer c)
         {
-            Matrix4 m4 = _transComps_W[index].GetModelMatrix * _camera.ViewProjection; //MVP
-            GL.UniformMatrix4(5, false, ref m4);
-        }
-
-        public void PushMatrixDataUI(int index)
-        {
-            Matrix4 m4 = _transComps_U[index].GetModelMatrix * _camera.ViewProjection; //MVP
+            Matrix4 m4 = c.TransComps[index].GetModelMatrix * _camera.ViewProjection; //MVP
             GL.UniformMatrix4(5, false, ref m4);
         }
 
@@ -134,15 +124,9 @@ namespace DeeSynk.Core.Systems
             GL.UniformMatrix4(5, false, ref _camera.ViewProjection);
         }
 
-        public void PushModelMatrix(int index)
+        public void PushModelMatrix(int index, GameObjectContainer c)
         {
-            Matrix4 m4 = _transComps_W[index].GetModelMatrix;
-            GL.UniformMatrix4(13, false, ref m4);
-        }
-
-        public void PushModelMatrixUI(int index)
-        {
-            Matrix4 m4 = _transComps_U[index].GetModelMatrix;
+            Matrix4 m4 = c.TransComps[index].GetModelMatrix;
             GL.UniformMatrix4(13, false, ref m4);
         }
     }
