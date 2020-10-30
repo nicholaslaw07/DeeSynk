@@ -109,6 +109,8 @@ namespace DeeSynk.Core
 
             _camera = new Camera(1.0f, (float)Width, (float)Height, 0.001f, 300f);
             _camera.OverrideLookAtVector = true;
+            var offset = new Vector3(0.0f, 0.25f, 1.0f);
+            _camera.AddLocation(ref offset);
             _game = new Game();
             //CursorVisible = true;
 

@@ -219,11 +219,6 @@ namespace DeeSynk.Core
             _ui.RenderComps[_compIdx].ValidateData();
             _ui.TextureComps[_compIdx] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
 
-            //GL.BindBuffer(BufferTarget.ArrayBuffer, 16);
-            //float[] data = new float[4 * 6];
-            //GL.GetBufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, 96, data);
-            //Console.WriteLine(GL.GetError());
-
             //SystemUI.AddElementToCanvas(Canvas c, Element e)  => returns Element e
             //or
             //Canvas.AddElement(Element e)  adds a child element to the canvas  :: Note this is only objects on the next layer

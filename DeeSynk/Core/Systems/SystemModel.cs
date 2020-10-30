@@ -111,8 +111,8 @@ namespace DeeSynk.Core.Systems
 
             //===UI===//
 
-            var v30 = new Vector3(525.0f, 0.0f, -1.0f);
-            var v31 = new Vector3(400.0f, 1400.0f, 0.0f);
+            var v30 = new Vector3(2560/4-200.0f/4.0f - 2.0f, 0.0f, -1.0f);
+            var v31 = new Vector3(200.0f, 1436.0f, 0.0f);
             var v32 = v12;
             var v33 = v13;
             _staticModelComps_U[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
