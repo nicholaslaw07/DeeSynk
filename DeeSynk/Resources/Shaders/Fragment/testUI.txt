@@ -1,0 +1,13 @@
+﻿#version 450 core
+
+in vec2 vs_texCoord;
+uniform sampler2D tex;
+out vec4 color;
+
+void main(void)
+{
+	vec4 c = texture(tex, vs_texCoord);
+	if(c.a < 0.9)
+		discard;
+	color = vec4(1);
+}

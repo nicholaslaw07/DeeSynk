@@ -199,7 +199,11 @@ namespace DeeSynk.Core
             var sm = ShaderManager.GetInstance();
 
             _compIdx = _ui.CompIdx;
-            _world.CameraComps[_compIdx] = new ComponentCamera(new Camera(CameraMode.ORTHOGRAPHIC, 0.5f, 0.5f, -1.0f, 2.0f));
+            var uiCamera = new Camera(CameraMode.ORTHOGRAPHIC, MainWindow.width / 2.0f, MainWindow.height / 2.0f, -1.0f, 2.0f);
+            var loc = new Vector3(MainWindow.width / 2.0f, MainWindow.height / 2.0f, 0.0f);
+            //uiCamera.AddLocation(ref loc);
+            //uiCamera.UpdateMatrices();
+            _world.CameraComps[_compIdx] = new ComponentCamera(uiCamera);
             _world.CameraComps[_compIdx].Camera.BuildUBO(15, 7);
 
             _compIdx = _ui.NextComponentIndex();
@@ -211,8 +215,14 @@ namespace DeeSynk.Core
             activeCanvas.AddChild(element);
             _ui.ElementComps[_compIdx] = new ComponentElement(element);
             _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _ui);
-            _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("shadowTextured2");
+            _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
             _ui.RenderComps[_compIdx].ValidateData();
+            _ui.TextureComps[_compIdx] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
+
+            //GL.BindBuffer(BufferTarget.ArrayBuffer, 16);
+            //float[] data = new float[4 * 6];
+            //GL.GetBufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, 96, data);
+            //Console.WriteLine(GL.GetError());
 
             //SystemUI.AddElementToCanvas(Canvas c, Element e)  => returns Element e
             //or

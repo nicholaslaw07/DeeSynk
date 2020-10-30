@@ -429,6 +429,7 @@ namespace DeeSynk.Core.Systems
 
         public void RenderUI(ref SystemTransform systemTransform)
         {
+            GL.Disable(EnableCap.DepthTest);
             for(int idx = 0; idx < _ui.ObjectMemory; idx++)
             {
                 if (_ui.ExistingGameObjects[idx])
@@ -438,9 +439,16 @@ namespace DeeSynk.Core.Systems
                     {
                         Bind(idx, true, _ui);
 
+                        if (_ui.StaticModelComps[idx].ConstructionFlags.HasFlag(ConstructionFlags.COLOR4_COLOR))  //incorporate into the model, material, or render comp when binding
+                        {
+                            var colorArr = _ui.StaticModelComps[idx].GetConstructionParameter(ConstructionFlags.COLOR4_COLOR);
+                            Color4 color = new Color4(colorArr[0], colorArr[1], colorArr[2], colorArr[3]);
+                            GL.Uniform4(17, color);
+                        }
+
                         if (comps.HasFlag(Component.TEXTURE))
                         {
-                            _world.TextureComps[1].BindTexture();
+                            _ui.TextureComps[idx].BindTexture();
                         }
 
                         systemTransform.PushModelMatrix(idx, _ui);
@@ -456,6 +464,7 @@ namespace DeeSynk.Core.Systems
                     }
                 }
             }
+            GL.Enable(EnableCap.DepthTest);
         }
     }
 }
@@ -464,14 +473,14 @@ namespace DeeSynk.Core.Systems
 //TEST
 
 /*
-GL.UseProgram(ShaderManager.GetInstance().GetProgram("detectEdges"));
-systemTransform.PushModelMatrix(0);
-Bind(0, false);
-if(GL.GetInteger(GetPName.TransformFeedbackBinding) != TEST_VAO.Buffers[1])
-    GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, TEST_VAO.Buffers[1]);
-GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Lines);
-GL.DrawElements(PrimitiveType.Triangles, ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
-GL.EndTransformFeedback();
+    GL.UseProgram(ShaderManager.GetInstance().GetProgram("detectEdgesTest"));
+    systemTransform.PushModelMatrix(0, _world);
+    Bind(0, false, _world);
+    if (GL.GetInteger(GetPName.TransformFeedbackBinding) != TEST_VAO.Buffers[1])
+        GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, TEST_VAO.Buffers[1]);
+    GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Lines);
+    GL.DrawElements(PrimitiveType.Triangles, ModelManager.GetInstance().GetModel(ref _staticModelComps[0]).ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+    GL.EndTransformFeedback();
 */
 
 //ENDTEST

@@ -84,7 +84,7 @@ namespace DeeSynk.Core.Systems
 
             _staticModelComps_W[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
                                         ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.COLOR4_COLOR | ConstructionFlags.VECTOR3_SCALE,
-                                        new Vector3(0, 0.29f, 0), (float)(Math.PI / 2),new Vector3(0.25f, 0.25f, 0.25f), v04);
+                                        new Vector3(0, 0.29f, 0), (float)(0),new Vector3(0.25f, 0.25f, 0.25f), v04);
 
             Texture t = TextureManager.GetInstance().GetTexture("wood");
             float width = t.Width;
@@ -96,7 +96,7 @@ namespace DeeSynk.Core.Systems
             var v12 = t.SubTextureLocations[0].UVOffset;
             var v13 = t.SubTextureLocations[0].UVScale;
             _staticModelComps_W[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXZ,
-                                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_Y | ConstructionFlags.VECTOR3_SCALE |
+                                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.VECTOR3_SCALE |
                                                             ConstructionFlags.VECTOR3_DIMENSIONS |
                                                             ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
                                                             v10, 0.0f, v14, v11, v12, v13);
@@ -111,8 +111,8 @@ namespace DeeSynk.Core.Systems
 
             //===UI===//
 
-            var v30 = new Vector3(-2.0f, 2.0f, 2.0f);
-            var v31 = new Vector3(1.0f, 1.0f, 0.0f);
+            var v30 = new Vector3(525.0f, 0.0f, -1.0f);
+            var v31 = new Vector3(400.0f, 1400.0f, 0.0f);
             var v32 = v12;
             var v33 = v13;
             _staticModelComps_U[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
