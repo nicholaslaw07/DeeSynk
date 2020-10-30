@@ -175,6 +175,7 @@
     <Compile Include="Core\Components\Types\UI\ComponentCanvas.cs" />
     <Compile Include="Core\Components\Types\UI\ComponentElement.cs" />
     <Compile Include="Core\Components\Types\UI\ComponentText.cs" />
+    <Compile Include="Core\Components\UI\PositionReference.cs" />
     <Compile Include="Core\Components\UI\UIElement.cs" />
     <Compile Include="Core\Components\UI\UICanvas.cs" />
     <Compile Include="Core\Components\UI\UIElementContainer.cs" />

@@ -4,7 +4,8 @@ layout (location = 0) in vec4 position;
 layout (location = 2) in vec2 texCoord;
 layout (location = 3) in vec4 offset;
 layout (location = 5) uniform mat4 model_view;
-layout(location = 13) uniform mat4 modelMat;
+layout (location = 13) uniform mat4 modelMat;
+layout (location = 17) uniform vec4 color;
 
 //UBO_BINDINGS
 
@@ -21,9 +22,11 @@ layout(binding = 15) uniform Camera
 } camera;
 
 out vec2 vs_texCoord;
+out vec4 vs_color;
 
 void main(void)
 {
+ vs_color = color;
  vs_texCoord = texCoord;
  gl_Position = camera.projection * modelMat * (position + offset);
 }

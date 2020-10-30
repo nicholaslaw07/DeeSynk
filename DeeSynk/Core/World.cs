@@ -54,6 +54,8 @@ namespace DeeSynk.Core
             _fbos[0] = new FBO(Program.window.Width, Program.window.Height);
         }
 
+
+
         public override void Update(float time)
         {
 

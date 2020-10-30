@@ -90,24 +90,26 @@ namespace DeeSynk.Core.Systems
         public void InitLocation()
         {
             //TEST START
-            CreateComponents(_world, _monitoredGameObjects_W);
+            //CreateComponents(_world);
 
-            //_transComps[0].RotationXComp.InterpolateRotation(-5f, 30f, InterpolationMode.LINEAR);
+            //_world.TransComps[0].RotationXComp.InterpolateRotation(-5f, 30f, InterpolationMode.LINEAR);
             //_transComps[0].RotationYComp.InterpolateRotation(2f, 30f, InterpolationMode.LINEAR);
             //_transComps[0].LocationComp.InterpolateTranslation(new Vector3(3, 0, 0), 30, InterpolationMode.LINEAR);
 
             //_transComps[1].RotationXComp.InterpolateRotation(5f, 5f, InterpolationMode.LINEAR);
             //_transComps[1].LocationComp.InterpolateTranslation(new Vector3(0, 0, 20), 15, InterpolationMode.LINEAR);
             //TEST END
-            CreateComponents(_ui, _monitoredGameObjects_U);
+            //CreateComponents(_ui);
+
+            //_ui.TransComps[2].LocationComp.InterpolateTranslation(new Vector3(0, 20, 0), 15, InterpolationMode.LINEAR);
 
         }
 
-        private void CreateComponents(GameObjectContainer c, bool[] monitor)
+        public void CreateComponents(GameObjectContainer c)
         {
             for (int i = 0; i < c.ObjectMemory; i++)
             {
-                if (monitor[i])
+                if (c.GameObjects[i].Components.HasFlag(Component.TRANSFORM))
                     c.TransComps[i] = new ComponentTransform(ref c.StaticModelComps[i]);
             }
         }

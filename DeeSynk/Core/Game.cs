@@ -8,6 +8,7 @@ using DeeSynk.Core.Algorithms;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.GraphicsObjects.Lights;
 using DeeSynk.Core.Components.GraphicsObjects.Shadows;
+using DeeSynk.Core.Components.Models.Templates;
 using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Components.Types.UI;
 using DeeSynk.Core.Components.UI;
@@ -115,21 +116,58 @@ namespace DeeSynk.Core
             _ui.CreateGameObject(Component.CAMERA);
 
             _ui.CreateGameObject(Component.UI_CANVAS);
-            _ui.CreateGameObject(Component.UI_STANDARD | Component.TEXTURE);
+            _ui.CreateGameObject(Component.UI_STANDARD); //| Component.TEXTURE
 
-            _systemModel.UpdateMonitoredGameObjects();
-            _systemModel.InitModel();
-            _systemTransform.UpdateMonitoredGameObjects();
-            _systemTransform.InitLocation();
+            //_systemModel.UpdateMonitoredGameObjects();
+            //_systemModel.InitModel();
+            //_systemTransform.UpdateMonitoredGameObjects();
+            //_systemTransform.InitLocation();
         }
 
         private void InjectWorldData()
         {
-
             //Essentially, for each object we initialize its unique characteristics
             //TODO add the ability to load in these objects from a file to make the process act more how it would in a real world scenario
 
-            //the models are added via the SystemModel class
+            //the models are added
+            {
+                var v00 = new Vector3(0, 8, 0);
+                var v01 = new Vector3(5f, 5f, 5f);
+                var v02 = new Vector2(0.0f, 0.0f);
+                var v03 = new Vector2(1.0f, 1.0f);
+                var v04 = Color4.White;
+
+
+                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
+                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.COLOR4_COLOR | ConstructionFlags.VECTOR3_SCALE,
+                                            new Vector3(0, 0.29f, 0), (float)(0), new Vector3(0.25f, 0.25f, 0.25f), v04);
+
+                Texture t = TextureManager.GetInstance().GetTexture("wood");
+                float width = t.Width;
+                float height = t.Height;
+
+                var v10 = new Vector3(0);
+                var v14 = new Vector3(1 / 20f * t.AspectRatio, 0f, 1 / 20f);
+                var v11 = new Vector3(100f, 0f, 100f);  //100
+                var v12 = t.SubTextureLocations[0].UVOffset;
+                var v13 = t.SubTextureLocations[0].UVScale;
+                _world.StaticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXZ,
+                                                                ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.VECTOR3_SCALE |
+                                                                ConstructionFlags.VECTOR3_DIMENSIONS |
+                                                                ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
+                                                                v10, 0.0f, v14, v11, v12, v13);
+
+                var v20 = new Vector3(-0.5f, -0.5f, -1.0f);
+                var v21 = new Vector3(1.0f, 1.0f, 0.0f);
+                var v22 = new Vector2(0.0f, 0.0f);
+                var v23 = new Vector2(1.0f, 1.0f);
+                _world.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
+                                                                ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.VECTOR3_DIMENSIONS | ConstructionFlags.VECTOR2_UV_OFFSET | ConstructionFlags.VECTOR2_UV_SCALE,
+                                                                v20, v21, v22, v23);
+            }
+            _systemModel.LinkModels(_world);
+            _systemTransform.CreateComponents(_world);
+
             {
                 _world.TextureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
 
@@ -196,13 +234,11 @@ namespace DeeSynk.Core
 
         private void InjectUIData()
         {
+
             var sm = ShaderManager.GetInstance();
 
             _compIdx = _ui.CompIdx;
-            var uiCamera = new Camera(CameraMode.ORTHOGRAPHIC, MainWindow.width / 2.0f, MainWindow.height / 2.0f, -1.0f, 2.0f);
-            var loc = new Vector3(MainWindow.width / 2.0f, MainWindow.height / 2.0f, 0.0f);
-            //uiCamera.AddLocation(ref loc);
-            //uiCamera.UpdateMatrices();
+            var uiCamera = new Camera(CameraMode.ORTHOGRAPHIC, MainWindow.width/2.0f, MainWindow.height/2.0f, -1.0f, 2.0f);
             _world.CameraComps[_compIdx] = new ComponentCamera(uiCamera);
             _world.CameraComps[_compIdx].Camera.BuildUBO(15, 7);
 
@@ -210,14 +246,27 @@ namespace DeeSynk.Core
             UICanvas activeCanvas = new UICanvas(16, MainWindow.width, MainWindow.height, _compIdx);
             _ui.CanvasComps[_compIdx] = new ComponentCanvas(activeCanvas);
 
+
             _compIdx = _ui.NextComponentIndex();
             UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, 100, 100, new Vector2(200, 200), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
             activeCanvas.AddChild(element);
+
             _ui.ElementComps[_compIdx] = new ComponentElement(element);
-            _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _ui);
+            {
+                var v30 = new Vector3(-0.5f + element.Position.X, -0.5f + element.Position.Y, -1.0f);
+                var v31 = new Vector3(element.Width, element.Height, 0.0f);
+                _ui.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
+                                                                ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.VECTOR3_DIMENSIONS | ConstructionFlags.COLOR4_COLOR,
+                                                                v30, v31, new Color4(255, 0, 255, 255));
+                //new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f)
+            }
+
+            _systemModel.LinkModels(_ui);
+            _systemTransform.CreateComponents(_ui);
+            _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _ui);
             _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
             _ui.RenderComps[_compIdx].ValidateData();
-            _ui.TextureComps[_compIdx] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
+            //_ui.TextureComps[_compIdx] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
 
             //SystemUI.AddElementToCanvas(Canvas c, Element e)  => returns Element e
             //or
