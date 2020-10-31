@@ -1,4 +1,5 @@
-﻿using DeeSynk.Core.Components.Types.Render;
+﻿using DeeSynk.Core.Components.Models.Tools;
+using DeeSynk.Core.Components.Types.Render;
 using OpenTK;
 using OpenTK.Graphics;
 using System;
@@ -55,24 +56,22 @@ namespace DeeSynk.Core.Components.Models.Templates
             switch (modelComp.TemplateID)
             {
                 case (ModelTemplates.PlaneXZ):
-                    return Plane.XZ(modelComp, this);
+                    return XZ(modelComp);
                 case (ModelTemplates.PlaneXY):
-                    return Plane.XY(modelComp, this);
+                    return XY(modelComp);
                 case (ModelTemplates.PlaneYZ):
-                    return Plane.YZ(modelComp, this);
+                    return YZ(modelComp);
                 default:
                     return null;
             }
         }
-
-        //====================================STATICS====================================//
 
         /// <summary>
         /// Constructs a model object for a plane of dimensions specified by the model component.  Created in the XZ plane.
         /// </summary>
         /// <param name="modelComp">Model component that holds data for the creation of this object.</param>
         /// <returns></returns>
-        public static Model XZ(ComponentModelStatic modelComp, Plane templateData)
+        private Model XZ(ComponentModelStatic modelComp)
         {
             Model model = new Model();
 
@@ -83,12 +82,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                 Vector2[] uvs;
                 uint[] elements;
 
-                var size = templateData._dimensions;
-
-                float width = size.X;  //X
-                width /= 2.0f;
-                float height = size.Y;  //Z
-                height /= 2.0f;
+                var size = _dimensions;
 
                 if (modelComp.ModelProperties.HasFlag(ModelProperties.ELEMENTS))
                 {
@@ -99,15 +93,8 @@ namespace DeeSynk.Core.Components.Models.Templates
                         vertices = new Vector4[6];
                         uvs = new Vector2[6];
                         //Add vertices XZ
-                        {
-                            vertices[0] = new Vector4(-width, 0, -height, 0);
-                            vertices[1] = new Vector4(width, 0, -height, 0);
-                            vertices[2] = new Vector4(width, 0, height, 0);
-                            vertices[3] = new Vector4(width, 0, height, 0);
-                            vertices[4] = new Vector4(-width, 0, height, 0);
-                            vertices[5] = new Vector4(-width, 0, -height, 0);
-                        }
-                        model.Vertices = vertices;
+                        vertices = MeshGenerator.Square4(size, Orientation.XZ, false);
+                        model.Vertices = vertices; //elements is false since we are using UVs
 
                         //Add elements
                         {
@@ -120,11 +107,11 @@ namespace DeeSynk.Core.Components.Models.Templates
                         }
                         model.Elements = elements;
 
-                        var offset = templateData._uvOffset;
+                        var offset = _uvOffset;
                         float offsetU = offset.X;
                         float offsetV = offset.Y;
 
-                        var scale = templateData._uvScale;
+                        var scale = _uvScale;
                         float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
                         float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
@@ -145,12 +132,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         colors = new Color4[4];
                         elements = new uint[6];
                         //Add vertices XZ
-                        {
-                            vertices[0] = new Vector4(-width, 0, -height, 1);
-                            vertices[1] = new Vector4(width, 0, -height, 1);
-                            vertices[2] = new Vector4(width, 0, height, 1);
-                            vertices[3] = new Vector4(-width, 0, height, 1);
-                        }
+                        vertices = MeshGenerator.Square4(size, Orientation.XZ, true);
                         model.Vertices = vertices;
 
                         //Add elements
@@ -167,7 +149,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         //Add colors
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-                            Color4 color = templateData._color;
+                            Color4 color = _color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
                         }
@@ -188,14 +170,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                 {
                     vertices = new Vector4[6];
                     //Add vertices XZ
-                    {
-                        vertices[0] = new Vector4(-width, 0, -height, 1);
-                        vertices[1] = new Vector4(width, 0, -height, 1);
-                        vertices[2] = new Vector4(width, 0, height, 1);
-                        vertices[3] = new Vector4(width, 0, height, 1);
-                        vertices[4] = new Vector4(-width, 0, height, 1);
-                        vertices[5] = new Vector4(-width, 0, -height, 1);
-                    }
+                    vertices = MeshGenerator.Square4(size, Orientation.XZ, false);
                     model.Vertices = vertices;
 
                     //Add UVs
@@ -203,11 +178,11 @@ namespace DeeSynk.Core.Components.Models.Templates
                     {
                         uvs = new Vector2[6];
 
-                        var offset = templateData._uvOffset;
+                        var offset = _uvOffset;
                         float offsetU = offset.X;
                         float offsetV = offset.Y;
 
-                        var scale = templateData._uvScale;
+                        var scale = _uvScale;
                         float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
                         float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
@@ -229,7 +204,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         colors = new Color4[6];
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-                            Color4 color = templateData._color;
+                            Color4 color = _color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
                         }
@@ -256,7 +231,7 @@ namespace DeeSynk.Core.Components.Models.Templates
         /// </summary>
         /// <param name="modelComp">Model component that holds data for the creation of this object.</param>
         /// <returns></returns>
-        public static Model XY(ComponentModelStatic modelComp, Plane templateData)
+        private Model XY(ComponentModelStatic modelComp)
         {
             Model model = new Model();
 
@@ -267,12 +242,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                 Vector2[] uvs;
                 uint[] elements;
 
-                var size = templateData._dimensions;
-
-                float width = size.X;  //X
-                width /= 2.0f;
-                float height = size.Y;  //Y
-                height /= 2.0f;
+                var size = _dimensions;
 
                 if (modelComp.ModelProperties.HasFlag(ModelProperties.ELEMENTS))
                 {
@@ -283,14 +253,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         vertices = new Vector4[6];
                         uvs = new Vector2[6];
                         //Add vertices XY
-                        {
-                            vertices[0] = new Vector4(-width, -height, 0, 1);
-                            vertices[1] = new Vector4(width, -height, 0, 1);
-                            vertices[2] = new Vector4(width, height, 0, 1);
-                            vertices[3] = new Vector4(width, height, 0, 1);
-                            vertices[4] = new Vector4(-width, height, 0, 1);
-                            vertices[5] = new Vector4(-width, -height, 0, 1);
-                        }
+                        vertices = MeshGenerator.Square4(size, Orientation.XY, false);
                         model.Vertices = vertices;
 
                         //Add elements
@@ -304,11 +267,11 @@ namespace DeeSynk.Core.Components.Models.Templates
                         }
                         model.Elements = elements;
 
-                        var offset = templateData._uvOffset;
+                        var offset = _uvOffset;
                         float offsetU = offset.X;
                         float offsetV = offset.Y;
 
-                        var scale = templateData._uvScale;
+                        var scale = _uvScale;
                         float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
                         float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
@@ -329,12 +292,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         colors = new Color4[4];
                         elements = new uint[6];
                         //Add vertices XY
-                        {
-                            vertices[0] = new Vector4(-width, -height, 0, 1);
-                            vertices[1] = new Vector4(width, -height, 0, 1);
-                            vertices[2] = new Vector4(width, height, 0, 1);
-                            vertices[3] = new Vector4(-width, height, 0, 1);
-                        }
+                        vertices = MeshGenerator.Square4(size, Orientation.XY, true);
                         model.Vertices = vertices;
 
                         //Add elements
@@ -351,7 +309,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         //Add colors
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-                            Color4 color = templateData._color;
+                            Color4 color = _color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
                         }
@@ -372,14 +330,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                 {
                     vertices = new Vector4[6];
                     //Add vertices XY
-                    {
-                        vertices[0] = new Vector4(-width, -height, 0, 1);
-                        vertices[1] = new Vector4(width, -height, 0, 1);
-                        vertices[2] = new Vector4(width, height, 0, 1);
-                        vertices[3] = new Vector4(width, height, 0, 1);
-                        vertices[4] = new Vector4(-width, height, 0, 1);
-                        vertices[5] = new Vector4(-width, -height, 0, 1);
-                    }
+                    vertices = MeshGenerator.Square4(size, Orientation.XY, false);
                     model.Vertices = vertices;
 
                     //Add UVs
@@ -387,11 +338,11 @@ namespace DeeSynk.Core.Components.Models.Templates
                     {
                         uvs = new Vector2[6];
 
-                        var offset = templateData._uvOffset;
+                        var offset = _uvOffset;
                         float offsetU = offset.X;
                         float offsetV = offset.Y;
 
-                        var scale = templateData._uvScale;
+                        var scale = _uvScale;
                         float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
                         float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
@@ -413,7 +364,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         colors = new Color4[6];
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-                            Color4 color = templateData._color;
+                            Color4 color = _color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
                         }
@@ -440,7 +391,7 @@ namespace DeeSynk.Core.Components.Models.Templates
         /// </summary>
         /// <param name="modelComp">Model component that holds data for the creation of this object.</param>
         /// <returns></returns>
-        public static Model YZ(ComponentModelStatic modelComp, Plane templateData)
+        private Model YZ(ComponentModelStatic modelComp)
         {
 
             Model model = new Model();
@@ -452,12 +403,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                 Vector2[] uvs;
                 uint[] elements;
 
-                var size = templateData._dimensions;
-
-                float width = size.X;  //Y
-                width /= 2.0f;
-                float height = size.Y;  //Z
-                height /= 2.0f;
+                var size = _dimensions;
 
                 if (modelComp.ModelProperties.HasFlag(ModelProperties.ELEMENTS))
                 {
@@ -468,14 +414,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         vertices = new Vector4[6];
                         uvs = new Vector2[6];
                         //Add vertices YZ
-                        {
-                            vertices[0] = new Vector4(0, -width, -height, 1);
-                            vertices[1] = new Vector4(0, width, -height, 1);
-                            vertices[2] = new Vector4(0, width, height, 1);
-                            vertices[3] = new Vector4(0, width, height, 1);
-                            vertices[4] = new Vector4(0, -width, height, 1);
-                            vertices[5] = new Vector4(0, -width, -height, 1);
-                        }
+                        vertices = MeshGenerator.Square4(size, Orientation.YZ, false);
                         model.Vertices = vertices;
 
                         //Add elements
@@ -489,11 +428,11 @@ namespace DeeSynk.Core.Components.Models.Templates
                         }
                         model.Elements = elements;
 
-                        var offset = templateData._uvOffset;
+                        var offset = _uvOffset;
                         float offsetU = offset.X;
                         float offsetV = offset.Y;
 
-                        var scale = templateData._uvScale;
+                        var scale = _uvScale;
                         float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
                         float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
@@ -514,12 +453,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         colors = new Color4[4];
                         elements = new uint[6];
                         //Add vertices YZ
-                        {
-                            vertices[0] = new Vector4(0, -width, -height, 1);
-                            vertices[1] = new Vector4(0, width, -height, 1);
-                            vertices[2] = new Vector4(0, width, height, 1);
-                            vertices[3] = new Vector4(0, -width, height, 1);
-                        }
+                        vertices = MeshGenerator.Square4(size, Orientation.YZ, true);
                         model.Vertices = vertices;
 
                         //Add elements
@@ -536,7 +470,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         //Add colors
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-                            Color4 color = templateData._color;
+                            Color4 color = _color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
                         }
@@ -557,14 +491,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                 {
                     vertices = new Vector4[6];
                     //Add vertices YZ
-                    {
-                        vertices[0] = new Vector4(0, -width, -height, 1);
-                        vertices[1] = new Vector4(0, width, -height, 1);
-                        vertices[2] = new Vector4(0, width, height, 1);
-                        vertices[3] = new Vector4(0, width, height, 1);
-                        vertices[4] = new Vector4(0, -width, height, 1);
-                        vertices[5] = new Vector4(0, -width, -height, 1);
-                    }
+                    vertices = MeshGenerator.Square4(size, Orientation.YZ, false);
                     model.Vertices = vertices;
 
                     //Add UVs
@@ -572,11 +499,11 @@ namespace DeeSynk.Core.Components.Models.Templates
                     {
                         uvs = new Vector2[6];
 
-                        var offset = templateData._uvOffset;
+                        var offset = _uvOffset;
                         float offsetU = offset.X;
                         float offsetV = offset.Y;
 
-                        var scale = templateData._uvScale;
+                        var scale = _uvScale;
                         float scaleU = (scale.X == 0.0f) ? scale.X : 1.0f;
                         float scaleV = (scale.Y == 0.0f) ? scale.Y : 1.0f;
 
@@ -598,7 +525,7 @@ namespace DeeSynk.Core.Components.Models.Templates
                         colors = new Color4[6];
                         if (modelComp.ModelProperties.HasFlag(ModelProperties.COLORS))
                         {
-                            Color4 color = templateData._color;
+                            Color4 color = _color;
                             for (int idx = 0; idx < colors.Length; idx++)
                                 colors[idx] = color;
                         }

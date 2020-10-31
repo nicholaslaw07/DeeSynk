@@ -11,6 +11,7 @@ namespace DeeSynk.Core.Components.Models.Templates
         NONE = 0,
         PlaneXZ = 1,
         PlaneXY = 2,
-        PlaneYZ = 3
+        PlaneYZ = 3,
+        UIContainer = 4
     }
 }

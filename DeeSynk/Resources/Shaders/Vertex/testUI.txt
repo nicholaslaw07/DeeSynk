@@ -23,11 +23,13 @@ layout(binding = 15) uniform Camera
 //out vec2 vs_texCoord;
 out vec4 vs_color;
 out vec4 vs_pos;
+out vec4 vs_offset;
 
 void main(void)
 {
  vs_color = color;
+ vs_offset = offset;
  //vs_texCoord = texCoord;
- vs_pos = camera.projection * modelMat * (position + offset);
- gl_Position = camera.projection * modelMat * (position + offset);
+ vs_pos = camera.projection * modelMat * (position);
+ gl_Position = camera.projection * modelMat * (position);
 }

@@ -3,16 +3,18 @@
 //in vec2 vs_texCoord;
 in vec4 vs_color;
 in vec4 vs_pos;
+in vec4 vs_offset;
 uniform sampler2D tex;
 out vec4 color;
 
 void main(void)
 {
-	//color = vs_color;
-	//color = vec4(gl_FragCoord.x/2560, gl_FragCoord.y/1440, 0, 1);
-	if(vs_pos.x > 0)
-		color = vec4(1);
-	else
-		color = vec4(0);
+	color = vs_color;
+	//color = vec4(vs_offset.w / 4.0, 0, 0, 1);
+	//color = vec4(gl_FragCoord.x/1280, gl_FragCoord.y/720, 0, 1);
+	//if(vs_pos.x > 0)
+	//	color = vec4(1);
+	//else
+	//	color = vec4(0);
 	//color = vec4(vs_pos.x, vs_pos.y, 0, 1);
 }

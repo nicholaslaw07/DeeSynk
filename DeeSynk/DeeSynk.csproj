@@ -155,7 +155,9 @@
     <Compile Include="Core\Components\GraphicsObjects\Texture.cs" />
     <Compile Include="Core\Components\Models\Templates\ModelTemplates.cs" />
     <Compile Include="Core\Components\Models\Templates\Plane.cs" />
-    <Compile Include="Core\Components\Models\Templates\Template.cs" />
+    <Compile Include="Core\Components\Models\Templates\ITemplate.cs" />
+    <Compile Include="Core\Components\Models\Templates\UI\BorderedWindow.cs" />
+    <Compile Include="Core\Components\Models\Tools\MeshGenerator.cs" />
     <Compile Include="Core\Components\Types\Matrices\OrthographicMatrix.cs" />
     <Compile Include="Core\Components\Types\Matrices\PerspectiveMatrix.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentCamera.cs" />
@@ -215,7 +217,6 @@
     <None Include="Resources\Models\dragon_vripPLY.ply" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Core\Components\Models\Templates\UI\" />
     <Folder Include="Core\SystemTools\" />
   </ItemGroup>
   <ItemGroup>

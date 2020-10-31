@@ -9,6 +9,7 @@ using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.GraphicsObjects.Lights;
 using DeeSynk.Core.Components.GraphicsObjects.Shadows;
 using DeeSynk.Core.Components.Models.Templates;
+using DeeSynk.Core.Components.Models.Templates.UI;
 using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Components.Types.Transform;
 using DeeSynk.Core.Components.Types.UI;
@@ -21,6 +22,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace DeeSynk.Core
 {
+
     /// <summary>
     /// All objects and mechanic modeling should be housed here.
     /// </summary>
@@ -233,7 +235,8 @@ namespace DeeSynk.Core
             var sm = ShaderManager.GetInstance();
 
             _compIdx = _ui.CompIdx; //MainWindow.width/1.0f, MainWindow.height/1.0f
-            var uiCamera = new Camera(CameraMode.ORTHOGRAPHIC, 1.0f, 1.0f, -1.0f, 2.0f);
+            var uiCamera = new Camera(CameraMode.ORTHOGRAPHIC, MainWindow.width, MainWindow.height, -1.0f, 2.0f);
+
             _world.CameraComps[_compIdx] = new ComponentCamera(uiCamera);
             _world.CameraComps[_compIdx].Camera.BuildUBO(15, 7);
 
@@ -243,23 +246,24 @@ namespace DeeSynk.Core
 
 
             _compIdx = _ui.NextComponentIndex(); //2558, 1438
-            UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, 1, 1, new Vector2(0.0f, 0.0f), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
+            UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, MainWindow.width / 2, MainWindow.height/2, new Vector2(MainWindow.width/4, MainWindow.height/4), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
             activeCanvas.AddChild(element);
 
             _ui.ElementComps[_compIdx] = new ComponentElement(element);
             {
                 var v30 = new Vector3(-0.5f + element.Position.X, -0.5f + element.Position.Y, -1.0f);
                 var v31 = new Vector3(element.Width, element.Height, 0.0f);
-                _ui.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
+                _ui.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.UIContainer,
                                                                 ConstructionFlags.VECTOR3_OFFSET,
                                                                 v30);
-                _ui.StaticModelComps[2].TemplateData = new Plane(_ui.StaticModelComps[2].ModelProperties, new Vector2(element.Width, element.Height), new Color4(255, 0, 0, 128));
+                //_ui.StaticModelComps[2].TemplateData = new Plane(_ui.StaticModelComps[2].ModelProperties, new Vector2(element.Width, element.Height), new Color4(255, 0, 0, 128));
+                _ui.StaticModelComps[2].TemplateData = new BorderedWindow(_ui.StaticModelComps[2].ModelProperties, new Vector2(element.Width, element.Height), 50, Color4.Red, Color4.White);
             }
 
             _systemModel.LinkModels(_ui);
             _systemTransform.CreateComponents(_ui);
             _systemTransform.UpdateMonitoredGameObjects();
-            //_ui.TransComps[2].LocationComp.InterpolateTranslation(new Vector3(-0.5f, -0.5f, 0), 10, InterpolationMode.LINEAR);
+            //_ui.TransComps[2].LocationComp.InterpolateTranslation(new Vector3(-MainWindow.width/2, -MainWindow.height/2, 0), 10, InterpolationMode.LINEAR);
             _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _ui);
             _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
             _ui.RenderComps[_compIdx].ValidateData();
