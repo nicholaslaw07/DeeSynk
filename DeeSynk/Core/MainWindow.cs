@@ -69,7 +69,7 @@ namespace DeeSynk.Core
             Width = width;
             Height = height;
 
-            VSync = VSyncMode.Off;
+            VSync = VSyncMode.On;
             center = new Point(Width / 2, Height / 2);
             mousePos = PointToScreen(center);
             msPrevious = Mouse.GetState();
@@ -177,7 +177,7 @@ namespace DeeSynk.Core
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             _game.Render();
 
-            Thread.Sleep(8);
+            //Thread.Sleep(8);
 
             SwapBuffers();
         }

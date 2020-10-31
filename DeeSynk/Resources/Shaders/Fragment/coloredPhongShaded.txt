@@ -183,10 +183,6 @@ void main(void)
 		Ip += SpotLightIllumination(i);
 	}
 
-	//TEST-- REMOVES SPOT LIGHTS TO HIGHLIGHT SUN LAMPS
-	Ip = vec3(0.0);
-	//TESTEND
-
 	for(int i=0; i<1; i++) //supports up to 4
 	{
 		Ip += SunLampIllumination(i);

@@ -10,6 +10,7 @@ using DeeSynk.Core.Components.GraphicsObjects.Lights;
 using DeeSynk.Core.Components.GraphicsObjects.Shadows;
 using DeeSynk.Core.Components.Models.Templates;
 using DeeSynk.Core.Components.Types.Render;
+using DeeSynk.Core.Components.Types.Transform;
 using DeeSynk.Core.Components.Types.UI;
 using DeeSynk.Core.Components.UI;
 using DeeSynk.Core.Managers;
@@ -160,6 +161,7 @@ namespace DeeSynk.Core
             }
             _systemModel.LinkModels(_world);
             _systemTransform.CreateComponents(_world);
+            //_world.TransComps[0].LocationComp.InterpolateTranslation(new Vector3(0, 150, 0), 15, InterpolationMode.LINEAR);
 
             {
                 _world.TextureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
@@ -190,7 +192,7 @@ namespace DeeSynk.Core
                                                                           0.3f, 1.0f, 5f, 11f));
 
                 _world.LightComps[_compIdx].LightObject.BuildUBO(3, 8);
-                _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture1);
+                _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(8192, 8192, TextureUnit.Texture1);
 
                 _compIdx = _world.NextComponentIndex();
                 _world.LightComps[_compIdx] = new ComponentLight(LightType.SPOTLIGHT,
@@ -199,7 +201,7 @@ namespace DeeSynk.Core
                                                                           0.3f, 1.0f, 5f, 11f));
 
                 _world.LightComps[_compIdx].LightObject.BuildUBO(4, 8);
-                _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture2);
+                _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(8192, 8192, TextureUnit.Texture2);
 
                 _compIdx = _world.NextComponentIndex();
                 _world.LightComps[_compIdx] = new ComponentLight(LightType.SPOTLIGHT,
@@ -208,7 +210,7 @@ namespace DeeSynk.Core
                                                                           0.3f, 1.0f, 5.7f, 11.0f));
 
                 _world.LightComps[_compIdx].LightObject.BuildUBO(5, 8);
-                _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture3);
+                _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(8192, 8192, TextureUnit.Texture3);
 
                 _compIdx = _world.NextComponentIndex();
                 _world.LightComps[_compIdx] = new ComponentLight(LightType.SUN,
@@ -217,7 +219,7 @@ namespace DeeSynk.Core
                                                                         7.0f, 7.0f, 1.0f, 11.0f));
 
                 _world.LightComps[_compIdx].LightObject.BuildUBO(7, 8);
-                _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(2048, 2048, TextureUnit.Texture5);
+                _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(8192, 8192, TextureUnit.Texture5);
 
                 _compIdx = _world.NextComponentIndex();
                 _world.CameraComps[_compIdx] = new ComponentCamera(new Camera(CameraMode.ORTHOGRAPHIC, 0.5f, 0.5f, -1.0f, 2.0f));
@@ -230,8 +232,8 @@ namespace DeeSynk.Core
 
             var sm = ShaderManager.GetInstance();
 
-            _compIdx = _ui.CompIdx;
-            var uiCamera = new Camera(CameraMode.ORTHOGRAPHIC, MainWindow.width/1.0f, MainWindow.height/1.0f, -1.0f, 2.0f);
+            _compIdx = _ui.CompIdx; //MainWindow.width/1.0f, MainWindow.height/1.0f
+            var uiCamera = new Camera(CameraMode.ORTHOGRAPHIC, 1.0f, 1.0f, -1.0f, 2.0f);
             _world.CameraComps[_compIdx] = new ComponentCamera(uiCamera);
             _world.CameraComps[_compIdx].Camera.BuildUBO(15, 7);
 
@@ -240,8 +242,8 @@ namespace DeeSynk.Core
             _ui.CanvasComps[_compIdx] = new ComponentCanvas(activeCanvas);
 
 
-            _compIdx = _ui.NextComponentIndex();
-            UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, 200, 200, new Vector2(50, 50), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
+            _compIdx = _ui.NextComponentIndex(); //2558, 1438
+            UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, 1, 1, new Vector2(0.0f, 0.0f), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
             activeCanvas.AddChild(element);
 
             _ui.ElementComps[_compIdx] = new ComponentElement(element);
@@ -251,11 +253,13 @@ namespace DeeSynk.Core
                 _ui.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
                                                                 ConstructionFlags.VECTOR3_OFFSET,
                                                                 v30);
-                _ui.StaticModelComps[2].TemplateData = new Plane(_ui.StaticModelComps[2].ModelProperties, new Vector2(element.Width, element.Height), Color4.Red);
+                _ui.StaticModelComps[2].TemplateData = new Plane(_ui.StaticModelComps[2].ModelProperties, new Vector2(element.Width, element.Height), new Color4(255, 0, 0, 128));
             }
 
             _systemModel.LinkModels(_ui);
             _systemTransform.CreateComponents(_ui);
+            _systemTransform.UpdateMonitoredGameObjects();
+            //_ui.TransComps[2].LocationComp.InterpolateTranslation(new Vector3(-0.5f, -0.5f, 0), 10, InterpolationMode.LINEAR);
             _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _ui);
             _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
             _ui.RenderComps[_compIdx].ValidateData();

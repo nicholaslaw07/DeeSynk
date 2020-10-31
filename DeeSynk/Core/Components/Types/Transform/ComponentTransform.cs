@@ -438,9 +438,11 @@ namespace DeeSynk.Core.Components.Types.Transform
                     if (time < _dT)
                     {
                         Vector3 locStep = _dX * (time / _dT);
-                        _translateMat4.Row3 += new Vector4(locStep);
+                        //_translateMat4.Row3 += new Vector4(locStep);
+                        _location += locStep;
                         _dT -= time;
                         _dX -= locStep;
+                        _valueUpdated = true;
                     }
                     else if (time >= _dT)
                     {
@@ -448,12 +450,13 @@ namespace DeeSynk.Core.Components.Types.Transform
                         _dX = Vector3.Zero;
                         _dT = 0f;
                         _isInterpolating = false;
+                        _valueUpdated = true;
                     }
                 }
 
                 if (_valueUpdated)
                 {
-                    //BuildMatrix();
+                    BuildMatrix();
                     _valueUpdated = false;
                     return true;
                 }

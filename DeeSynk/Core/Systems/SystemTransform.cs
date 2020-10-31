@@ -42,8 +42,6 @@ namespace DeeSynk.Core.Systems
 
             _transComps_U = _ui.TransComps;
             _modelCompsStatic_U = _ui.StaticModelComps;
-
-            UpdateMonitoredGameObjects();
         }
 
         public void PushCameraRef(ref Camera camera)

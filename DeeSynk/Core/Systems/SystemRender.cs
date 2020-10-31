@@ -415,7 +415,8 @@ namespace DeeSynk.Core.Systems
         public void RenderUI(ref SystemTransform systemTransform)
         {
             GL.Disable(EnableCap.DepthTest);
-            for(int idx = 0; idx < _ui.ObjectMemory; idx++)
+
+            for (int idx = 0; idx < _ui.ObjectMemory; idx++)
             {
                 if (_ui.ExistingGameObjects[idx])
                 {
@@ -434,7 +435,8 @@ namespace DeeSynk.Core.Systems
                         {
                             _ui.TextureComps[idx].BindTexture();
                         }
-
+                        var m4 = _ui.TransComps[idx].GetModelMatrix;
+                        Console.Out.WriteLine(m4);
                         systemTransform.PushModelMatrix(idx, _ui);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _ui.StaticModelComps[idx]).ElementCount;
 
