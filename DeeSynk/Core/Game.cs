@@ -100,7 +100,7 @@ namespace DeeSynk.Core
             //Create the objects in the world array of GameObjects - these objects are blank and only hold the ComponentMask
 
             //=====WORLD=====//
-            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM);
+            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.MATERIAL);
             _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
             _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
 
@@ -116,12 +116,7 @@ namespace DeeSynk.Core
             _ui.CreateGameObject(Component.CAMERA);
 
             _ui.CreateGameObject(Component.UI_CANVAS);
-            _ui.CreateGameObject(Component.UI_STANDARD); //| Component.TEXTURE
-
-            //_systemModel.UpdateMonitoredGameObjects();
-            //_systemModel.InitModel();
-            //_systemTransform.UpdateMonitoredGameObjects();
-            //_systemTransform.InitLocation();
+            _ui.CreateGameObject(Component.UI_STANDARD);
         }
 
         private void InjectWorldData()
@@ -141,6 +136,7 @@ namespace DeeSynk.Core
                 _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
                                             ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.VECTOR3_SCALE,
                                             new Vector3(0, 0.29f, 0), (float)(0), new Vector3(0.25f, 0.25f, 0.25f));
+                _world.MaterialComps[0] = new ComponentMaterial(Color4.White);
 
                 Texture t = TextureManager.GetInstance().GetTexture("wood");
                 float width = t.Width;
@@ -245,7 +241,7 @@ namespace DeeSynk.Core
 
 
             _compIdx = _ui.NextComponentIndex();
-            UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, 512, 512, new Vector2(200, 200), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
+            UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, 200, 200, new Vector2(50, 50), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
             activeCanvas.AddChild(element);
 
             _ui.ElementComps[_compIdx] = new ComponentElement(element);

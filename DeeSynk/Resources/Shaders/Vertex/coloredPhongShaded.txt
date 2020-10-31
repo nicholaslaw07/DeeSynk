@@ -4,6 +4,7 @@ layout (location = 0) in vec4 position;
 layout (location = 1) in vec3 normal;
 //layout (location = 2) in vec4 color;
 layout (location = 13) uniform mat4 modelMat;
+layout (location = 17) uniform vec4 color;
 
 layout(binding = 2) uniform Camera
 {
@@ -48,7 +49,7 @@ out vec3 vs_transPosiSun[4];
 
 void main(void)
 {
-	vs_color = vec4(1);
+	vs_color = color;
 
 	vs_lightCoord[0] = spotLights[0].spotLightView * modelMat * (position);
 	vs_lightCoord[1] = spotLights[1].spotLightView * modelMat * (position);

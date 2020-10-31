@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,14 @@ namespace DeeSynk.Core.Components.Types.Render
 {
     public class ComponentMaterial : IComponent
     {
-        public Component BitMaskID => throw new NotImplementedException();
+        public Component BitMaskID => Component.MATERIAL;
+
+        private Color4 _color;
+        public Color4 Color { get => _color; }
+
+        public ComponentMaterial(Color4 color)
+        {
+            _color = color;
+        }
     }
 }

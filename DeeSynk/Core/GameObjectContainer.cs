@@ -46,6 +46,8 @@ namespace DeeSynk.Core
         public ComponentModelStatic[] StaticModelComps { get => _staticModelComps; }
         private ComponentTexture[] _textureComps;
         public ComponentTexture[] TextureComps { get => _textureComps; }
+        private ComponentMaterial[] _materialComps;
+        public ComponentMaterial[] MaterialComps { get => _materialComps; }
         private ComponentCamera[] _cameraComps;
         public ComponentCamera[] CameraComps { get => _cameraComps; }
         private ComponentLight[] _lightComps;
@@ -70,6 +72,7 @@ namespace DeeSynk.Core
             _renderComps = new ComponentRender[OBJECT_MEMORY];
             _staticModelComps = new ComponentModelStatic[OBJECT_MEMORY];
             _textureComps = new ComponentTexture[OBJECT_MEMORY];
+            _materialComps = new ComponentMaterial[OBJECT_MEMORY];
             _cameraComps = new ComponentCamera[OBJECT_MEMORY];
             _lightComps = new ComponentLight[OBJECT_MEMORY];
             _canvasComps = new ComponentCanvas[OBJECT_MEMORY];
