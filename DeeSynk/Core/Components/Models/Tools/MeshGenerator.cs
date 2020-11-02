@@ -16,6 +16,11 @@ namespace DeeSynk.Core.Components.Models.Tools
     }
     public static class MeshGenerator
     {
+        public static void OffsetVectors(ref Vector4[] vertices, Vector4 offset)
+        {
+            for (int idx = 0; idx < vertices.Length; idx++)
+                vertices[idx] += offset;
+        }
         public static Vector4[] Square4(Vector2 size, Orientation orientation, bool usingElements)
         {
             Vector4[] vertices;

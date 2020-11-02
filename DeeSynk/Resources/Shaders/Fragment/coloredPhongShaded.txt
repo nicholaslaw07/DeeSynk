@@ -74,6 +74,10 @@ float rand(vec2 co)
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
+//FYI parts of this shadow algorithm are from an online OpenGL tutorial.  This is a rare example that is not original.
+//The only other example would be the phong shading algorithm.
+//All other code in the engine is original to the best of my knowledge.
+
 float ShadowFactor(int index, int lightType, vec4 lightCoord)  // 0=spot 1=sun
 {
 	vec3 ProjCoords = lightCoord.xyz / lightCoord.w;

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components.Models.Tools;
 using DeeSynk.Core.Components.Types.Render;
+using DeeSynk.Core.Components.UI;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -13,6 +14,11 @@ namespace DeeSynk.Core.Components.Models.Templates.UI
     public class BorderedWindow : ITemplate
     {
 
+        private PositionReference _reference;
+        /// <summary>
+        /// Indicates the origin or reference point of the model.
+        /// </summary>
+        public PositionReference Reference { get => _reference; }
         private Vector2 _size;
         /// <summary>
         /// Size of the container in pixels.
@@ -34,8 +40,9 @@ namespace DeeSynk.Core.Components.Models.Templates.UI
         /// </summary>
         public Color4 SecondaryColor { get => _secondaryColor; }
 
-        public BorderedWindow(ModelProperties properties, Vector2 size, float borderWidth, Color4 primaryColor, Color4 secondaryColor)
+        public BorderedWindow(ModelProperties properties, PositionReference reference, Vector2 size, float borderWidth, Color4 primaryColor, Color4 secondaryColor)
         {
+            _reference = reference;
             _size = size;
             if (borderWidth > Math.Min(size.X / 2.0f, size.Y / 2.0f))
                 throw new ArgumentOutOfRangeException("Border width is limited half of the minimum dimension of the container size.");
@@ -124,6 +131,8 @@ namespace DeeSynk.Core.Components.Models.Templates.UI
                     tempVertices[idx] = (idx < 4) ? s1[idx] : s2[idx % 4];
                     tempColors[idx] = (idx < 8) ? _secondaryColor : _primaryColor;
                 }
+
+                MeshGenerator.OffsetVectors(ref tempVertices, ReferenceConverter.GetReferenceOffset4(_reference, outSize, false));
 
                 if (modelComp.ModelProperties.HasFlag(ModelProperties.ELEMENTS))
                 {

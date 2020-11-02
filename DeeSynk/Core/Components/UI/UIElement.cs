@@ -1,6 +1,9 @@
-﻿using OpenTK;
+﻿using DeeSynk.Core.Components.Models.Tools;
+using DeeSynk.Core.Components.UI;
+using OpenTK;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,10 +19,14 @@ namespace DeeSynk.Core.Components.Types.UI
         UI_CONTAINER = 1
     }
 
-    public enum UIPositionType
+    public enum PositionType
     {
         GLOBAL = 0,
-        LOCAL = 1
+        LOCAL = 1,
+        LOCAL_BOTTOM_LEFT = 2,
+        LOCAL_BOTTOM_RIGHT = 3,
+        LOCAL_TOP_LEFT = 4,
+        LOCAL_TOP_RIGHT = 5
     }
 
     //Primarily used for organization and debug.  Most of the rendering protocols will be hand coded for each object.
@@ -98,11 +105,23 @@ namespace DeeSynk.Core.Components.Types.UI
         /// </summary>
         public Vector2 Position { get => _position; }
 
-        protected UIPositionType _positionType;
+        protected PositionType _positionType;
         /// <summary>
         /// States whether or not the Position variable dictates global canvas position or local element position.
         /// </summary>
-        public UIPositionType PositionType { get => _positionType; }
+        public PositionType PositionType { get => _positionType; }
+
+        protected Vector2 _center;
+        /// <summary>
+        /// This represents the geometric center of the object.
+        /// </summary>
+        public Vector2 Center { get => _center; }
+
+        protected PositionReference _reference;
+        /// <summary>
+        /// Determines the origin of the object which dictates transformation.
+        /// </summary>
+        public PositionReference Reference { get => _reference; }
 
         protected int _layer;
         /// <summary>
@@ -132,7 +151,7 @@ namespace DeeSynk.Core.Components.Types.UI
         /// <summary>
         /// The ID that represents the canvas which contains this UIElement.
         /// </summary>
-        public string CanvasID { get => _canvasID; }
+        public string CanvasID { get => _canvasID; set => _canvasID = value; }
 
         protected string _path;
         /// <summary>
@@ -153,13 +172,15 @@ namespace DeeSynk.Core.Components.Types.UI
 
             _position = Vector2.Zero;
 
+            _center = Vector2.Zero;
+
             _layer = 0;
 
             _canvasID = UICanvas.ID_DEFAULT;
         }
 
         public UIElement(int[] childElementIDs, UIElementType elementType, int width, int height, Vector2 position, 
-                         UIPositionType positionType, int layer, int globalIndex, string canvasID, string parentPath)
+                         PositionType positionType, PositionReference reference, int layer, int globalIndex)
         {
             _childElementCount = childElementIDs.Length;
             _childElementIDs = childElementIDs;
@@ -169,15 +190,15 @@ namespace DeeSynk.Core.Components.Types.UI
             _height = height;
             _position = position;
             _positionType = positionType;
+            _center = position - Models.Tools.ReferenceConverter.GetReferenceOffset2(reference, new Vector2((float)width, (float)height));
+            _reference = reference;
             _layer = layer;
             _globalIndex = globalIndex;
             //_localID = localID;
-            _canvasID = canvasID;
-            _path = parentPath + "\\" + ID_GLOBAL_DEFAULT + "_" + _globalIndex;
         }
 
         public UIElement(int childElementCount, UIElementType elementType, int width, int height, Vector2 position,
-                 UIPositionType positionType, int layer, int globalIndex, string canvasID, string parentPath)
+                        PositionType positionType, PositionReference reference, int layer, int globalIndex)
         {
             _childElementCount = childElementCount;
             _childElementIDs = new int[_childElementCount];
@@ -187,10 +208,15 @@ namespace DeeSynk.Core.Components.Types.UI
             _height = height;
             _position = position;
             _positionType = positionType;
+            _center = position;
+            _reference = reference;
             _layer = layer;
             _globalIndex = globalIndex;
             //_localID = localID;
-            _canvasID = canvasID;
+        }
+
+        public void SetPath(string parentPath)
+        {
             _path = parentPath + "\\" + ID_GLOBAL_DEFAULT + "_" + _globalIndex;
         }
 
@@ -201,6 +227,8 @@ namespace DeeSynk.Core.Components.Types.UI
                 int idx = FindEmptyElementSpot();
                 _childElementIDs[idx] = e._globalIndex;
                 _existingElements[idx] = true;
+                e.CanvasID = _canvasID;
+                e.SetPath(_path);
             }
             catch(Exception ex)
             {

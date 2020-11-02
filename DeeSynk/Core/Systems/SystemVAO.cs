@@ -85,6 +85,37 @@ namespace DeeSynk.Core.Systems
         }
 
         /// <summary>
+        /// Initializes a vao containing vertex data for a single ComponentModel.
+        /// </summary>
+        /// <param name="c">The source to pull all buffer data from.</param>>
+        /// <param name="idx">The index of the GameObjec that will be uploaded to the VAO.</param>
+        public void InitVAO(GameObjectContainer c, int idx)
+        {
+            if (idx < c.ObjectMemory)
+            {
+                if (c.GameObjects[idx].Components.HasFlag(SystemRender.RenderQualfier))
+                {
+                    Buffers buffers = c.RenderComps[idx].BufferFlags;
+                    //Creates a new VAO and adds it to the vao array
+                    VAO vao = new VAO(buffers);
+                    _vaos[NextArrayIndex()] = vao;
+                    AddBuffers(vao, idx, idx, c);
+
+                    //After the vao has its data, initialize the render components associated with the GameObjects in this vao
+                    //c.RenderComps[idx] = new ComponentRender(buffers);
+                    c.RenderComps[idx].VAO = vao;
+
+                    //Clear bindings
+                    GL.BindVertexArray(0);
+                }
+                else
+                    throw new ArgumentException("The specified GameObject does not meet the qualifications for buffer storage.  Needs the render qualifier.");
+            }
+            else
+                throw new ArgumentOutOfRangeException("The index falls outside of the memory range for the specified GameObjectContainer.");
+        }
+
+        /// <summary>
         /// Initializes a vao containing vertex data for all objects within the specified range.
         /// </summary>
         /// <param name="buffers">A bitmask specifying the configuration of the buffers within the vao.</param>

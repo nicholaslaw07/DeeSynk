@@ -118,6 +118,8 @@ namespace DeeSynk.Core.Components.Types.UI
                 int idx = FindEmptyElementSpot();
                 _elementIDs[idx] = e.GlobalIndex;
                 _existingElements[idx] = true;
+                e.CanvasID = _globalID;
+                e.SetPath("");
             }
             catch (Exception ex)
             {

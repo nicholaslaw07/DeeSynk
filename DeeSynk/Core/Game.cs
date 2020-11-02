@@ -120,6 +120,7 @@ namespace DeeSynk.Core
 
             _ui.CreateGameObject(Component.UI_CANVAS);
             _ui.CreateGameObject(Component.UI_STANDARD);
+            _ui.CreateGameObject(Component.UI_STANDARD);
         }
 
         private void InjectWorldData()
@@ -163,7 +164,7 @@ namespace DeeSynk.Core
             }
             _systemModel.LinkModels(_world);
             _systemTransform.CreateComponents(_world);
-            //_world.TransComps[0].LocationComp.InterpolateTranslation(new Vector3(0, 150, 0), 15, InterpolationMode.LINEAR);
+            //_world.TransComps[0].RotationXComp.InterpolateRotation(10.0f, 15, InterpolationMode.LINEAR);
 
             {
                 _world.TextureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
@@ -245,28 +246,75 @@ namespace DeeSynk.Core
             _ui.CanvasComps[_compIdx] = new ComponentCanvas(activeCanvas);
 
 
-            _compIdx = _ui.NextComponentIndex(); //2558, 1438
-            UIElementContainer element = new UIElementContainer(4, UIElementType.UI_CONTAINER, MainWindow.width / 2, MainWindow.height/2, new Vector2(MainWindow.width/4, MainWindow.height/4), UIPositionType.GLOBAL, 0, _compIdx, activeCanvas.GlobalID, "");
-            activeCanvas.AddChild(element);
-
-            _ui.ElementComps[_compIdx] = new ComponentElement(element);
             {
-                var v30 = new Vector3(-0.5f + element.Position.X, -0.5f + element.Position.Y, -1.0f);
-                var v31 = new Vector3(element.Width, element.Height, 0.0f);
-                _ui.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.UIContainer,
-                                                                ConstructionFlags.VECTOR3_OFFSET,
-                                                                v30);
-                //_ui.StaticModelComps[2].TemplateData = new Plane(_ui.StaticModelComps[2].ModelProperties, new Vector2(element.Width, element.Height), new Color4(255, 0, 0, 128));
-                _ui.StaticModelComps[2].TemplateData = new BorderedWindow(_ui.StaticModelComps[2].ModelProperties, new Vector2(element.Width, element.Height), 50, Color4.Red, Color4.White);
+                //MAIN CONTAINER
+                UIElementContainer element;
+                _compIdx = _ui.NextComponentIndex(); //2558, 1438
+                {
+                    int w = MainWindow.width / 5 - 10;
+                    int h = MainWindow.height - 10;
+                    var s1 = new Vector2(-MainWindow.width / 2 + 5, -MainWindow.height / 2 + 5); //container size
+                    element = new UIElementContainer(4, UIElementType.UI_CONTAINER, w, h, s1, PositionType.GLOBAL, PositionReference.CORNER_BOTTOM_LEFT, 0, _compIdx);
+                    activeCanvas.AddChild(element);
+
+                    _ui.ElementComps[_compIdx] = new ComponentElement(element);
+
+                    var pos = new Vector3(element.Position.X, element.Position.Y, -1.0f);
+                    _ui.StaticModelComps[_compIdx] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.UIContainer,
+                                                                    ConstructionFlags.VECTOR3_OFFSET,
+                                                                    pos);
+
+                    var s2 = new Vector2(element.Width, element.Height); //container size
+                    float b = 10; //border
+                    var c1 = new Color4(200, 200, 200, 128);
+                    var c2 = new Color4(255, 255, 255, 128);
+                    _ui.StaticModelComps[_compIdx].TemplateData = new BorderedWindow(_ui.StaticModelComps[_compIdx].ModelProperties, _ui.ElementComps[_compIdx].Element.Reference, s2, b, c1, c2);
+
+                    _ui.RenderComps[_compIdx] = new ComponentRender(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED);
+                    _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
+                }
+
+                //CHILD CONTAINER
+                _compIdx = _ui.NextComponentIndex();
+                UIElementContainer cElem;
+                {
+                    int w = element.Width / 2;
+                    int h = element.Height / 2;
+                    var s1 = new Vector2(w/2.0f, h/2.0f);
+                    cElem = new UIElementContainer(4, UIElementType.UI_CONTAINER, w, h, s1, PositionType.LOCAL, PositionReference.CORNER_BOTTOM_LEFT, 0, _compIdx);
+                    element.AddChild(cElem);
+
+                    _ui.ElementComps[_compIdx] = new ComponentElement(element);
+
+                    var v30 = new Vector3(element.Center.X + cElem.Position.X, element.Center.Y + cElem.Position.Y, -1.0f);
+                    _ui.StaticModelComps[_compIdx] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.UIContainer,
+                                                                    ConstructionFlags.VECTOR3_OFFSET,
+                                                                    v30);
+
+
+                    var s2 = new Vector2(cElem.Width, cElem.Height); //container size
+                    float b = 10; //border
+                    var c1 = new Color4(200, 200, 200, 128);
+                    var c2 = new Color4(255, 255, 255, 128);
+                    _ui.StaticModelComps[_compIdx].TemplateData = new BorderedWindow(_ui.StaticModelComps[_compIdx].ModelProperties, _ui.ElementComps[_compIdx].Element.Reference, s2, b, c1, c2);
+
+                    _ui.RenderComps[_compIdx] = new ComponentRender(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED);
+                    _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
+                }
             }
 
             _systemModel.LinkModels(_ui);
             _systemTransform.CreateComponents(_ui);
             _systemTransform.UpdateMonitoredGameObjects();
-            //_ui.TransComps[2].LocationComp.InterpolateTranslation(new Vector3(-MainWindow.width/2, -MainWindow.height/2, 0), 10, InterpolationMode.LINEAR);
-            _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _ui);
-            _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
-            _ui.RenderComps[_compIdx].ValidateData();
+
+            for(int idx = 0; idx < _ui.ObjectMemory; idx++)
+            {
+                if (_ui.GameObjects[idx].Components.HasFlag(SystemRender.RenderQualfier))
+                {
+                    _systemVAO.InitVAO(_ui, idx);
+                    _ui.RenderComps[idx].ValidateData();
+                }
+            }
             //_ui.TextureComps[_compIdx] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
 
             //SystemUI.AddElementToCanvas(Canvas c, Element e)  => returns Element e

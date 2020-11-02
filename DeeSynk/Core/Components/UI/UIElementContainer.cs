@@ -13,19 +13,19 @@ namespace DeeSynk.Core.Components.UI
         public override string ID_GLOBAL_DEFAULT => "CONTAINER";
 
         public UIElementContainer(int[] childElementIDs, UIElementType elementType, int width, int height, Vector2 position,
-                          UIPositionType positionType, int layer, int globalIndex, string canvasID, string parentPath)
+                          PositionType positionType, PositionReference reference, int layer, int globalIndex)
 
             : base(childElementIDs, elementType, width, height, position,
-                   positionType, layer, globalIndex, canvasID, parentPath)
+                   positionType, reference, layer, globalIndex)
         {
 
         }
 
         public UIElementContainer(int childElementCount, UIElementType elementType, int width, int height, Vector2 position,
-                                  UIPositionType positionType, int layer, int globalIndex, string canvasID, string parentPath)
+                                  PositionType positionType, PositionReference reference, int layer, int globalIndex)
 
             : base(childElementCount, elementType, width, height, position,
-                   positionType, layer, globalIndex, canvasID, parentPath)
+                   positionType, reference, layer, globalIndex)
         {
 
         }

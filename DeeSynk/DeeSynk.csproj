@@ -158,6 +158,7 @@
     <Compile Include="Core\Components\Models\Templates\ITemplate.cs" />
     <Compile Include="Core\Components\Models\Templates\UI\BorderedWindow.cs" />
     <Compile Include="Core\Components\Models\Tools\MeshGenerator.cs" />
+    <Compile Include="Core\Components\Models\Tools\ReferenceConverter.cs" />
     <Compile Include="Core\Components\Types\Matrices\OrthographicMatrix.cs" />
     <Compile Include="Core\Components\Types\Matrices\PerspectiveMatrix.cs" />
     <Compile Include="Core\Components\Types\Render\ComponentCamera.cs" />
@@ -218,6 +219,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Core\SystemTools\" />
+    <Folder Include="Resources\Shaders\Compute\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Models\Collada\Schema\collada_schema_1_5.xml" />
