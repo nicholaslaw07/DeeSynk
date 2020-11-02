@@ -187,7 +187,7 @@ namespace DeeSynk.Core
 
                 for (int idx = 8; idx < 1192; idx++)
                 {
-                    _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.COLORS | Buffers.INTERLEAVED, 8, 1191, _world);
+                    _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.COLORS | Buffers.INTERLEAVED, idx, idx, _world);
                     _world.RenderComps[8].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");  //kinda input
                     _world.RenderComps[8].ValidateData();
 
