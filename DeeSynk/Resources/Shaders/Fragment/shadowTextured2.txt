@@ -95,17 +95,15 @@ void main(void)
 						 spotLights[i].spotLightColor.z * c.z,
 						 0.0) * 
 						 ShadowFactor(i, 0, vs_lightCoord[i]) *
-						 Attenuation(vec4(vs_TransPosiSpot[i], 1.0)) * 2;
+						 Attenuation(vec4(vs_TransPosiSpot[i], 1.0)) * 1.5;
 	}
-
-	cNew = vec4(0);
 
 	cNew += vec4(sunLamps[0].sunLampColor.x * c.x, 
 						 sunLamps[0].sunLampColor.y * c.y, 
 						 sunLamps[0].sunLampColor.z * c.z,
 						 0.0) * 
 						 ShadowFactor(0, 1, vs_lightCoordSun[0]) *
-						 Attenuation(vec4(vs_transPosiSun[0], 1.0)) * 2;
+						 Attenuation(vec4(vs_transPosiSun[0], 1.0)) * 1.5;
 	cNew.a = 1;
 	color = cNew;
 }

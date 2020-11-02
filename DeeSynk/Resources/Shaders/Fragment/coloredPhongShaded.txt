@@ -64,8 +64,8 @@ vec3 iD = materialColor;
 vec3 iS = materialColor;
 
 uniform float kA = 0.1;
-uniform float kD = 1.5;
-uniform float kS = 1.5;
+uniform float kD = 1.0;
+uniform float kS = 1.0;
 
 uniform float a  = 250.0;
 
@@ -186,8 +186,6 @@ void main(void)
 	{
 		Ip += SpotLightIllumination(i);
 	}
-
-	Ip = vec3(0);
 
 	for(int i=0; i<1; i++) //supports up to 4
 	{
