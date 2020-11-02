@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -44,6 +45,8 @@ namespace DeeSynk.Core.Systems
 
         private FBO[] _fbos;
 
+        private Stopwatch sw;
+
         //SHADOW END
 
         public SystemRender(World world, UI ui)
@@ -61,6 +64,8 @@ namespace DeeSynk.Core.Systems
             TEST_VAO = new VAO(Buffers.VERTICES_ELEMENTS);
 
             _fbos = _world.FBOs;
+
+            sw = new Stopwatch();
 
             //UpdateMonitoredGameObjects();
         }
@@ -121,6 +126,7 @@ namespace DeeSynk.Core.Systems
 
         private void RenderDepthMaps(ref SystemTransform systemTransform)
         {
+            //sw.Start();
             int[] currentViewPort = new int[4];
             GL.GetInteger(GetPName.Viewport, currentViewPort);
 
@@ -151,13 +157,13 @@ namespace DeeSynk.Core.Systems
 
                         for (int idx = 0; idx < _world.ObjectMemory; idx++)
                         {
-                            if (_world.ExistingGameObjects[idx])
+                            if (_world.ExistingGameObjects[idx] && idx < 9)
                             {
                                 if (_world.GameObjects [idx].Components.HasFlag(RenderQualfier))
                                 {
                                     Bind(idx, false, _world);
                                     systemTransform.PushModelMatrix(idx, _world);
-                                    int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
+                                    int elementCount = (idx == 8) ? 36001686 : ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
                                     GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                                 }
                             }
@@ -173,6 +179,10 @@ namespace DeeSynk.Core.Systems
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Viewport(currentViewPort[0], currentViewPort[1], currentViewPort[2], currentViewPort[3]);
             GL.Clear(ClearBufferMask.DepthBufferBit);
+
+            //sw.Stop();
+            //Console.Out.WriteLine("Shadows: " + sw.ElapsedMilliseconds);
+            //sw.Reset();
         }
 
 
@@ -206,6 +216,7 @@ namespace DeeSynk.Core.Systems
 
         public void RenderScene(ref SystemTransform systemTransform)
         {
+            //sw.Start();
             int[] currentViewPort = new int[4];
             GL.GetInteger(GetPName.Viewport, currentViewPort);  //automate this somehow, feels clunky
 
@@ -215,7 +226,7 @@ namespace DeeSynk.Core.Systems
 
             for (int idx = 0; idx < _world.ObjectMemory; idx++)
             {
-                if (_world.ExistingGameObjects[idx]){
+                if (_world.ExistingGameObjects[idx] && idx < 9){
                     Component comps = _world.GameObjects[idx].Components;
                     if (comps.HasFlag(RenderQualfier) && !_renderComps[idx].IsFinalRenderPlane)
                     {
@@ -234,7 +245,7 @@ namespace DeeSynk.Core.Systems
                         }
 
                         systemTransform.PushModelMatrix(idx, _world);
-                        int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
+                        int elementCount = (idx == 8) ? 36001686 : ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
 
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }
@@ -243,6 +254,9 @@ namespace DeeSynk.Core.Systems
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Viewport(currentViewPort[0], currentViewPort[1], currentViewPort[2], currentViewPort[3]);
+            //sw.Stop();
+            //Console.Out.WriteLine("Scene: " + sw.ElapsedMilliseconds);
+            //sw.Reset();
         }
 
         public void ShadowVolumes(ref SystemTransform systemTransform)

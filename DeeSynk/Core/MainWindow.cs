@@ -46,8 +46,8 @@ namespace DeeSynk.Core
 
         private MouseState msPrevious;
 
-        public static int width = 1600;
-        public static int height = 900;
+        public static int width = 3200;
+        public static int height = 1800;
 
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be

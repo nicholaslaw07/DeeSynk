@@ -221,17 +221,22 @@ namespace DeeSynk.Core.Systems
 
             //Get the index data for all GameObjects in the specified range and add it to one continuous array
             uint kdx = 0;
+            uint ldx = 0;
             uint[] indices = new uint[indexCount];
             for(int idx = lowerBound; idx <= upperBound; idx++)
             {
                 var model = modelManager.GetModel(c.StaticModelComps[idx].ModelID);
+                int ec = model.ElementCount;
                 if (!model.HasValidData)
                     continue;
                 for (int jdx = 0; jdx < model.ElementCount; jdx++)
                 {
-                    indices[kdx + jdx] = kdx + model.Elements[jdx];
+                    indices[kdx + jdx] = ldx + model.Elements[jdx];
                 }
+                var val = indices[kdx];
                 kdx += (uint)model.ElementCount;
+                ldx += (uint)model.VertexCount;
+
             }
 
             int dataSize = UINT_SIZE * indexCount;
@@ -291,6 +296,7 @@ namespace DeeSynk.Core.Systems
             int fStride = Model.FloatStride(properties);
             //The total data count for all models (vertex, uv, and color data should all be the same, so it is only represeted as vertex count)
             int count = 0;
+            int totalModels = 0;
             for (int idx = start; idx <= end; idx++)
             {
                 var model = modelManager.GetModel(ref c.StaticModelComps[idx]);
@@ -301,6 +307,7 @@ namespace DeeSynk.Core.Systems
                 }
 
                 count += model.VertexCount;
+                totalModels++;
             }
 
             float[] data = new float[fStride * count];

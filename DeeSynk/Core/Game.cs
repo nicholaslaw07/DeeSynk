@@ -135,10 +135,11 @@ namespace DeeSynk.Core
 
             //the models are added
             {
+                float s = 0.000004f;
                 _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, "1");
                 //_world.MaterialComps[0] = new ComponentMaterial(Color4.White);  //input
                 var tComps = TransformComponents.TRANSLATION | TransformComponents.SCALE;
-                _world.TransComps[0] = new ComponentTransform(tComps, true, locY: 0.0f, sclX: 0.000004f, sclY: 0.000004f, sclZ: 0.000004f);  //input
+                _world.TransComps[0] = new ComponentTransform(tComps, true, locY: 0.0f, sclX: s, sclY: s, sclZ: s);  //input
 
                 Texture t = TextureManager.GetInstance().GetTexture("wood");  //input
 
@@ -154,11 +155,17 @@ namespace DeeSynk.Core
                 tComps = TransformComponents.TRANSLATION;
                 _world.TransComps[2] = new ComponentTransform(tComps, true, locX: -0.5f, locY: -0.5f, locZ: -1.0f); //input
 
+                int total = 0;
+                int totalElements = ModelManager.GetInstance().GetModel("1").ElementCount;
+
                 for(int idx = 8; idx < 1192; idx++)
                 {
                     _world.StaticModelComps[idx] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, (idx - 6).ToString());
                     tComps = TransformComponents.TRANSLATION | TransformComponents.SCALE;
-                    _world.TransComps[idx] = new ComponentTransform(tComps, true, locY: 0.0f, sclX: 0.000004f, sclY: 0.000004f, sclZ: 0.000004f);
+                    _world.TransComps[idx] = new ComponentTransform(tComps, true, locY: 0.0f, sclX: s, sclY: s, sclZ: s);
+
+                    total += ModelManager.GetInstance().GetModel((idx - 6).ToString()).ElementCount;
+                    totalElements += ModelManager.GetInstance().GetModel((idx - 6).ToString()).ElementCount;
                 }
             }
             _systemModel.LinkModels(_world);
@@ -185,12 +192,16 @@ namespace DeeSynk.Core
                 _world.RenderComps[_compIdx].IsFinalRenderPlane = true;  //kinda
                 _world.RenderComps[_compIdx].ValidateData();
 
-                for (int idx = 8; idx < 1192; idx++)
+                int idx = 8;
+                _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.COLORS | Buffers.INTERLEAVED, idx, 1191, _world);
+                _world.RenderComps[idx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");  //kinda input
+                _world.RenderComps[idx].ValidateData();
+                /*for (int idx = 8; idx < 1192; idx++)
                 {
                     _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.COLORS | Buffers.INTERLEAVED, idx, idx, _world);
-                    _world.RenderComps[idx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");  //kinda input
+                    _world.RenderComps[idx].PROGRAM_ID = sm.GetProgram("defaultColored");  //kinda input
                     _world.RenderComps[idx].ValidateData();
-                }
+                }*/
             }
             //Automated UBO managment is a MUST
             {
