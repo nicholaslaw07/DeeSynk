@@ -118,7 +118,7 @@ namespace DeeSynk.Core.Managers
 
         private void LoadPLYLibrary()
         {
-            string path0 = @"C:\Users\Chuck\Downloads\complete";
+            string path0 = @"D:\Downloads\complete";
             LoadFolder(path0);
         }
 
