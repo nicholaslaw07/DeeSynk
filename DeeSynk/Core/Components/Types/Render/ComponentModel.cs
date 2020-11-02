@@ -120,29 +120,42 @@ namespace DeeSynk.Core.Components.Types.Render
         private ITemplate _templateData;
         public ITemplate TemplateData { get => _templateData; set => _templateData = value; }
 
-        public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, string modelID,
-                            ConstructionFlags parameterFlags, params object[] constructionData)
+        public ComponentModelStatic(ModelProperties modelProperties, string modelID, ConstructionFlags parameterFlags, params object[] constructionData)
         {
             _modelProperties = modelProperties;
-            _modelReferenceType = modelReferenceType;
+            _modelReferenceType = ModelReferenceType.DISCRETE;
             _modelID = modelID;
             _constructionFlags = parameterFlags;
             LoadConstructionData(constructionData);
-
-            //_isLoadedIntoVAO = false; //Enum of states instead?
         }
 
-        public ComponentModelStatic(ModelProperties modelProperties, ModelReferenceType modelReferenceType, 
-                            ModelTemplates template, ConstructionFlags parameterFlags,
-            params object[] constructionData)
+        public ComponentModelStatic(ModelProperties modelProperties, ModelTemplates template, ConstructionFlags parameterFlags, params object[] constructionData)
         {
             _modelProperties = modelProperties;
-            _modelReferenceType = modelReferenceType;
+            _modelReferenceType = ModelReferenceType.TEMPLATE;
             _modelID = "";
             _constructionFlags = parameterFlags;
             _templateID = template;
-            LoadConstructionData(constructionData);
-            
+            LoadConstructionData(constructionData); 
+        }
+
+        public ComponentModelStatic(ModelProperties modelProperties, string modelID)
+        {
+            _modelProperties = modelProperties;
+            _modelReferenceType = ModelReferenceType.DISCRETE;
+            _modelID = modelID;
+            _constructionFlags = ConstructionFlags.NONE;
+            //LoadConstructionData(constructionData);
+        }
+
+        public ComponentModelStatic(ModelProperties modelProperties, ModelTemplates template)
+        {
+            _modelProperties = modelProperties;
+            _modelReferenceType = ModelReferenceType.TEMPLATE;
+            _modelID = "";
+            _constructionFlags = ConstructionFlags.NONE;
+            _templateID = template;
+            //LoadConstructionData(constructionData);
         }
 
         private void LoadConstructionData(object[] constructionData)

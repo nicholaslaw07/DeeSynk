@@ -158,7 +158,7 @@ void main(void)
 	}
 
 	if(isInCross(newTex))
-		c = vec4(0.9);
+		c = vec4(1-c.x, 1-c.y, 1-c.z, 1.0);
 	
 	color = c;
 

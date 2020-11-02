@@ -130,40 +130,26 @@ namespace DeeSynk.Core
 
             //the models are added
             {
-                var v00 = new Vector3(0, 8, 0);
-                var v01 = new Vector3(5f, 5f, 5f);
-                var v02 = new Vector2(0.0f, 0.0f);
-                var v03 = new Vector2(1.0f, 1.0f);
-                var v04 = Color4.White;
+                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_ELEMENTS, "TestCube");
+                _world.MaterialComps[0] = new ComponentMaterial(Color4.White);  //input
+                var tComps = TransformComponents.TRANSLATION | TransformComponents.SCALE;
+                _world.TransComps[0] = new ComponentTransform(tComps, true, locY: 0.29f, sclX: 0.25f, sclY: 0.25f, sclZ: 0.25f);  //input
 
+                Texture t = TextureManager.GetInstance().GetTexture("wood");  //input
 
-                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_ELEMENTS, ModelReferenceType.DISCRETE, "TestCube",
-                                            ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.VECTOR3_SCALE,
-                                            new Vector3(0, 0.29f, 0), (float)(0), new Vector3(0.25f, 0.25f, 0.25f));
-                _world.MaterialComps[0] = new ComponentMaterial(Color4.White);
-
-                Texture t = TextureManager.GetInstance().GetTexture("wood");
-                float width = t.Width;
-                float height = t.Height;
-
-                var v10 = new Vector3(0);
                 var v14 = new Vector3(1 / 20f * t.AspectRatio, 0f, 1 / 20f);
-                _world.StaticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXZ,
-                                                                ConstructionFlags.VECTOR3_OFFSET | ConstructionFlags.FLOAT_ROTATION_X | ConstructionFlags.VECTOR3_SCALE,
-                                                                v10, 0.0f, v14);
-                _world.StaticModelComps[1].TemplateData = new Plane(_world.StaticModelComps[1].ModelProperties, new Vector2(100.0f, 100.0f), t.SubTextureLocations[0].UVOffset, t.SubTextureLocations[0].UVScale);
+                _world.StaticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelTemplates.PlaneXZ);  //input
+                _world.StaticModelComps[1].TemplateData = new Plane(_world.StaticModelComps[1].ModelProperties, new Vector2(100.0f, 100.0f), t.SubTextureLocations[0].UVOffset, t.SubTextureLocations[0].UVScale); //kinda input
+                tComps = TransformComponents.TRANSLATION | TransformComponents.SCALE;
+                _world.TransComps[1] = new ComponentTransform(tComps, true, sclX: v14.X, sclY: v14.Y, sclZ: v14.Z);  //input
 
-                var v20 = new Vector3(-0.5f, -0.5f, -1.0f);
-                var v21 = new Vector3(1.0f, 1.0f, 0.0f);
-                var v22 = new Vector2(0.0f, 0.0f);
-                var v23 = new Vector2(1.0f, 1.0f);
-
-                _world.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.PlaneXY,
-                                                                ConstructionFlags.VECTOR3_OFFSET, v20);
-                _world.StaticModelComps[2].TemplateData = new Plane(_world.StaticModelComps[1].ModelProperties, new Vector2(1.0f, 1.0f), new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f));
+                _world.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelTemplates.PlaneXY); //input
+                _world.StaticModelComps[2].TemplateData = new Plane(_world.StaticModelComps[1].ModelProperties, new Vector2(1.0f, 1.0f), new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f)); //kinda input
+                tComps = TransformComponents.TRANSLATION;
+                _world.TransComps[2] = new ComponentTransform(tComps, true, locX: -0.5f, locY: -0.5f, locZ: -1.0f); //input
             }
             _systemModel.LinkModels(_world);
-            _systemTransform.CreateComponents(_world);
+            //_systemTransform.CreateComponents(_world);
             //_world.TransComps[0].RotationXComp.InterpolateRotation(10.0f, 15, InterpolationMode.LINEAR);
 
             {
@@ -172,18 +158,18 @@ namespace DeeSynk.Core
                 var sm = ShaderManager.GetInstance();
 
                 _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _world);
-                _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");
+                _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");  //kinda input
                 _world.RenderComps[_compIdx].ValidateData();
 
                 _compIdx = _world.NextComponentIndex();
                 _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _world);
-                _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("shadowTextured2");
+                _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("shadowTextured2");  //kinda input
                 _world.RenderComps[_compIdx].ValidateData();
 
                 _compIdx = _world.NextComponentIndex();
                 _systemVAO.InitVAORange(Buffers.VERTICES | Buffers.UVS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _world);
-                _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("postLightGlare");
-                _world.RenderComps[_compIdx].IsFinalRenderPlane = true;
+                _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("postLightGlare");  //kinda input
+                _world.RenderComps[_compIdx].IsFinalRenderPlane = true;  //kinda
                 _world.RenderComps[_compIdx].ValidateData();
             }
             //Automated UBO managment is a MUST
@@ -251,52 +237,53 @@ namespace DeeSynk.Core
                 UIElementContainer element;
                 _compIdx = _ui.NextComponentIndex(); //2558, 1438
                 {
-                    int w = MainWindow.width / 5 - 10;
-                    int h = MainWindow.height - 10;
-                    var s1 = new Vector2(-MainWindow.width / 2 + 5, -MainWindow.height / 2 + 5); //container size
+                    int w = MainWindow.width / 5 - 10; //input
+                    int h = MainWindow.height - 10;  //input
+                    var s1 = new Vector2(-MainWindow.width / 2 + 5, -MainWindow.height / 2 + 5);  //input
                     element = new UIElementContainer(4, UIElementType.UI_CONTAINER, w, h, s1, PositionType.GLOBAL, PositionReference.CORNER_BOTTOM_LEFT, 0, _compIdx);
                     activeCanvas.AddChild(element);
 
                     _ui.ElementComps[_compIdx] = new ComponentElement(element);
 
-                    var pos = new Vector3(element.Position.X, element.Position.Y, -1.0f);
-                    _ui.StaticModelComps[_compIdx] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.UIContainer,
-                                                                    ConstructionFlags.VECTOR3_OFFSET,
-                                                                    pos);
+                    var v30 = new Vector3(element.Position.X, element.Position.Y, -1.0f);
+                    _ui.StaticModelComps[_compIdx] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelTemplates.UIContainer);
 
-                    var s2 = new Vector2(element.Width, element.Height); //container size
-                    float b = 10; //border
-                    var c1 = new Color4(200, 200, 200, 128);
-                    var c2 = new Color4(255, 255, 255, 128);
+                    var s2 = new Vector2(element.Width, element.Height); //input
+                    float b = 4; //input
+                    var c1 = new Color4(120, 120, 120, 128);  //input
+                    var c2 = new Color4(32, 32, 32, 128);  //input
                     _ui.StaticModelComps[_compIdx].TemplateData = new BorderedWindow(_ui.StaticModelComps[_compIdx].ModelProperties, _ui.ElementComps[_compIdx].Element.Reference, s2, b, c1, c2);
 
-                    _ui.RenderComps[_compIdx] = new ComponentRender(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED);
-                    _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
+                    TransformComponents tComps = TransformComponents.TRANSLATION;
+                    _ui.TransComps[_compIdx] = new ComponentTransform(tComps, true, locX: v30.X, locY: v30.Y, locZ: v30.Z);
+
+                    _ui.RenderComps[_compIdx] = new ComponentRender(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED);  //kinda input, can be widdled down though
+                    _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");  //kinda input
                 }
 
                 //CHILD CONTAINER
                 _compIdx = _ui.NextComponentIndex();
                 UIElementContainer cElem;
                 {
-                    int w = element.Width / 2;
-                    int h = element.Height / 2;
-                    var s1 = new Vector2(w/2.0f, h/2.0f);
-                    cElem = new UIElementContainer(4, UIElementType.UI_CONTAINER, w, h, s1, PositionType.LOCAL, PositionReference.CORNER_BOTTOM_LEFT, 0, _compIdx);
+                    int w = element.Width - 20;
+                    int h = element.Height / 5 - 20;
+                    var s1 = new Vector2(10, 4 * element.Height / 5 + 10);
+                    cElem = new UIElementContainer(4, UIElementType.UI_CONTAINER, w, h, s1, PositionType.LOCAL, PositionReference.CORNER_BOTTOM_LEFT, 1, _compIdx);
                     element.AddChild(cElem);
 
                     _ui.ElementComps[_compIdx] = new ComponentElement(element);
 
                     var v30 = new Vector3(element.Center.X + cElem.Position.X, element.Center.Y + cElem.Position.Y, -1.0f);
-                    _ui.StaticModelComps[_compIdx] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelReferenceType.TEMPLATE, ModelTemplates.UIContainer,
-                                                                    ConstructionFlags.VECTOR3_OFFSET,
-                                                                    v30);
-
+                    _ui.StaticModelComps[_compIdx] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelTemplates.UIContainer);
 
                     var s2 = new Vector2(cElem.Width, cElem.Height); //container size
-                    float b = 10; //border
-                    var c1 = new Color4(200, 200, 200, 128);
-                    var c2 = new Color4(255, 255, 255, 128);
+                    float b = 4; //border
+                    var c1 = new Color4(120, 120, 120, 128);
+                    var c2 = new Color4(32, 32, 32, 128);
                     _ui.StaticModelComps[_compIdx].TemplateData = new BorderedWindow(_ui.StaticModelComps[_compIdx].ModelProperties, _ui.ElementComps[_compIdx].Element.Reference, s2, b, c1, c2);
+
+                    TransformComponents tComps = TransformComponents.TRANSLATION;
+                    _ui.TransComps[_compIdx] = new ComponentTransform(tComps, true, locX: v30.X, locY: v30.Y, locZ: v30.Z);
 
                     _ui.RenderComps[_compIdx] = new ComponentRender(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED);
                     _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
@@ -304,7 +291,7 @@ namespace DeeSynk.Core
             }
 
             _systemModel.LinkModels(_ui);
-            _systemTransform.CreateComponents(_ui);
+            //_systemTransform.CreateComponents(_ui);
             _systemTransform.UpdateMonitoredGameObjects();
 
             for(int idx = 0; idx < _ui.ObjectMemory; idx++)

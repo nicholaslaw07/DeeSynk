@@ -415,7 +415,7 @@ namespace DeeSynk.Core.Systems
         public void RenderUI(ref SystemTransform systemTransform)
         {
             GL.Disable(EnableCap.DepthTest);
-
+            //GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusDstColor);
             for (int idx = 0; idx < _ui.ObjectMemory; idx++)
             {
                 if (_ui.ExistingGameObjects[idx])
@@ -451,6 +451,7 @@ namespace DeeSynk.Core.Systems
                 }
             }
             GL.Enable(EnableCap.DepthTest);
+            //GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
     }
 }
