@@ -128,6 +128,7 @@ namespace DeeSynk.Core.Managers
             if(directories.Count() == 0)
             {
                 var files = Directory.GetFiles(folderPath);
+
                 foreach(string f in files)
                 {
                     string name = Path.GetFileName(f);
@@ -135,6 +136,16 @@ namespace DeeSynk.Core.Managers
                     name = name.Substring(0, idx);
                     LoadPLY(f, name);
                 }
+
+                /*
+                Parallel.ForEach(files, (f) =>
+                {
+                    string name = Path.GetFileName(f);
+                    int idx = name.IndexOf('.');
+                    name = name.Substring(0, idx);
+                    LoadPLY(f, name);
+                });
+                */
             }
             else
             {
@@ -600,7 +611,10 @@ namespace DeeSynk.Core.Managers
             model.Elements = elements;
             model.Colors = colors;
             model.SetReadOnly(false, false);
-            _modelLibrary.Add(_modelLibrary.Count().ToString(), model);
+            lock (_modelLibrary)
+            {
+                _modelLibrary.Add(_modelLibrary.Count().ToString(), model);
+            }
         }
         private int FindIndex(ref byte[] arr, ref byte[] val, int start)
         {
