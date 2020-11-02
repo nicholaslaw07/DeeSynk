@@ -113,7 +113,34 @@ namespace DeeSynk.Core.Managers
             string[] fileNames = models.Select(Path.GetFileNameWithoutExtension).ToArray();
             string[] fileExtensions = models.Select(Path.GetExtension).ToArray();
 
+            LoadPLYLibrary();
+        }
 
+        private void LoadPLYLibrary()
+        {
+            string path0 = @"C:\Users\Chuck\Downloads\complete";
+            LoadFolder(path0);
+        }
+
+        private void LoadFolder(string folderPath)
+        {
+            var directories = Directory.GetDirectories(folderPath);
+            if(directories.Count() == 0)
+            {
+                var files = Directory.GetFiles(folderPath);
+                foreach(string f in files)
+                {
+                    string name = Path.GetFileName(f);
+                    int idx = name.IndexOf('.');
+                    name = name.Substring(0, idx);
+                    LoadPLY(f, name);
+                }
+            }
+            else
+            {
+                foreach (string f in directories)
+                    LoadFolder(f);
+            }
         }
 
         #region Model Retrieval
@@ -404,5 +431,225 @@ namespace DeeSynk.Core.Managers
         }
 
         #endregion
+
+        #region PLY_PARSER
+        private void LoadPLY(string path, string name)
+        {
+            //4 4 4 1 1 1 4 4 4
+            //1 4 4 4 1 1 1
+
+            //TRIANGLE FAN NOT STRIP
+
+            byte[] file = File.ReadAllBytes(path);
+            StringBuilder sb = new StringBuilder();
+            ASCIIEncoding asc = new ASCIIEncoding();
+            byte[] lookup;
+
+            lookup = asc.GetBytes("element vertex ");
+            int a = FindIndex(ref file, ref lookup, 0), l, b, vC, fC;
+            l = lookup.Length;
+            lookup = asc.GetBytes("\n");
+            b = FindIndex(ref file, ref lookup, a + l);
+            var cT = asc.GetChars(file, a + l, b - a - l);
+            int vb = b - a - l;
+            foreach (char ch in cT)
+                sb.Append(ch);
+            Int32.TryParse(sb.ToString(), out vC);
+
+            sb.Clear();
+
+            lookup = asc.GetBytes("element face ");
+            a = FindIndex(ref file, ref lookup, 0);
+            l = lookup.Length;
+            lookup = asc.GetBytes("\n");
+            b = FindIndex(ref file, ref lookup, a + l);
+            cT = asc.GetChars(file, a + l, b - a - l);
+            int fb = b - a - l;
+            foreach (char ch in cT)
+                sb.Append(ch);
+            Int32.TryParse(sb.ToString(), out fC);
+
+            lookup = asc.GetBytes("\nend_header\n");
+            a = FindIndex(ref file, ref lookup, a);
+            a += lookup.Length;
+
+            lookup = asc.GetBytes("ply\nformat binary_big_endian 1.0\nelement vertex \nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nproperty float nx\nproperty float ny\nproperty float nz\nelement face \nproperty list uchar int vertex_indices\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n");
+            int len = lookup.Length + vb + fb;
+            if (len != a)
+                throw new Exception("Fuck");
+
+            Vector4[] vertices = new Vector4[vC];
+            Color4[] colors = new Color4[vC];
+            Vector3[] normals = new Vector3[vC];
+
+            int filesize = a + vC * 27 + fC * 16;
+            int partialSize = a + vC * 27; // 70 21 171 180
+
+            a -= 4;
+
+            if (BitConverter.IsLittleEndian)
+            {
+                for (int i = 0; i < vC; i++)
+                {
+                    float x = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
+                    float y = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
+                    float z = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
+
+                    vertices[i] = new Vector4(x, y, z, 1.0f);
+
+                    byte R = file[++a];
+                    byte G = file[++a];
+                    byte B = file[++a];
+
+                    colors[i] = new Color4(R, G, B, 255);
+
+                    float nx = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
+                    float ny = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
+                    float nz = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
+
+                    normals[i] = new Vector3(nx, ny, nz);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < vC; i++)
+                {
+                    float x = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
+                    float y = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
+                    float z = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
+
+                    vertices[i] = new Vector4(x, y, z, 1.0f);
+
+                    byte R = file[++a];
+                    byte G = file[++a];
+                    byte B = file[++a];
+
+                    colors[i] = new Color4(R, G, B, 255);
+
+                    float nx = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
+                    float ny = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
+                    float nz = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
+
+                    normals[i] = new Vector3(nx, ny, nz);
+                }
+            }
+
+            a += 3;
+            int ap = a;
+            ap++;
+            int eCount = 0;
+
+            for(int i=0; i< fC; i++)
+            {
+                byte A = file[ap];
+                ap += 4 * (int)A + 4;
+                eCount += (int)A;
+            }
+
+            uint[] elements = new uint[eCount];
+            Color4[] eColors = new Color4[eCount];
+
+            ap = a;
+
+            if (BitConverter.IsLittleEndian)
+            {
+                for (int i = 0; i < eCount; i+=0)
+                {
+                    byte A = file[++ap];
+                    if (A != (byte)3)
+                        throw new Exception("Uh oh");
+                    ap -= 3;
+                    for (int j = 0; j < A; j++)
+                        elements[i+j] = (uint)BitConverter.ToInt32(GetSubsetLE(ref file, ap += 4, 4), 0);
+                    byte R = file[ap += 4];
+                    byte G = file[++ap];
+                    byte B = file[++ap];
+                    eColors[i] = new Color4(R, G, B, 255);
+                    i += (int)A;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < fC; i+=0)
+                {
+                    byte A = file[++ap];
+                    if (A != (byte)3)
+                        throw new Exception("Uh oh");
+                    ap -= 3;
+                    for (int j = 0; j < A; j++)
+                        elements[i+j] = (uint)BitConverter.ToInt32(GetSubsetBE(ref file, ap += 4, 4), 0);
+                    byte R = file[ap += 4];
+                    byte G = file[++ap];
+                    byte B = file[++ap];
+                    eColors[i] = new Color4(R, G, B, 255);
+                    i += (int)A;
+                }
+            }
+
+            uint max = 0;
+            for (int i = 0; i < elements.Length; i++)
+            {
+                if (elements[i] > max)
+                    max = elements[i];
+            }
+
+            Model model = new Model();
+
+            model.Vertices = vertices;
+            model.Normals = normals;
+            model.Elements = elements;
+            model.Colors = colors;
+            model.SetReadOnly(false, false);
+            _modelLibrary.Add(_modelLibrary.Count().ToString(), model);
+        }
+        private int FindIndex(ref byte[] arr, ref byte[] val, int start)
+        {
+            for (int i = start; i < arr.Length; i++)
+            {
+                if (arr[i] == val[0])
+                {
+                    bool pass = true;
+                    for (int j = 1; j < val.Length; j++)
+                    {
+                        pass &= arr[i + j] == val[j];
+                    }
+                    if (pass)
+                        return i;
+                }
+            }
+            return -1;
+        }
+
+        private byte[] GetSubsetLE(ref byte[] data, int offset, int count)
+        {
+            byte[] val = new byte[count];
+            for (int i = 0; i < count; i++)
+                val[i] = data[offset + count - 1 - i];
+            return val;
+        }
+
+        private byte[] GetSubsetBE(ref byte[] data, int offset, int count)
+        {
+            byte[] val = new byte[count];
+            for (int i = 0; i < count; i++)
+                val[i] = data[offset + i];
+            return val;
+        }
+
+        private void GetSubsetLE(ref byte[] data, int offset, int count, out byte[] val)
+        {
+            val = new byte[count];
+            for (int i = 0; i < count; i++)
+                val[i] = data[offset + count - 1 - i];
+        }
+
+        private void GetSubsetBE(ref byte[] data, int offset, int count, out byte[] val)
+        {
+            val = new byte[count];
+            for (int i = 0; i < count; i++)
+                val[i] = data[offset + i];
+        }
+
     }
+    #endregion
 }

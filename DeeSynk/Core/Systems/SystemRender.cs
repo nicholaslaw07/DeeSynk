@@ -116,7 +116,7 @@ namespace DeeSynk.Core.Systems
             RenderDepthMaps(ref systemTransform);
             RenderScene(ref systemTransform);
             RenderPost(ref systemTransform);
-            RenderUI(ref systemTransform);
+            //RenderUI(ref systemTransform);
         }
 
         private void RenderDepthMaps(ref SystemTransform systemTransform)
@@ -211,7 +211,7 @@ namespace DeeSynk.Core.Systems
 
             _fbos[0].Bind(true);
 
-            //StencilTest(ref systemTransform);
+            BindShadowMaps();
 
             for (int idx = 0; idx < _world.ObjectMemory; idx++)
             {
@@ -235,13 +235,6 @@ namespace DeeSynk.Core.Systems
 
                         systemTransform.PushModelMatrix(idx, _world);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
-
-                        //Bind ShadowMaps to their respective texture units
-                        for (int i = 0; i < _world.ObjectMemory; i++)
-                        {
-                            if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
-                                _world.LightComps[i].LightObject.ShadowMap.BindTexture();
-                        }
 
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }
@@ -440,18 +433,21 @@ namespace DeeSynk.Core.Systems
                         systemTransform.PushModelMatrix(idx, _ui);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _ui.StaticModelComps[idx]).ElementCount;
 
-                        for (int i = 0; i < _world.ObjectMemory; i++)
-                        {
-                            if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
-                                _world.LightComps[i].LightObject.ShadowMap.BindTexture();
-                        }
-
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }
                 }
             }
             GL.Enable(EnableCap.DepthTest);
             //GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        }
+
+        private void BindShadowMaps()
+        {
+            for (int i = 0; i < _world.ObjectMemory; i++)
+            {
+                if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
+                    _world.LightComps[i].LightObject.ShadowMap.BindTexture();
+            }
         }
     }
 }

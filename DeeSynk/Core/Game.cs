@@ -69,7 +69,7 @@ namespace DeeSynk.Core
             Managers.TextureManager.GetInstance().Load();
             Managers.ModelManager.GetInstance().Load();
 
-            _world = new World(8);
+            _world = new World(1200);
             _ui = new UI(32);
 
             _compIdx = 0;
@@ -103,7 +103,7 @@ namespace DeeSynk.Core
             //Create the objects in the world array of GameObjects - these objects are blank and only hold the ComponentMask
 
             //=====WORLD=====//
-            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.MATERIAL);
+            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM); //Component.MATERIAL
             _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
             _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
 
@@ -121,6 +121,11 @@ namespace DeeSynk.Core
             _ui.CreateGameObject(Component.UI_CANVAS);
             _ui.CreateGameObject(Component.UI_STANDARD);
             _ui.CreateGameObject(Component.UI_STANDARD);
+
+            for (int idx = 8; idx < 1192; idx++)
+            {
+                _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM);
+            }
         }
 
         private void InjectWorldData()
@@ -130,14 +135,15 @@ namespace DeeSynk.Core
 
             //the models are added
             {
-                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_ELEMENTS, "TestCube");
-                _world.MaterialComps[0] = new ComponentMaterial(Color4.White);  //input
+                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, "1");
+                //_world.MaterialComps[0] = new ComponentMaterial(Color4.White);  //input
                 var tComps = TransformComponents.TRANSLATION | TransformComponents.SCALE;
-                _world.TransComps[0] = new ComponentTransform(tComps, true, locY: 0.29f, sclX: 0.25f, sclY: 0.25f, sclZ: 0.25f);  //input
+                _world.TransComps[0] = new ComponentTransform(tComps, true, locY: 0.0f, sclX: 0.000004f, sclY: 0.000004f, sclZ: 0.000004f);  //input
 
                 Texture t = TextureManager.GetInstance().GetTexture("wood");  //input
 
                 var v14 = new Vector3(1 / 20f * t.AspectRatio, 0f, 1 / 20f);
+                //var v14 = new Vector3(0);
                 _world.StaticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelTemplates.PlaneXZ);  //input
                 _world.StaticModelComps[1].TemplateData = new Plane(_world.StaticModelComps[1].ModelProperties, new Vector2(100.0f, 100.0f), t.SubTextureLocations[0].UVOffset, t.SubTextureLocations[0].UVScale); //kinda input
                 tComps = TransformComponents.TRANSLATION | TransformComponents.SCALE;
@@ -147,6 +153,13 @@ namespace DeeSynk.Core
                 _world.StaticModelComps[2].TemplateData = new Plane(_world.StaticModelComps[1].ModelProperties, new Vector2(1.0f, 1.0f), new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f)); //kinda input
                 tComps = TransformComponents.TRANSLATION;
                 _world.TransComps[2] = new ComponentTransform(tComps, true, locX: -0.5f, locY: -0.5f, locZ: -1.0f); //input
+
+                for(int idx = 8; idx < 1192; idx++)
+                {
+                    _world.StaticModelComps[idx] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, (idx - 6).ToString());
+                    tComps = TransformComponents.TRANSLATION | TransformComponents.SCALE;
+                    _world.TransComps[idx] = new ComponentTransform(tComps, true, locY: 0.0f, sclX: 0.000004f, sclY: 0.000004f, sclZ: 0.000004f);
+                }
             }
             _systemModel.LinkModels(_world);
             //_systemTransform.CreateComponents(_world);
@@ -157,7 +170,7 @@ namespace DeeSynk.Core
 
                 var sm = ShaderManager.GetInstance();
 
-                _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _world);
+                _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.COLORS | Buffers.INTERLEAVED, _compIdx, _compIdx, _world);
                 _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");  //kinda input
                 _world.RenderComps[_compIdx].ValidateData();
 
@@ -171,6 +184,14 @@ namespace DeeSynk.Core
                 _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("postLightGlare");  //kinda input
                 _world.RenderComps[_compIdx].IsFinalRenderPlane = true;  //kinda
                 _world.RenderComps[_compIdx].ValidateData();
+
+                for (int idx = 8; idx < 1192; idx++)
+                {
+                    _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.COLORS | Buffers.INTERLEAVED, 8, 1191, _world);
+                    _world.RenderComps[8].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");  //kinda input
+                    _world.RenderComps[8].ValidateData();
+
+                }
             }
             //Automated UBO managment is a MUST
             {
