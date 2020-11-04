@@ -64,7 +64,7 @@ namespace DeeSynk.Core.Systems
         private int _vaoCount;
         public int VAOCount {get => _vaoCount;}
 
-        public SystemVAO(World world, UI ui)
+        public SystemVAO(ref World world, ref UI ui)
         {
             _world = world;
             _ui = ui;

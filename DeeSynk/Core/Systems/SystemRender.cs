@@ -49,7 +49,7 @@ namespace DeeSynk.Core.Systems
 
         //SHADOW END
 
-        public SystemRender(World world, UI ui)
+        public SystemRender(ref World world, ref UI ui)
         {
             _world = world;
             _ui = ui;
@@ -121,7 +121,7 @@ namespace DeeSynk.Core.Systems
             RenderDepthMaps(ref systemTransform);
             RenderScene(ref systemTransform);
             RenderPost(ref systemTransform);
-            //RenderUI(ref systemTransform);
+            RenderUI(ref systemTransform);
         }
 
         private void RenderDepthMaps(ref SystemTransform systemTransform)

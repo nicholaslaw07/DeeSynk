@@ -246,8 +246,10 @@ namespace DeeSynk.Core.Components.Types.Transform
             }
         }
 
-        public void Update(float time)
+        public bool Update(float time)
         {
+            clearUpdates();
+
             bool recomputeProduct = false;
             if (_transformComponents.HasFlag(TransformComponents.TRANSLATION))
                 recomputeProduct |= _location.Update(time);
@@ -265,7 +267,20 @@ namespace DeeSynk.Core.Components.Types.Transform
                 recomputeProduct |= _scale.Update(time);
 
             if (recomputeProduct)
+            {
                 ComputeModelProduct();
+                return true;
+            }
+            return false;
+        }
+
+        private void clearUpdates()
+        {
+            if (_location != null) { _location.PreviouslyUpdated = false; }
+            if (_rotationX != null) { _rotationX.PreviouslyUpdated = false; }
+            if (_rotationY != null) { _rotationY.PreviouslyUpdated = false; }
+            if (_rotationZ != null) { _rotationZ.PreviouslyUpdated = false; }
+            if (_scale != null) { _scale.PreviouslyUpdated = false; }
         }
 
         public class ComponentLocation
@@ -274,6 +289,8 @@ namespace DeeSynk.Core.Components.Types.Transform
             public bool IsUpdateAllowed { get => _isUpdateAllowed; set => _isUpdateAllowed = value; }
             private bool _valueUpdated;
             public bool ValueUpdated { get => _valueUpdated; }
+            private bool _previouslyUpdated;
+            public bool PreviouslyUpdated { get => _previouslyUpdated; set => _previouslyUpdated = value; }
 
             private Vector3 _location,
                             _velocity,
@@ -363,6 +380,7 @@ namespace DeeSynk.Core.Components.Types.Transform
             {
                 _isUpdateAllowed = true;
                 _valueUpdated = true;
+                _previouslyUpdated = false;
 
                 _location = Vector3.Zero;
                 _velocity = Vector3.Zero;
@@ -383,6 +401,7 @@ namespace DeeSynk.Core.Components.Types.Transform
             {
                 _isUpdateAllowed = true;
                 _valueUpdated = true;
+                _previouslyUpdated = false;
 
                 _location = new Vector3(x, y, z);
                 _velocity = Vector3.Zero;
@@ -458,6 +477,7 @@ namespace DeeSynk.Core.Components.Types.Transform
                 {
                     BuildMatrix();
                     _valueUpdated = false;
+                    _previouslyUpdated = true;
                     return true;
                 }
 
@@ -473,6 +493,8 @@ namespace DeeSynk.Core.Components.Types.Transform
             public bool IsUpdateAllowed { get => _isUpdateAllowed; set => _isUpdateAllowed = value; }
             private bool _valueUpdated;
             public bool ValueUpdated { get => _valueUpdated; }
+            private bool _previouslyUpdated;
+            public bool PreviouslyUpdated { get => _previouslyUpdated; set => _previouslyUpdated = value; }
 
             private float _angle,
                           _velocity,
@@ -560,6 +582,7 @@ namespace DeeSynk.Core.Components.Types.Transform
             {
                 _isUpdateAllowed = true;
                 _valueUpdated = false;
+                _previouslyUpdated = false;
 
                 _angle = 0f;
                 _velocity = 0f;
@@ -578,6 +601,7 @@ namespace DeeSynk.Core.Components.Types.Transform
             {
                 _isUpdateAllowed = true;
                 _valueUpdated = true;
+                _previouslyUpdated = false;
 
                 _angle = angle;
                 _velocity = 0f;
@@ -674,6 +698,7 @@ namespace DeeSynk.Core.Components.Types.Transform
                     BuildMatrix();
 
                     _valueUpdated = false;
+                    _previouslyUpdated = true;
                     return true;
                 }
 
@@ -687,6 +712,8 @@ namespace DeeSynk.Core.Components.Types.Transform
             public bool IsUpdateAllowed { get => _isUpdateAllowed; set => _isUpdateAllowed = value; }
             private bool _valueUpdated;
             public bool ValueUpdated { get => _valueUpdated; }
+            private bool _previouslyUpdated;
+            public bool PreviouslyUpdated { get => _previouslyUpdated; set => _previouslyUpdated = value; }
 
             private Vector3 _scale;
 
@@ -733,6 +760,7 @@ namespace DeeSynk.Core.Components.Types.Transform
             {
                 _isUpdateAllowed = true;
                 _valueUpdated = false;
+                _previouslyUpdated = false;
 
                 _scale = Vector3.One;
 
@@ -748,6 +776,7 @@ namespace DeeSynk.Core.Components.Types.Transform
             {
                 _isUpdateAllowed = true;
                 _valueUpdated = false;
+                _previouslyUpdated = false;
 
                 _scale = new Vector3(sZ, sY, sZ);
 
@@ -813,6 +842,7 @@ namespace DeeSynk.Core.Components.Types.Transform
                     BuildMatrix();
 
                     _valueUpdated = false;
+                    _previouslyUpdated = true;
                     return true;
                 }
 

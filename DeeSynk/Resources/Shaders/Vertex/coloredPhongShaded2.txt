@@ -1,0 +1,85 @@
+﻿#version 450 core
+
+layout (location = 0) in vec4 position;
+layout (location = 1) in vec3 normal;
+//layout (location = 2) in vec4 color;
+layout (location = 13) uniform mat4 modelMat;
+
+layout(binding = 2) uniform Camera
+{
+	mat4 projection;  //model_view
+	vec4 camLocation; //cameraLoc
+} camera;
+
+layout(binding = 3) uniform SpotLight
+{
+	mat4 spotLightView;
+	vec4 spotLightLocation;
+	vec4 spotLightLookAt;
+	vec4 spotLightColor;
+	vec4 spotLightFOV;
+} spotLights[4];
+
+layout(binding=7) uniform SunLamp
+{
+	mat4 sunLampView;
+	vec4 sunLampLocation;
+	vec4 sunLampLookAt;
+	vec4 sunLampColor;
+	vec4 sunLampViewProps;
+} sunLamps[4];
+
+layout(binding = 11) uniform PostCamera
+{
+	mat4 projection;  //model_view
+	vec4 camLocation; //cameraLoc
+} postCamera;
+
+layout(location = 17) uniform vec4 color;
+
+out vec3 vs_eyeCoord;
+out vec3 vs_normal;
+
+out vec4 vs_color;
+
+out vec4 vs_lightCoord[4];
+out vec3 vs_transPosiSpot[4];
+
+out vec4 vs_lightCoordSun[4];
+out vec3 vs_transPosiSun[4];
+
+void main(void)
+{
+	vs_color = color;
+
+	vs_lightCoord[0] = spotLights[0].spotLightView * modelMat * (position);
+	vs_lightCoord[1] = spotLights[1].spotLightView * modelMat * (position);
+	vs_lightCoord[2] = spotLights[2].spotLightView * modelMat * (position);
+	vs_lightCoord[3] = spotLights[3].spotLightView * modelMat * (position);
+
+	vs_lightCoordSun[0] = sunLamps[0].sunLampView * modelMat * (position);
+	vs_lightCoordSun[1] = sunLamps[1].sunLampView * modelMat * (position);
+	vs_lightCoordSun[2] = sunLamps[2].sunLampView * modelMat * (position);
+	vs_lightCoordSun[3] = sunLamps[3].sunLampView * modelMat * (position);
+
+	vec4 pos = modelMat * position;
+
+	vs_transPosiSpot[0] = (pos - spotLights[0].spotLightLocation).xyz;
+	vs_transPosiSpot[1] = (pos - spotLights[1].spotLightLocation).xyz;
+	vs_transPosiSpot[2] = (pos - spotLights[2].spotLightLocation).xyz;
+	vs_transPosiSpot[3] = (pos - spotLights[3].spotLightLocation).xyz;
+
+	vs_transPosiSun[0] = (pos - sunLamps[0].sunLampLocation).xyz;
+	vs_transPosiSun[1] = (pos - sunLamps[1].sunLampLocation).xyz;
+	vs_transPosiSun[2] = (pos - sunLamps[2].sunLampLocation).xyz;
+	vs_transPosiSun[3] = (pos - sunLamps[3].sunLampLocation).xyz;
+
+    gl_Position = camera.projection * modelMat * position;
+
+	mat4 mmN = inverse(modelMat);
+	mmN[3] = vec4(0.0,0.0,0.0,1.0);
+	mmN = inverse(mmN);
+
+	vs_eyeCoord = (modelMat * (position)).xyz;
+	vs_normal = (mmN * vec4(normal, 1.0)).xyz;
+}

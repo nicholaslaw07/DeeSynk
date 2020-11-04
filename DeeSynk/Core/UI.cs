@@ -3,6 +3,7 @@ using DeeSynk.Core.Components.GraphicsObjects;
 using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Components.Types.Transform;
 using DeeSynk.Core.Components.Types.UI;
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,12 +34,6 @@ namespace DeeSynk.Core
         {
             _fbos = new FBO[FBO_COUNT];
         }
-
-        public void AddCanvas(UICanvas canvas, int idx)
-        {
-             
-        }
-
         public override void InitData()
         {
             throw new NotImplementedException();
@@ -46,7 +41,7 @@ namespace DeeSynk.Core
 
         public override void Update(float time)
         {
-            throw new NotImplementedException();
+
         }
     }
 }

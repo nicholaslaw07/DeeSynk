@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using DeeSynk.Core.Algorithms;
 using DeeSynk.Core.Components;
@@ -28,6 +29,8 @@ namespace DeeSynk.Core
     /// </summary>
     public class Game
     {
+        private bool _init;
+        public bool Init { get => _init; }
         private World _world;
         public World World { get => _world; }
 
@@ -65,22 +68,22 @@ namespace DeeSynk.Core
         /// </summary>
         public void Load()
         {
+            Managers.ModelManager.GetInstance().Load();
             Managers.ShaderManager.GetInstance().Load();
             Managers.TextureManager.GetInstance().Load();
-            Managers.ModelManager.GetInstance().Load();
 
-            _world = new World(1200);
+            _world = new World(8);
             _ui = new UI(32);
 
             _compIdx = 0;
 
             _systemInput = new SystemInput();
 
-            _systemRender = new SystemRender(_world, _ui);
-            _systemModel = new SystemModel(_world, _ui);
-            _systemTransform = new SystemTransform(_world, _ui);
-            _systemVAO = new SystemVAO(_world, _ui);
-            _systemUI = new SystemUI(_world, _ui);
+            _systemRender = new SystemRender(ref _world, ref _ui);
+            _systemModel = new SystemModel(ref _world, ref _ui);
+            _systemTransform = new SystemTransform(ref _world, ref _ui);
+            _systemVAO = new SystemVAO(ref _world, ref _ui);
+            _systemUI = new SystemUI(ref _world, ref _ui);
         }
 
         public void PushCameraRef(ref Camera camera)
@@ -94,6 +97,7 @@ namespace DeeSynk.Core
             CreateComponents();
             InjectWorldData();
             InjectUIData();
+            _init = true;
         }
 
         public void CreateComponents()
@@ -103,7 +107,8 @@ namespace DeeSynk.Core
             //Create the objects in the world array of GameObjects - these objects are blank and only hold the ComponentMask
 
             //=====WORLD=====//
-            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM); //Component.MATERIAL
+            _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.MATERIAL);
+            //_world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM); //Component.MATERIAL
             _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
             _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM | Component.TEXTURE);
 
@@ -121,11 +126,12 @@ namespace DeeSynk.Core
             _ui.CreateGameObject(Component.UI_CANVAS);
             _ui.CreateGameObject(Component.UI_STANDARD);
             _ui.CreateGameObject(Component.UI_STANDARD);
+            _ui.CreateGameObject(Component.UI_STANDARD);
 
-            for (int idx = 8; idx < 1192; idx++)
+            /*for (int idx = 8; idx < 1192; idx++)
             {
                 _world.CreateGameObject(Component.RENDER | Component.MODEL_STATIC | Component.TRANSFORM);
-            }
+            }*/
         }
 
         private void InjectWorldData()
@@ -135,11 +141,11 @@ namespace DeeSynk.Core
 
             //the models are added
             {
-                float s = 0.000004f;
-                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, "1");
-                //_world.MaterialComps[0] = new ComponentMaterial(Color4.White);  //input
+                float s = 0.25f;
+                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_ELEMENTS, "TestCube");
+                _world.MaterialComps[0] = new ComponentMaterial(Color4.White);  //input
                 var tComps = TransformComponents.TRANSLATION | TransformComponents.SCALE;
-                _world.TransComps[0] = new ComponentTransform(tComps, true, locY: 0.0f, sclX: s, sclY: s, sclZ: s);  //input
+                _world.TransComps[0] = new ComponentTransform(tComps, true, locY: 0.29f, sclX: s, sclY: s, sclZ: s);  //input
 
                 Texture t = TextureManager.GetInstance().GetTexture("wood");  //input
 
@@ -155,9 +161,9 @@ namespace DeeSynk.Core
                 tComps = TransformComponents.TRANSLATION;
                 _world.TransComps[2] = new ComponentTransform(tComps, true, locX: -0.5f, locY: -0.5f, locZ: -1.0f); //input
 
-                int total = 0;
-                int totalElements = ModelManager.GetInstance().GetModel("1").ElementCount;
-
+                //int total = 0;
+                //int totalElements = ModelManager.GetInstance().GetModel("1").ElementCount;
+                /*
                 for(int idx = 8; idx < 1192; idx++)
                 {
                     _world.StaticModelComps[idx] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_COLORS_ELEMENTS, (idx - 6).ToString());
@@ -166,7 +172,7 @@ namespace DeeSynk.Core
 
                     total += ModelManager.GetInstance().GetModel((idx - 6).ToString()).ElementCount;
                     totalElements += ModelManager.GetInstance().GetModel((idx - 6).ToString()).ElementCount;
-                }
+                }*/
             }
             _systemModel.LinkModels(_world);
             //_systemTransform.CreateComponents(_world);
@@ -177,8 +183,8 @@ namespace DeeSynk.Core
 
                 var sm = ShaderManager.GetInstance();
 
-                _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.COLORS | Buffers.INTERLEAVED, _compIdx, _compIdx, _world);
-                _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");  //kinda input
+                _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.INTERLEAVED, _compIdx, _compIdx, _world);
+                _world.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded2");  //kinda input
                 _world.RenderComps[_compIdx].ValidateData();
 
                 _compIdx = _world.NextComponentIndex();
@@ -192,10 +198,11 @@ namespace DeeSynk.Core
                 _world.RenderComps[_compIdx].IsFinalRenderPlane = true;  //kinda
                 _world.RenderComps[_compIdx].ValidateData();
 
+                /*
                 int idx = 8;
                 _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.COLORS | Buffers.INTERLEAVED, idx, 1191, _world);
-                _world.RenderComps[idx].PROGRAM_ID = sm.GetProgram("coloredPhongShaded");  //kinda input
-                _world.RenderComps[idx].ValidateData();
+                _world.RenderComps[idx].PROGRAM_ID = sm.GetProgram("defaultColored");  //kinda input
+                _world.RenderComps[idx].ValidateData();*/
                 /*for (int idx = 8; idx < 1192; idx++)
                 {
                     _systemVAO.InitVAORange(Buffers.VERTICES_NORMALS_ELEMENTS | Buffers.COLORS | Buffers.INTERLEAVED, idx, idx, _world);
@@ -254,7 +261,10 @@ namespace DeeSynk.Core
 
             _compIdx = _ui.CompIdx; //MainWindow.width/1.0f, MainWindow.height/1.0f
             var uiCamera = new Camera(CameraMode.ORTHOGRAPHIC, MainWindow.width, MainWindow.height, -1.0f, 2.0f);
-
+            uiCamera.OverrideLookAtVector = true;
+            var offset = new Vector3(MainWindow.width / 2, MainWindow.height / 2, 0.0f);
+            uiCamera.AddLocation(offset);
+            uiCamera.UpdateMatrices();
             _world.CameraComps[_compIdx] = new ComponentCamera(uiCamera);
             _world.CameraComps[_compIdx].Camera.BuildUBO(15, 7);
 
@@ -270,7 +280,8 @@ namespace DeeSynk.Core
                 {
                     int w = MainWindow.width / 5 - 10; //input
                     int h = MainWindow.height - 10;  //input
-                    var s1 = new Vector2(-MainWindow.width / 2 + 5, -MainWindow.height / 2 + 5);  //input
+                    //var s1 = new Vector2(-MainWindow.width / 2 + 5, -MainWindow.height / 2 + 5);  //input
+                    var s1 = new Vector2(5, 5);
                     element = new UIElementContainer(4, UIElementType.UI_CONTAINER, w, h, s1, PositionType.GLOBAL, PositionReference.CORNER_BOTTOM_LEFT, 0, _compIdx);
                     activeCanvas.AddChild(element);
 
@@ -302,9 +313,9 @@ namespace DeeSynk.Core
                     cElem = new UIElementContainer(4, UIElementType.UI_CONTAINER, w, h, s1, PositionType.LOCAL, PositionReference.CORNER_BOTTOM_LEFT, 1, _compIdx);
                     element.AddChild(cElem);
 
-                    _ui.ElementComps[_compIdx] = new ComponentElement(element);
+                    _ui.ElementComps[_compIdx] = new ComponentElement(cElem);
 
-                    var v30 = new Vector3(element.Center.X + cElem.Position.X, element.Center.Y + cElem.Position.Y, -1.0f);
+                    var v30 = new Vector3(element.Position.X + cElem.Position.X, element.Position.Y + cElem.Position.Y, -1.0f);
                     _ui.StaticModelComps[_compIdx] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelTemplates.UIContainer);
 
                     var s2 = new Vector2(cElem.Width, cElem.Height); //container size
@@ -319,11 +330,39 @@ namespace DeeSynk.Core
                     _ui.RenderComps[_compIdx] = new ComponentRender(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED);
                     _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
                 }
+
+                //CHILD OF CHILD CONTAINER
+                _compIdx = _ui.NextComponentIndex();
+                UIElementContainer ccElem;
+                {
+                    int w = cElem.Width - 20;
+                    int h = cElem.Height - 20;
+                    var s1 = new Vector2(cElem.Width / 2, cElem.Height / 2);
+                    ccElem = new UIElementContainer(4, UIElementType.UI_CONTAINER, w, h, s1, PositionType.LOCAL, PositionReference.CENTER, 2, _compIdx);
+                    cElem.AddChild(ccElem);
+
+                    _ui.ElementComps[_compIdx] = new ComponentElement(ccElem);
+
+                    var v30 = new Vector3(element.Position.X + cElem.Position.X + ccElem.Position.X, element.Position.Y + cElem.Position.Y + ccElem.Position.Y, -1.0f);
+                    _ui.StaticModelComps[_compIdx] = new ComponentModelStatic(ModelProperties.VERTICES_COLORS_ELEMENTS, ModelTemplates.UIContainer);
+
+                    var s2 = new Vector2(ccElem.Width, ccElem.Height); //container size
+                    float b = 4; //border
+                    var c1 = new Color4(120, 120, 120, 128);
+                    var c2 = new Color4(32, 32, 32, 128);
+                    _ui.StaticModelComps[_compIdx].TemplateData = new BorderedWindow(_ui.StaticModelComps[_compIdx].ModelProperties, _ui.ElementComps[_compIdx].Element.Reference, s2, b, c1, c2);
+
+                    TransformComponents tComps = TransformComponents.TRANSLATION;
+                    _ui.TransComps[_compIdx] = new ComponentTransform(tComps, true, locX: v30.X, locY: v30.Y, locZ: v30.Z);
+
+                    _ui.RenderComps[_compIdx] = new ComponentRender(Buffers.VERTICES | Buffers.COLORS | Buffers.FACE_ELEMENTS | Buffers.INTERLEAVED);
+                    _ui.RenderComps[_compIdx].PROGRAM_ID = sm.GetProgram("testUI");
+                }
             }
 
             _systemModel.LinkModels(_ui);
-            //_systemTransform.CreateComponents(_ui);
             _systemTransform.UpdateMonitoredGameObjects();
+            _systemUI.UpdateMonitoredGameObjects();
 
             for(int idx = 0; idx < _ui.ObjectMemory; idx++)
             {
@@ -333,13 +372,6 @@ namespace DeeSynk.Core
                     _ui.RenderComps[idx].ValidateData();
                 }
             }
-            //_ui.TextureComps[_compIdx] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
-
-            //SystemUI.AddElementToCanvas(Canvas c, Element e)  => returns Element e
-            //or
-            //Canvas.AddElement(Element e)  adds a child element to the canvas  :: Note this is only objects on the next layer
-            //Canvas.AddElementID(e.ID)  or Canvas.AddElementID(e)  store e.ID  :: Simply stores the ID of a child element anywhere on the tree
-            //Element.AddElement(Element e)  adds a child element to the specified element  (Element.AddChild)
         }
 
         /// <summary>
@@ -348,8 +380,13 @@ namespace DeeSynk.Core
         /// <param name="time">Previous time step.</param>
         public void Update(float time)
         {
+            _systemUI.MoveElementBy(2, new Vector2(1.0f, 0.0f));
+            _systemUI.MoveElementBy(3, new Vector2(0.0f, -1.0f));
             _world.Update(time);
+            _ui.Update(time);
             _systemTransform.Update(time);
+            _systemUI.Update(time);
+
             //Console.WriteLine(GL.GetError().ToString());
         }
 

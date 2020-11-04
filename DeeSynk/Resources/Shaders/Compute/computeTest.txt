@@ -1,0 +1,19 @@
+﻿#version 460 core
+layout(local_size_x = 1) in;
+
+layout(std430, binding = 1) buffer testIn
+{
+	vec4 inBuf[];
+};
+
+layout(std430, binding = 2) buffer testOut
+{
+	vec4 outBuf[];
+};
+
+
+void main() 
+{
+	uint idx = gl_GlobalInvocationID.x;
+	outBuf[idx] = inBuf[idx] * 2;
+}

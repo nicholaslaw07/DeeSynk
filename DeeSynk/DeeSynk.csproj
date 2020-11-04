@@ -42,7 +42,7 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -51,7 +51,7 @@
     <WarningLevel>4</WarningLevel>
     <LangVersion>7.1</LangVersion>
     <Prefer32Bit>false</Prefer32Bit>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -220,11 +220,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Core\SystemTools\" />
-    <Folder Include="Resources\Shaders\Compute\" />
+    <Folder Include="Resources\Fonts\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Models\Collada\Schema\collada_schema_1_5.xml" />
+    <Content Include="Resources\Shaders\Compute\computeTest.txt" />
     <Content Include="Resources\Shaders\Fragment\cellShading.txt" />
+    <Content Include="Resources\Shaders\Fragment\coloredPhongShaded2.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
     <Content Include="Resources\Shaders\Fragment\testUI.txt" />
@@ -243,6 +245,7 @@
     <Content Include="Resources\Shaders\Geometry\detectEdgesTest.txt" />
     <Content Include="Resources\Shaders\Geometry\detectEdges.txt" />
     <Content Include="Resources\Shaders\Vertex\cellShading.txt" />
+    <Content Include="Resources\Shaders\Vertex\coloredPhongShaded2.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhong.txt" />
     <Content Include="Resources\Shaders\Vertex\testUI.txt" />

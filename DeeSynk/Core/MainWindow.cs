@@ -46,8 +46,10 @@ namespace DeeSynk.Core
 
         private MouseState msPrevious;
 
-        public static int width = 3200;
-        public static int height = 1800;
+        public static int width = 1280;
+        public static int height = 720;
+
+        private Stopwatch loadTimer;
 
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be
@@ -64,6 +66,9 @@ namespace DeeSynk.Core
                                     6,                          // OpenGL minor version
                                     GraphicsContextFlags.ForwardCompatible)
         {
+            loadTimer = new Stopwatch();
+            loadTimer.Start();
+
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
 
             Width = width;
@@ -111,8 +116,8 @@ namespace DeeSynk.Core
 
             _camera = new Camera(1.0f, (float)Width, (float)Height, 0.001f, 300f);
             _camera.OverrideLookAtVector = true;
-            var offset = new Vector3(0.0f, 0.25f, 1.0f);
-            _camera.AddLocation(ref offset);
+            _camera.Location = new Vector3(0.0f, 0.25f, 1.0f);
+            _camera.UpdateMatrices();
             _game = new Game();
             //CursorVisible = true;
 
@@ -130,6 +135,9 @@ namespace DeeSynk.Core
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
+            loadTimer.Stop();
+            Console.WriteLine("Window loaded in {0} seconds", ((float)loadTimer.ElapsedMilliseconds) / 1000.0f);
+
             sw.Start();
             sw2.Start();
         }
@@ -141,12 +149,15 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            HandleKeyboard((float)e.Time);
+            if (_game.Init)
+            {
+                HandleKeyboard((float)e.Time);
 
-            _camera.UpdateRotation();
-            _camera.UpdateMatrices();
+                _camera.UpdateRotation();
+                _camera.UpdateMatrices();
 
-            _game.Update((float)(e.Time));
+                _game.Update((float)(e.Time));
+            }
         }
 
         /// <summary>
@@ -156,32 +167,33 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            timeCount += e.Time;
-            frameCount++;
-
-            //| The WIP Student Video Game
-
-            if (sw.ElapsedMilliseconds % 20 == 0)
-                Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)}";
-
-            if (sw.ElapsedMilliseconds > 1000/80)
+            if (_game.Init)
             {
-                sw.Stop();
-                //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
-                fpsOld = (long)(1f / timeCount * ((float)frameCount));
-                Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)}"; // adds miscellaneous information to the title bar of the window
-                timeCount = 0d;
-                frameCount = 0;
-                sw.Reset();
-                sw.Start();
+                timeCount += e.Time;
+                frameCount++;
+
+                //| The WIP Student Video Game
+
+                if (sw.ElapsedMilliseconds % 20 == 0)
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)}";
+
+                if (sw.ElapsedMilliseconds > 1000 / 80)
+                {
+                    sw.Stop();
+                    //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
+                    fpsOld = (long)(1f / timeCount * ((float)frameCount));
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)}"; // adds miscellaneous information to the title bar of the window
+                    timeCount = 0d;
+                    frameCount = 0;
+                    sw.Reset();
+                    sw.Start();
+                }
+                GL.ClearColor(clearColor);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                _game.Render();
+
+                SwapBuffers();
             }
-            GL.ClearColor(clearColor);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            _game.Render();
-
-            //Thread.Sleep(8);
-
-            SwapBuffers();
         }
         
         /// <summary>

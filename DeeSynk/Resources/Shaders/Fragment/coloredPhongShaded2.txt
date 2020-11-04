@@ -1,0 +1,271 @@
+﻿#version 450 core
+
+in vec3 vs_eyeCoord;
+in vec3 vs_normal;
+
+in vec4 vs_color;
+
+in vec4 vs_lightCoord[4];
+in vec3 vs_transPosiSpot[4];
+
+in vec4 vs_lightCoordSun[4];
+in vec3 vs_transPosiSun[4];
+
+layout(binding=1) uniform sampler2D spotLight0;
+layout(binding=2) uniform sampler2D spotLight1;
+layout(binding=3) uniform sampler2D spotLight2;
+layout(binding=4) uniform sampler2D spotLight3;
+
+layout(binding=5) uniform sampler2D sunLamp0;
+layout(binding=6) uniform sampler2D sunLamp1;
+layout(binding=7) uniform sampler2D sunLamp2;
+layout(binding=8) uniform sampler2D sunLamp3;
+
+layout(binding = 2) uniform Camera
+{
+	mat4 projection;  //model_view
+	vec4 camLocation; //cameraLoc
+} camera;
+
+layout(binding = 3) uniform SpotLight
+{
+	mat4 spotLightView;
+	vec4 spotLightLocation;
+	vec4 spotLightLookAt;
+	vec4 spotLightColor;
+	vec4 spotLightFOV;
+} spotLights[4];
+
+layout(binding=7) uniform SunLamp
+{
+	mat4 sunLampView;
+	vec4 sunLampLocation;
+	vec4 sunLampLookAt;
+	vec4 sunLampColor;
+	vec4 sunLampViewProps;
+} sunLamps[4];
+
+layout(binding = 11) uniform PostCamera
+{
+	mat4 projection;  //model_view
+	vec4 camLocation; //cameraLoc
+} postCamera;
+
+out vec4 color_Out;
+
+uniform float fallOutDivisor = 5.0;
+uniform float shadowBrightness = 0.0;
+uniform float nonShadowBrightness = 0.7;
+uniform float dR = 1.0/ 8192.0;
+
+vec3 materialColor = vs_color.xyz;
+vec3 iA = materialColor;
+vec3 iD = materialColor;
+vec3 iS = materialColor;
+
+uniform float kA = 0.1;
+uniform float kD = 1.0;
+uniform float kS = 1.0;
+
+uniform float a  = 250.0;
+
+float rand(vec2 co)
+{
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+//FYI parts of this shadow algorithm are from an online OpenGL tutorial.  This is a rare example that is not original.
+//The only other example would be the phong shading algorithm.
+//All other code in the engine is original to the best of my knowledge.
+
+float ShadowFactor(int index, int lightType, vec4 lightCoord)  // 0=spot 1=sun
+{
+	vec3 ProjCoords = lightCoord.xyz / lightCoord.w;
+	vec2 UVCoords;
+	UVCoords.x = 0.5 * (ProjCoords.x) + 0.5;
+	UVCoords.y = 0.5 * (ProjCoords.y) + 0.5;
+	float z = ProjCoords.z;
+
+	float Depth = 0.0f;
+
+ 	switch(index)
+	{
+		case(0): Depth = texture((lightType == 0) ? spotLight0 : sunLamp0, UVCoords).x; break;
+		case(1): Depth = texture((lightType == 0) ? spotLight1 : sunLamp1, UVCoords).x; break;
+		case(2): Depth = texture((lightType == 0) ? spotLight2 : sunLamp2, UVCoords).x; break;
+		case(3): Depth = texture((lightType == 0) ? spotLight3 : sunLamp3, UVCoords).x; break;
+	}
+
+	float bias = max(0.0005 * (1.0 - dot(normalize(vs_normal), normalize((lightType == 0) ? -vs_transPosiSpot[index] : -vs_transPosiSun[index]))), 0.001);
+
+	if(Depth < (z+bias))
+		return shadowBrightness;
+	else 
+		return nonShadowBrightness;
+}
+
+float Attenuation(vec4 lightCoord)
+{
+	vec3 coord = lightCoord.xyz;
+	return 1/pow((length(coord) / fallOutDivisor), 2.0);
+}
+
+vec3 SpotLightIllumination(int spotLightIdx)
+{
+	vec3 Ip = kA * iA;
+	float spotDot = dot(normalize(vs_transPosiSpot[spotLightIdx]), spotLights[spotLightIdx].spotLightLookAt.xyz);	
+	if(spotDot >= spotLights[spotLightIdx].spotLightFOV.x)
+	{
+		vec3 lightLoc = spotLights[spotLightIdx].spotLightLocation.xyz;
+
+		vec3 Lm = normalize(lightLoc - vs_eyeCoord);
+		vec3 N  = normalize(vs_normal);
+
+		float dDot = dot(Lm, N);
+
+		vec3 Rm = normalize(2 * dDot * N - Lm);
+		vec3 V  = normalize(camera.camLocation.xyz  - vs_eyeCoord);
+
+		float sDot = dot(Rm, V);
+
+
+		Ip += (kD * dDot * iD);
+
+		if((sDot > 0.0 && dDot > 0.0))
+			Ip += kS * pow(sDot, a) * iS;
+
+		Ip = vec3(Ip.x * spotLights[spotLightIdx].spotLightColor.x,
+				  Ip.y * spotLights[spotLightIdx].spotLightColor.y,
+				  Ip.z * spotLights[spotLightIdx].spotLightColor.z) *
+				  ShadowFactor(spotLightIdx, 0, vs_lightCoord[spotLightIdx]) *
+				  Attenuation(vec4(vs_transPosiSpot[spotLightIdx], 1.0));
+	}
+	else{
+		Ip *= 0.05;
+	}
+	return Ip;
+}
+
+vec3 SunLampIllumination(int sunLampIdx)
+{
+	vec3 Ip = kA * iA;
+	//if(the position lies within the bounds of the ortho matrix projected along the lookAt vector)
+	//{
+	vec3 lightLoc = sunLamps[sunLampIdx].sunLampLocation.xyz;
+
+	vec3 Lm = normalize(lightLoc - vs_eyeCoord);
+	vec3 N  = normalize(vs_normal);
+
+	float dDot = dot(Lm, N);
+
+	vec3 Rm = normalize(2 * dDot * N - Lm);
+	vec3 V  = normalize(camera.camLocation.xyz  - vs_eyeCoord);
+
+	float sDot = dot(Rm, V);
+
+
+	Ip += (kD * dDot * iD);
+
+	if((sDot > 0.0 && dDot > 0.0))
+		Ip += kS * pow(sDot, a) * iS;
+
+	Ip = vec3(Ip.x * sunLamps[sunLampIdx].sunLampColor.x,
+				Ip.y * sunLamps[sunLampIdx].sunLampColor.y,
+				Ip.z * sunLamps[sunLampIdx].sunLampColor.z) *
+				ShadowFactor(sunLampIdx, 1, vs_lightCoordSun[sunLampIdx]);
+	//}
+	//else{
+	//IP *= 0.05;
+	//}
+	return Ip;
+}
+void main(void)
+{
+	vec3 Ip = vec3(0.0);
+	for(int i=0; i<3; i++) //supports up to 4
+	{
+		Ip += SpotLightIllumination(i);
+	}
+
+	for(int i=0; i<1; i++) //supports up to 4
+	{
+		Ip += SunLampIllumination(i);
+	}
+
+	float Depth = gl_FragCoord.z;
+	float z2 = Depth * 2.0 - 1.0;
+	float zNear = 0.01;
+	float zFar = 30.0;
+	float linearDepth = (2.0 * zNear * zFar) / (zFar + zNear - z2 * (zFar - zNear));
+
+	color_Out = vec4(Ip, 1.0); //vec4(vec3(linearDepth), 1.0);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//trns = (log(trns*10)) + rand(vs_lightCoord.xy) / 40.0;
+	//trns = pow(trns, 0.5) + rand(vs_lightCoord.xy) / 40.0;
+	//float factor = 1.0;
+	//vec4 c = col * min(sF , Attenuation(vs_lightCoord)); 
+	//float val = (trns) * 4.0 + max(vs_dDot, 0.1);
+
+	//for translucency
+	/*
+	uniform float kA = 1.0; //for translucent effect
+	uniform float kD = 0.07;
+	uniform float kS = 0.5;
+
+	Ip += (kD * dDot * iD) * (pow(dDot - 0.5, 3.0) + 0.5);
+
+	
+	float trns = SF(vs_lightCoord); // Attenuation(vs_lightCoord);
+	trns = 0.5 * atan(3.141 * (trns - 0.5)) + 0.5 + rand(vs_lightCoord.xy) / 40.0;
+	Ip *= trns;  //adds the translucency effect
+
+	float SF(vec4 lightCoord)
+	{
+		vec3 ProjCoords = lightCoord.xyz / lightCoord.w;
+		vec2 UVCoords;
+		UVCoords.x = 0.5 * ProjCoords.x + 0.5;
+		UVCoords.y = 0.5 * ProjCoords.y + 0.5;
+		float z = ProjCoords.z + 0.0001;
+		float Depth = texture(spotLight2, UVCoords).x;
+		float dr = 1/8192;
+		float DepthA = texture(spotLight2, vec2(UVCoords.x + dr, 0)).x;
+		float DepthB = texture(spotLight2, vec2(UVCoords.x - dr, 0)).x;
+		float DepthC = texture(spotLight2, vec2(0, UVCoords.y + dr)).x;
+		float DepthD = texture(spotLight2, vec2(0, UVCoords.y - dr)).x;
+
+		float D1 = mix(Depth, DepthA, DepthB);
+		float D2 = mix(Depth, DepthC, DepthD);
+		float D3 = mix(D1, D2, Depth);
+
+		//return 1.4 * pow(D3 - z, 2.0) + 0.001;
+		return pow(D3 - z, 2.0); //change 0.0 to 2.0
+	}
+	
+	
+	float GetSF(vec2 uv, float z)
+	{
+		float Depth = texture(spotLight2, uv).x;
+		if(Depth < (z+0.0001))
+			return shadowBrightness;
+		else 
+			return nonShadowBrightness;
+	}
+	*/

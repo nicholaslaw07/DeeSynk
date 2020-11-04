@@ -113,12 +113,12 @@ namespace DeeSynk.Core.Managers
             string[] fileNames = models.Select(Path.GetFileNameWithoutExtension).ToArray();
             string[] fileExtensions = models.Select(Path.GetExtension).ToArray();
 
-            LoadPLYLibrary();
+            //LoadPLYLibrary();
         }
 
         private void LoadPLYLibrary()
         {
-            string path0 = @"D:\Downloads\complete";
+            string path0 = @"C:\Users\Nicholas\Documents\complete";
             LoadFolder(path0);
         }
 
@@ -128,7 +128,7 @@ namespace DeeSynk.Core.Managers
             if(directories.Count() == 0)
             {
                 var files = Directory.GetFiles(folderPath);
-
+                
                 foreach(string f in files)
                 {
                     string name = Path.GetFileName(f);
@@ -137,15 +137,15 @@ namespace DeeSynk.Core.Managers
                     LoadPLY(f, name);
                 }
 
-                /*
-                Parallel.ForEach(files, (f) =>
+                
+                /*Parallel.ForEach(files, (f) =>
                 {
                     string name = Path.GetFileName(f);
                     int idx = name.IndexOf('.');
                     name = name.Substring(0, idx);
                     LoadPLY(f, name);
-                });
-                */
+                });*/
+                
             }
             else
             {

@@ -29,7 +29,7 @@ namespace DeeSynk.Core.Systems
 
         private Camera _camera;
 
-        public SystemTransform(World world, UI ui)
+        public SystemTransform(ref World world, ref UI ui)
         {
             _world = world;
             _ui = ui;
@@ -71,8 +71,17 @@ namespace DeeSynk.Core.Systems
 
         public void Update(float time)
         {
-            Update(time, _world, _monitoredGameObjects_W);
-            Update(time, _ui, _monitoredGameObjects_U);
+            for (int i = 0; i < _world.ObjectMemory; i++)
+            {
+                if (_monitoredGameObjects_W[i])
+                    _world.TransComps[i].Update(time);
+            }
+
+            for (int i = 0; i < _ui.ObjectMemory; i++)
+            {
+                if (_monitoredGameObjects_U[i])
+                    _ui.TransComps[i].Update(time);
+            }
             _camera.UpdateMatrices();
         }
 

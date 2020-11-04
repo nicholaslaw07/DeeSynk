@@ -38,25 +38,25 @@ namespace DeeSynk.Core
 
         //The arrays that store all of the components inside of this world object, their capactiy is limited by OBJECT_MEMORY
         #region COMPONENT_ARRAYS
-        private ComponentTransform[] _transComps;
+        protected ComponentTransform[] _transComps;
         public ComponentTransform[] TransComps { get => _transComps; }
-        private ComponentRender[] _renderComps;
+        protected ComponentRender[] _renderComps;
         public ComponentRender[] RenderComps { get => _renderComps; }
-        private ComponentModelStatic[] _staticModelComps;
+        protected ComponentModelStatic[] _staticModelComps;
         public ComponentModelStatic[] StaticModelComps { get => _staticModelComps; }
-        private ComponentTexture[] _textureComps;
+        protected ComponentTexture[] _textureComps;
         public ComponentTexture[] TextureComps { get => _textureComps; }
-        private ComponentMaterial[] _materialComps;
+        protected ComponentMaterial[] _materialComps;
         public ComponentMaterial[] MaterialComps { get => _materialComps; }
-        private ComponentCamera[] _cameraComps;
+        protected ComponentCamera[] _cameraComps;
         public ComponentCamera[] CameraComps { get => _cameraComps; }
-        private ComponentLight[] _lightComps;
+        protected ComponentLight[] _lightComps;
         public ComponentLight[] LightComps { get => _lightComps; }
-        private ComponentCanvas[] _canvasComps;
+        protected ComponentCanvas[] _canvasComps;
         public ComponentCanvas[] CanvasComps { get => _canvasComps; }
-        private ComponentElement[] _elementComps;
+        protected ComponentElement[] _elementComps;
         public ComponentElement[] ElementComps { get => _elementComps; }
-        private ComponentText[] _textComps;
+        protected ComponentText[] _textComps;
         public ComponentText[] TextComps { get => _textComps; }
         #endregion
 

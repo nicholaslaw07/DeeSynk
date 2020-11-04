@@ -428,6 +428,7 @@ namespace DeeSynk.Core.Components
         #endregion
 
         #region CameraTransform
+
         public void AddLocation(float dx, float dy, float dz)
         {
             if(dx != 0 || dy != 0 || dz != 0)
@@ -439,6 +440,17 @@ namespace DeeSynk.Core.Components
                 Location += (qY * qX * new Quaternion(dX, 1.0f) * qXi * qYi).Xyz;
         }
         public void AddLocation(ref Vector3 dX, float time)
+        {
+            if (dX != Vector3.Zero)
+                Location += (qY * qX * new Quaternion(dX * time, 1.0f) * qXi * qYi).Xyz;
+        }
+
+        public void AddLocation(Vector3 dX)
+        {
+            if (dX != Vector3.Zero)
+                Location += (qY * qX * new Quaternion(dX, 1.0f) * qXi * qYi).Xyz;
+        }
+        public void AddLocation(Vector3 dX, float time)
         {
             if (dX != Vector3.Zero)
                 Location += (qY * qX * new Quaternion(dX * time, 1.0f) * qXi * qYi).Xyz;

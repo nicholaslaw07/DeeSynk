@@ -103,7 +103,11 @@ namespace DeeSynk.Core.Components.Types.UI
         /// <summary>
         /// Position of the UIElement within a canvas or element
         /// </summary>
-        public Vector2 Position { get => _position; }
+        public Vector2 Position
+        {
+            get => _position;
+            set => _position = value;
+        }
 
         protected PositionType _positionType;
         /// <summary>
@@ -111,11 +115,11 @@ namespace DeeSynk.Core.Components.Types.UI
         /// </summary>
         public PositionType PositionType { get => _positionType; }
 
-        protected Vector2 _center;
+        protected Vector2 _referenceCoord;
         /// <summary>
-        /// This represents the geometric center of the object.
+        /// The offset of the object from the center to the local origin.
         /// </summary>
-        public Vector2 Center { get => _center; }
+        public Vector2 ReferenceCoord { get => _referenceCoord; }
 
         protected PositionReference _reference;
         /// <summary>
@@ -172,8 +176,6 @@ namespace DeeSynk.Core.Components.Types.UI
 
             _position = Vector2.Zero;
 
-            _center = Vector2.Zero;
-
             _layer = 0;
 
             _canvasID = UICanvas.ID_DEFAULT;
@@ -190,7 +192,7 @@ namespace DeeSynk.Core.Components.Types.UI
             _height = height;
             _position = position;
             _positionType = positionType;
-            _center = position - Models.Tools.ReferenceConverter.GetReferenceOffset2(reference, new Vector2((float)width, (float)height));
+            _referenceCoord = Models.Tools.ReferenceConverter.GetReferenceOffset2(reference, new Vector2((float)width, (float)height));
             _reference = reference;
             _layer = layer;
             _globalIndex = globalIndex;
@@ -208,7 +210,7 @@ namespace DeeSynk.Core.Components.Types.UI
             _height = height;
             _position = position;
             _positionType = positionType;
-            _center = position;
+            _referenceCoord = Models.Tools.ReferenceConverter.GetReferenceOffset2(reference, new Vector2((float)width, (float)height));
             _reference = reference;
             _layer = layer;
             _globalIndex = globalIndex;

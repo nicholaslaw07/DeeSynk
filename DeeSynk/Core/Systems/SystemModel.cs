@@ -28,7 +28,7 @@ namespace DeeSynk.Core.Systems
         private ComponentModelStatic[] _staticModelComps_W;
         private ComponentModelStatic[] _staticModelComps_U;
 
-        public SystemModel(World world, UI ui)
+        public SystemModel(ref World world, ref UI ui)
         {
             _world = world;
             _ui = ui;

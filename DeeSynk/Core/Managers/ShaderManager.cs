@@ -23,6 +23,7 @@ namespace DeeSynk.Core.Managers
         private string _vertPath = @"..\..\Resources\Shaders\Vertex";
         private string _geomPath = @"..\..\Resources\Shaders\Geometry";
         private string _fragPath = @"..\..\Resources\Shaders\Fragment";
+        private string _compPath = @"..\..\Resources\Shaders\Compute";
 
         private Dictionary<string, int> _programs;
 
@@ -50,6 +51,7 @@ namespace DeeSynk.Core.Managers
         public void Load()  //This should be a generic method in the interface
         {
             CreatePrograms();
+            CreateCompute();
         }
 
         /// <summary>
@@ -126,14 +128,6 @@ namespace DeeSynk.Core.Managers
                 foreach (var shader in Shaders)
                     GL.AttachShader(Program, shader);                                           // attaches each type of shader to the generated program
 
-                //TEST
-                /*if(vertFileNames[i] == "detectEdges")
-                {
-                    string[] vars = { "outputVector" };
-                    GL.TransformFeedbackVaryings(Program, 1, vars, TransformFeedbackMode.InterleavedAttribs);
-                }*/
-                //ENDTEST
-
                 GL.LinkProgram(Program);                                                        // links the created program to the GL context, does not give this program focus
 
                 foreach(var shader in Shaders)
@@ -142,8 +136,41 @@ namespace DeeSynk.Core.Managers
                     GL.DeleteShader(shader);                                                    // create the program that you just linked
                 }
 
-                Console.WriteLine(GL.GetProgramInfoLog(Program));
+                var info = GL.GetProgramInfoLog(Program);
+                if (info != "")
+                    Console.WriteLine();
+
                 _programs.Add(vertFileNames[i], Program);                                            // adds the program created to the shaders dictionary
+            }
+        }
+
+        private void CreateCompute()
+        {
+            string[] computeShadersDirs = Directory.GetFiles(_compPath);
+            string[] compFileNames = computeShadersDirs.Select(cs => Path.GetFileNameWithoutExtension(cs)).ToArray();
+
+            for(int i=0; i<computeShadersDirs.Length; i++)
+            {
+                int program = GL.CreateProgram();
+                int shader = 0;
+
+                using (var fileStreamC = new FileStream(computeShadersDirs[i], FileMode.Open, FileAccess.Read))
+                {
+                    using (var StreamReader = new StreamReader(fileStreamC, Encoding.UTF8))
+                        shader = CompileShader(ShaderType.ComputeShader, StreamReader.ReadToEnd());
+                }
+
+                GL.AttachShader(program, shader);
+                GL.LinkProgram(program);
+
+                GL.DetachShader(program, shader);
+                GL.DeleteShader(shader);
+
+                var info = GL.GetProgramInfoLog(program);
+                if(info != "")
+                    Console.WriteLine();
+
+                _programs.Add(compFileNames[i], program);
             }
         }
         
