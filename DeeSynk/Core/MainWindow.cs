@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
+using DeeSynk.Core.Components.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -51,6 +52,9 @@ namespace DeeSynk.Core
 
         private Stopwatch loadTimer;
 
+        private MouseInputQueue _mouseInput;
+        private Stopwatch betweenMoves;
+
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be
         /// passed to the parent class constructor. The title of the window is then set with
@@ -80,6 +84,10 @@ namespace DeeSynk.Core
             msPrevious = Mouse.GetState();
             sw = new Stopwatch();
             sw2 = new Stopwatch();
+
+            _mouseInput = new MouseInputQueue();
+            betweenMoves = new Stopwatch();
+            betweenMoves.Start();
 
             //WindowState = WindowState.Fullscreen;
         }
@@ -118,7 +126,7 @@ namespace DeeSynk.Core
             _camera.OverrideLookAtVector = true;
             _camera.Location = new Vector3(0.0f, 0.25f, 1.0f);
             _camera.UpdateMatrices();
-            _game = new Game();
+            _game = new Game(ref _mouseInput);
             //CursorVisible = true;
 
             this.Cursor = MouseCursor.Empty;
@@ -167,6 +175,15 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            /*if (betweenMoves.ElapsedTicks / 10000000.0d > 1)
+            {
+                betweenMoves.Stop();
+                Console.WriteLine("Inputs per second: {0}", mouseInputs);
+                mouseInputs = 0;
+                betweenMoves.Reset();
+                betweenMoves.Start();
+            }*/
+
             if (_game.Init)
             {
                 timeCount += e.Time;
@@ -208,27 +225,66 @@ namespace DeeSynk.Core
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
-            MouseState ms = Mouse.GetState();
-            _camera.AddRotation((msPrevious.Y - ms.Y) * 0.001f, (msPrevious.X - ms.X) * 0.001f);
+            //Every input update should be sent to SystemInput
+            //Components that use the input somehow need to specify how these inputs are used
+            //Unless these specifications are left to SystemInput
+            //The latter may be the better option since it is unlikely that many objects (aside from UI) will require input
+            //This can also easily be managed instead of having to create classes that map
+            //device inputs to functions on other components.  The input component should also no have knowledge
+            //of the other components necessarily, so its best to keep data that might hint at what is in other components
+            //out since it has no direct use for it and will have to be mapped again anyways.
+
+            /*mouseInputs++;
+
+            if (betweenMoves.ElapsedTicks / 10000000.0d > 1)
+            {
+                betweenMoves.Stop();
+                Console.WriteLine("Inputs per second: {0}", mouseInputs);
+                mouseInputs = 0;
+                betweenMoves.Reset();
+                betweenMoves.Start();
+            }*/
+
+            //Okay so we are peaking around 200-300 inputs per second.  Nothing we can't deal with.
+
+            //MouseState ms = Mouse.GetState();
+            //_camera.AddRotation((msPrevious.Y - ms.Y) * 0.001f, (msPrevious.X - ms.X) * 0.001f);
+            //msPrevious = ms;
+            betweenMoves.Stop();
+            _mouseInput.Locations.Enqueue(new MouseLocation(-e.YDelta, -e.XDelta, betweenMoves.ElapsedTicks));
             OpenTK.Input.Mouse.SetPosition(mousePos.X, mousePos.Y);
-            msPrevious = ms;
+            betweenMoves.Reset();
+            betweenMoves.Start();
+        }
+
+        protected override void OnMouseDown(MouseButtonEventArgs e)
+        {
+            base.OnMouseDown(e);
+        }
+
+        protected override void OnMouseUp(MouseButtonEventArgs e)
+        {
+            base.OnMouseUp(e);
+        }
+
+        protected override void OnMouseWheel(MouseWheelEventArgs e)
+        {
+            base.OnMouseWheel(e);
         }
 
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
-            if (!e.IsRepeat)
-                _game.SystemInput.AddEvent(e, Systems.EventType.KeyDown, sw2.ElapsedMilliseconds);
+
         }
 
         protected override void OnKeyUp(KeyboardKeyEventArgs e)
         {
-            if (!e.IsRepeat)
-                _game.SystemInput.AddEvent(e, Systems.EventType.KeyUp, sw2.ElapsedMilliseconds);
+
         }
 
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
-            _game.SystemInput.AddPress(e.KeyChar, sw2.ElapsedMilliseconds); 
+
         }
 
         /// <summary>

@@ -153,6 +153,7 @@
     <Compile Include="Core\Components\GraphicsObjects\Lights\SunLamp.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Shadows\ShadowMap.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Texture.cs" />
+    <Compile Include="Core\Components\Input\MouseInputQueue.cs" />
     <Compile Include="Core\Components\Models\Templates\ModelTemplates.cs" />
     <Compile Include="Core\Components\Models\Templates\Plane.cs" />
     <Compile Include="Core\Components\Models\Templates\ITemplate.cs" />

@@ -1,4 +1,6 @@
-﻿using OpenTK.Input;
+﻿using DeeSynk.Core.Components;
+using DeeSynk.Core.Components.Input;
+using OpenTK.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,38 +41,42 @@ namespace DeeSynk.Core.Systems
             Time = time;
         }
     }
-    public class SystemInput
+    public class SystemInput : ISystem
     {
-        private List<InputEvent> _frameInputEvents;
-        public List<InputEvent> FrameInputEvents { get => _frameInputEvents; }
+        public Component MonitoredComponents => throw new NotImplementedException();
 
-        private List<InputPress> _framePressEvents;
-        public List<InputPress> FramePressEvents { get => _framePressEvents; }
+        private World _world;
+        private UI _ui;
 
-        public SystemInput()
+        private MouseInputQueue _mouseInput;
+        public MouseInputQueue MouseInput { get => _mouseInput; }
+
+        private Camera _camera;
+
+
+        public SystemInput(ref World world, ref UI ui, ref MouseInputQueue mouseInput)
         {
-            _frameInputEvents = new List<InputEvent>();
-            _framePressEvents = new List<InputPress>();
+            _world = world;
+            _ui = ui;
+            _mouseInput = mouseInput;
         }
 
-        public void AddEvent(KeyboardKeyEventArgs args, EventType type, long time)
+        public void PushCameraRef(ref Camera camera)
         {
-            _frameInputEvents.Add(new InputEvent(args, type, time));
+            _camera = camera;
         }
 
-        public void AddEvent(InputEvent e)
+        private void MouseMoveToCameraLook()
         {
-            _frameInputEvents.Add(e);
+            var ml = _mouseInput.GetNetQueuedInputs(true);
+            _camera.AddRotation(ml.X * 0.01f, ml.Y * 0.01f);
+            Console.WriteLine(_mouseInput.Locations.Count);
         }
 
-        public void AddPress(char key, long time)
+        public void Update(float time)
         {
-            _framePressEvents.Add(new InputPress(key, time));
-        }
-
-        public void AddPress(InputPress e)
-        {
-            _framePressEvents.Add(e);
+            MouseMoveToCameraLook();
+            _mouseInput.Clear();
         }
     }
 }

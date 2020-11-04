@@ -9,6 +9,7 @@ using DeeSynk.Core.Algorithms;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.GraphicsObjects.Lights;
 using DeeSynk.Core.Components.GraphicsObjects.Shadows;
+using DeeSynk.Core.Components.Input;
 using DeeSynk.Core.Components.Models.Templates;
 using DeeSynk.Core.Components.Models.Templates.UI;
 using DeeSynk.Core.Components.Types.Render;
@@ -41,6 +42,8 @@ namespace DeeSynk.Core
         //global index counter that works for all objects.  (i.e. two seperate objects cannot both have index 4)
         private int _compIdx;
 
+        private MouseInputQueue _mouseInput;
+
         //Systems that act as a medium for components to communicate through, specific to certain purposes
         #region SYSTEMS
         private SystemInput _systemInput;
@@ -58,8 +61,9 @@ namespace DeeSynk.Core
         public SystemUI SystemUI { get => _systemUI; }
         #endregion
 
-        public Game()
+        public Game(ref MouseInputQueue mouseInput)
         {
+            _mouseInput = mouseInput;
             Load();
         }
 
@@ -77,8 +81,7 @@ namespace DeeSynk.Core
 
             _compIdx = 0;
 
-            _systemInput = new SystemInput();
-
+            _systemInput = new SystemInput(ref _world, ref _ui, ref _mouseInput);
             _systemRender = new SystemRender(ref _world, ref _ui);
             _systemModel = new SystemModel(ref _world, ref _ui);
             _systemTransform = new SystemTransform(ref _world, ref _ui);
@@ -90,6 +93,7 @@ namespace DeeSynk.Core
         {
             _systemTransform.PushCameraRef(ref camera);
             _systemRender.PushCameraRef(ref camera);
+            _systemInput.PushCameraRef(ref camera);
         }
 
         public void LoadGameData()
@@ -380,6 +384,7 @@ namespace DeeSynk.Core
         /// <param name="time">Previous time step.</param>
         public void Update(float time)
         {
+            _systemInput.Update(time);
             _systemUI.MoveElementBy(2, new Vector2(1.0f, 0.0f));
             _systemUI.MoveElementBy(3, new Vector2(0.0f, -1.0f));
             _world.Update(time);

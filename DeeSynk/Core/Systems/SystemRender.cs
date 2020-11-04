@@ -47,6 +47,9 @@ namespace DeeSynk.Core.Systems
 
         private Stopwatch sw;
 
+
+        int[] ssbos;
+
         //SHADOW END
 
         public SystemRender(ref World world, ref UI ui)
@@ -67,7 +70,25 @@ namespace DeeSynk.Core.Systems
 
             sw = new Stopwatch();
 
-            //UpdateMonitoredGameObjects();
+            ssbos = new int[2];
+            GL.GenBuffers(2, ssbos);
+
+            float[] inputData = new float[16];
+            inputData[0] = 1.0f;
+            for (int i = 1; i < 16; i++)
+                inputData[i] = inputData[i - 1] + 1.0f;
+
+            float[] outputData = new float[16];
+
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, ssbos[0]);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, 16 * 4, inputData, BufferUsageHint.DynamicRead);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 1, ssbos[0]);
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
+
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, ssbos[1]);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, 16 * 4, outputData, BufferUsageHint.DynamicRead);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 2, ssbos[1]);
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
         }
 
         public void PushCameraRef(ref Camera camera)
@@ -118,10 +139,24 @@ namespace DeeSynk.Core.Systems
 
         public void Render(ref SystemTransform systemTransform)
         {
+            //MAYBE:  Add a component class that adds unique general purpose functions?  Maybe this is where indirect rendering comes in.
+            //Custom rendering function queues may be in order.  Fuck.
+
+            //Render camera depth map then convert points to kd tree
+            //Test visibility of points in frame of the light save to stencil
+            //Render normally
+
             RenderDepthMaps(ref systemTransform);
             RenderScene(ref systemTransform);
             RenderPost(ref systemTransform);
             RenderUI(ref systemTransform);
+
+            int s = ShaderManager.GetInstance().GetProgram("computeTest");
+            GL.UseProgram(s);
+            GL.DispatchCompute(1, 1, 1);
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, ssbos[1]);
+            float[] od = new float[16];
+            GL.GetBufferSubData(BufferTarget.ShaderStorageBuffer, IntPtr.Zero, 64, od);
         }
 
         private void RenderDepthMaps(ref SystemTransform systemTransform)
