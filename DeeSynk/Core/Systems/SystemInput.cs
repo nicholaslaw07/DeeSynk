@@ -97,7 +97,7 @@ namespace DeeSynk.Core.Systems
 
         public void StartThreads()
         {
-            _keyboardInput.StartMonitorThread(15);
+            //_keyboardInput.StartMonitorThread(1);
             //Add mouse thread
         }
 
@@ -119,7 +119,7 @@ namespace DeeSynk.Core.Systems
 
         private void KeyboardMoveToCameraMove(float time)
         {
-            if (!_keyboardInput.UsingDirectKeyboardMove)
+            /*if (!_keyboardInput.UsingDirectKeyboardMove)
             {
                 if (_keyboardInput.KeysInEventList.Contains(Key.W))
                 {
@@ -156,9 +156,27 @@ namespace DeeSynk.Core.Systems
                 if (_keyboardInput.KeysInEventList.Contains(Key.Escape))
                 {
                     _shutDownProgram = true;
+                    _keyboardInput.Listener.Abort();
                     _keyboardInput.IsRunning = false;
+
                 }
-            }
+            }*/
+            var keyState = Keyboard.GetState();
+
+            if (keyState.IsKeyDown(Key.Escape))
+                _shutDownProgram = true;
+            if (keyState.IsKeyDown(Key.W))
+                _camera.AddLocation(ref V_W, time);
+            if (keyState.IsKeyDown(Key.S))
+                _camera.AddLocation(ref V_S, time);
+            if (keyState.IsKeyDown(Key.A))
+                _camera.AddLocation(ref V_A, time);
+            if (keyState.IsKeyDown(Key.D))
+                _camera.AddLocation(ref V_D, time);
+            if (keyState.IsKeyDown(Key.Space))
+                _camera.AddLocation(ref V_Up, time);
+            if (keyState.IsKeyDown(Key.ShiftLeft))
+                _camera.AddLocation(ref V_Dn, time);
         }
 
         private void KeyboardToExitWindow()

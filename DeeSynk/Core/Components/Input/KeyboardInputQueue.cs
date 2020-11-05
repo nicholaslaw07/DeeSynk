@@ -55,6 +55,7 @@ namespace DeeSynk.Core.Components.Input
         private Stopwatch _sw;
 
         private Thread _listener;
+        public Thread Listener { get => _listener; }
 
         private BlockingCollection<KeyEvent> _eventList;
         public BlockingCollection<KeyEvent> EventList { get => _eventList; }
@@ -70,6 +71,9 @@ namespace DeeSynk.Core.Components.Input
 
         private bool _usingDirectKeyboardMove;
         public bool UsingDirectKeyboardMove { get => _usingDirectKeyboardMove; }
+
+        private bool _pause;
+        public bool Pause { get => _pause; set => _pause = value; }
 
         private Camera _camera;
         public Camera Camera { get => _camera; }
@@ -107,12 +111,12 @@ namespace DeeSynk.Core.Components.Input
             _sw.Start();
             do
             {
-                var kbs = Keyboard.GetState();
-                foreach (Key k in _monitoredKeys)
+                if (!_pause)
                 {
-                    if (kbs.IsKeyDown(k))
+                    var kbs = Keyboard.GetState();
+                    foreach (Key k in _monitoredKeys)
                     {
-                        lock (_lockObject)
+                        if (kbs.IsKeyDown(k))
                         {
                             _eventList.Add(new KeyEvent(k, KeyEventType.KEY_DOWN, _sw.ElapsedTicks));
                             if (!_keysInEventList.Contains(k))
@@ -120,16 +124,13 @@ namespace DeeSynk.Core.Components.Input
                             _downKeys.Add(k);
                         }
                     }
-                }
-                if (_downKeys.Count > 0)
-                {
-                    var remove = new ConcurrentBag<Key>();
-
-                    foreach (Key k in _downKeys)
+                    if (_downKeys.Count > 0)
                     {
-                        if (kbs.IsKeyUp(k))
+                        var remove = new ConcurrentBag<Key>();
+
+                        foreach (Key k in _downKeys)
                         {
-                            lock (_lockObject)
+                            if (kbs.IsKeyUp(k))
                             {
                                 _eventList.Add(new KeyEvent(k, KeyEventType.KEY_UP, _sw.ElapsedTicks));
                                 if (!_keysInEventList.Contains(k))
@@ -137,11 +138,8 @@ namespace DeeSynk.Core.Components.Input
                                 remove.Add(k);
                             }
                         }
-                    }
 
-                    if(remove.Count > 0)
-                    {
-                        lock (_lockObject)
+                        if (remove.Count > 0)
                         {
                             foreach (Key k in remove)
                             {
@@ -150,7 +148,6 @@ namespace DeeSynk.Core.Components.Input
                         }
                     }
                 }
-
                 Thread.Sleep(_updatePeriod); //Technically the time it takes to run the previous code should be subtracted from the update time.
             } while (_isRunning);
         }
