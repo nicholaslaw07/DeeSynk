@@ -28,15 +28,6 @@ namespace DeeSynk.Core
 
         public Camera _camera = new Camera();
 
-        private const float v = 1f;
-
-        private Vector3 V_W = new Vector3(0.0f, 0.0f, -v);
-        private Vector3 V_S = new Vector3(0.0f, 0.0f, v);
-        private Vector3 V_A = new Vector3(-v, 0.0f, 0.0f);
-        private Vector3 V_D = new Vector3(v, 0.0f, 0.0f);
-        private Vector3 V_Up = new Vector3(0.0f, v, 0.0f);
-        private Vector3 V_Dn = new Vector3(0.0f, -v, 0.0f);
-
         Point center;
         Point mousePos;
 
@@ -78,14 +69,13 @@ namespace DeeSynk.Core
             Width = width;
             Height = height;
 
-            VSync = VSyncMode.On;
+            VSync = VSyncMode.Off;
             center = new Point(Width / 2, Height / 2);
             mousePos = PointToScreen(center);
             msPrevious = Mouse.GetState();
             sw = new Stopwatch();
             sw2 = new Stopwatch();
 
-            _mouseInput = new MouseInputQueue();
             betweenMoves = new Stopwatch();
             betweenMoves.Start();
 
@@ -126,8 +116,10 @@ namespace DeeSynk.Core
             _camera.OverrideLookAtVector = true;
             _camera.Location = new Vector3(0.0f, 0.25f, 1.0f);
             _camera.UpdateMatrices();
+            _mouseInput = new MouseInputQueue();
             _game = new Game(ref _mouseInput);
             //CursorVisible = true;
+
 
             this.Cursor = MouseCursor.Empty;
             //this.WindowState = this.WindowState | WindowState.Fullscreen;
@@ -159,6 +151,9 @@ namespace DeeSynk.Core
         {
             if (_game.Init)
             {
+                if (_game.SystemInput.ShutDownProgram)
+                    Exit();
+
                 HandleKeyboard((float)e.Time);
 
                 _camera.UpdateRotation();
@@ -175,15 +170,6 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            /*if (betweenMoves.ElapsedTicks / 10000000.0d > 1)
-            {
-                betweenMoves.Stop();
-                Console.WriteLine("Inputs per second: {0}", mouseInputs);
-                mouseInputs = 0;
-                betweenMoves.Reset();
-                betweenMoves.Start();
-            }*/
-
             if (_game.Init)
             {
                 timeCount += e.Time;
@@ -233,25 +219,9 @@ namespace DeeSynk.Core
             //device inputs to functions on other components.  The input component should also no have knowledge
             //of the other components necessarily, so its best to keep data that might hint at what is in other components
             //out since it has no direct use for it and will have to be mapped again anyways.
-
-            /*mouseInputs++;
-
-            if (betweenMoves.ElapsedTicks / 10000000.0d > 1)
-            {
-                betweenMoves.Stop();
-                Console.WriteLine("Inputs per second: {0}", mouseInputs);
-                mouseInputs = 0;
-                betweenMoves.Reset();
-                betweenMoves.Start();
-            }*/
-
-            //Okay so we are peaking around 200-300 inputs per second.  Nothing we can't deal with.
-
-            //MouseState ms = Mouse.GetState();
-            //_camera.AddRotation((msPrevious.Y - ms.Y) * 0.001f, (msPrevious.X - ms.X) * 0.001f);
-            //msPrevious = ms;
             betweenMoves.Stop();
-            _mouseInput.Locations.Enqueue(new MouseLocation(-e.YDelta, -e.XDelta, betweenMoves.ElapsedTicks));
+            MouseState ms = Mouse.GetState();
+            _mouseInput.AddLocation(new MouseLocation(ms.Y, ms.X, betweenMoves.ElapsedTicks));
             OpenTK.Input.Mouse.SetPosition(mousePos.X, mousePos.Y);
             betweenMoves.Reset();
             betweenMoves.Start();
@@ -274,7 +244,10 @@ namespace DeeSynk.Core
 
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
-
+            /*betweenPress.Stop();
+            Console.WriteLine("DOWN {0} ms {1}", betweenPress.ElapsedTicks * 100 / 1000000.0d, e.Key);
+            betweenPress.Reset();
+            betweenPress.Start();*/
         }
 
         protected override void OnKeyUp(KeyboardKeyEventArgs e)
@@ -293,6 +266,7 @@ namespace DeeSynk.Core
         /// </summary>
         private void HandleKeyboard(float time)
         {
+            /*
             keyState = Keyboard.GetState();
 
             if (keyState.IsKeyDown(Key.Escape))
@@ -308,7 +282,7 @@ namespace DeeSynk.Core
             if (keyState.IsKeyDown(Key.Space))
                 _camera.AddLocation(ref V_Up, time);
             if (keyState.IsKeyDown(Key.ShiftLeft))
-                _camera.AddLocation(ref V_Dn, time);
+                _camera.AddLocation(ref V_Dn, time);*/
         }
 
         /// <summary>

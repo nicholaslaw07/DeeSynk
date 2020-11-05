@@ -91,6 +91,7 @@ namespace DeeSynk.Core
 
         public void PushCameraRef(ref Camera camera)
         {
+            _mouseInput.SetDirectMouse(ref camera);
             _systemTransform.PushCameraRef(ref camera);
             _systemRender.PushCameraRef(ref camera);
             _systemInput.PushCameraRef(ref camera);
@@ -102,6 +103,7 @@ namespace DeeSynk.Core
             InjectWorldData();
             InjectUIData();
             _init = true;
+            _systemInput.StartThreads();
         }
 
         public void CreateComponents()

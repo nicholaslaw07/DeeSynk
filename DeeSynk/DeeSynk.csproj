@@ -115,6 +115,7 @@
     <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ComponentModel.Annotations.4.7.0-preview3.19551.4\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
     </Reference>
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -153,6 +154,7 @@
     <Compile Include="Core\Components\GraphicsObjects\Lights\SunLamp.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Shadows\ShadowMap.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Texture.cs" />
+    <Compile Include="Core\Components\Input\KeyboardInputQueue.cs" />
     <Compile Include="Core\Components\Input\MouseInputQueue.cs" />
     <Compile Include="Core\Components\Models\Templates\ModelTemplates.cs" />
     <Compile Include="Core\Components\Models\Templates\Plane.cs" />
