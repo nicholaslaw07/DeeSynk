@@ -387,8 +387,8 @@ namespace DeeSynk.Core
         public void Update(float time)
         {
             _systemInput.Update(time);
-            _systemUI.MoveElementBy(2, new Vector2(1.0f, 0.0f));
-            _systemUI.MoveElementBy(3, new Vector2(0.0f, -1.0f));
+            _systemUI.MoveElementBy(2, new Vector2(100.0f, 0.0f) * time);
+            _systemUI.MoveElementBy(3, new Vector2(0.0f, -100.0f) * time);
             _world.Update(time);
             _ui.Update(time);
             _systemTransform.Update(time);

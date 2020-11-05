@@ -38,8 +38,8 @@ namespace DeeSynk.Core
 
         private MouseState msPrevious;
 
-        public static int width = 1280;
-        public static int height = 720;
+        public static int width = 3200;
+        public static int height = 1800;
 
         private Stopwatch loadTimer;
 
@@ -154,8 +154,6 @@ namespace DeeSynk.Core
                 if (_game.SystemInput.ShutDownProgram)
                     Exit();
 
-                HandleKeyboard((float)e.Time);
-
                 _camera.UpdateRotation();
                 _camera.UpdateMatrices();
 
@@ -178,14 +176,14 @@ namespace DeeSynk.Core
                 //| The WIP Student Video Game
 
                 if (sw.ElapsedMilliseconds % 20 == 0)
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)}";
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {_game.SystemInput.KeyboardInput.DownKeys.Count()}";
 
-                if (sw.ElapsedMilliseconds > 1000 / 80)
+                if (sw.ElapsedMilliseconds > 1000 / 120)
                 {
                     sw.Stop();
                     //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                     fpsOld = (long)(1f / timeCount * ((float)frameCount));
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)}"; // adds miscellaneous information to the title bar of the window
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {_game.SystemInput.KeyboardInput.DownKeys.Count()}"; // adds miscellaneous information to the title bar of the window
                     timeCount = 0d;
                     frameCount = 0;
                     sw.Reset();
@@ -225,64 +223,6 @@ namespace DeeSynk.Core
             OpenTK.Input.Mouse.SetPosition(mousePos.X, mousePos.Y);
             betweenMoves.Reset();
             betweenMoves.Start();
-        }
-
-        protected override void OnMouseDown(MouseButtonEventArgs e)
-        {
-            base.OnMouseDown(e);
-        }
-
-        protected override void OnMouseUp(MouseButtonEventArgs e)
-        {
-            base.OnMouseUp(e);
-        }
-
-        protected override void OnMouseWheel(MouseWheelEventArgs e)
-        {
-            base.OnMouseWheel(e);
-        }
-
-        protected override void OnKeyDown(KeyboardKeyEventArgs e)
-        {
-            /*betweenPress.Stop();
-            Console.WriteLine("DOWN {0} ms {1}", betweenPress.ElapsedTicks * 100 / 1000000.0d, e.Key);
-            betweenPress.Reset();
-            betweenPress.Start();*/
-        }
-
-        protected override void OnKeyUp(KeyboardKeyEventArgs e)
-        {
-
-        }
-
-        protected override void OnKeyPress(KeyPressEventArgs e)
-        {
-
-        }
-
-        /// <summary>
-        /// The HandleKeyboard method listens for any keyboard inputs from the user. Anything dealing
-        /// with keybindings should go here.
-        /// </summary>
-        private void HandleKeyboard(float time)
-        {
-            /*
-            keyState = Keyboard.GetState();
-
-            if (keyState.IsKeyDown(Key.Escape))
-                Exit();
-            if (keyState.IsKeyDown(Key.W))
-                _camera.AddLocation(ref V_W, time);
-            if (keyState.IsKeyDown(Key.S))
-                _camera.AddLocation(ref V_S, time);
-            if (keyState.IsKeyDown(Key.A))
-                _camera.AddLocation(ref V_A, time);
-            if (keyState.IsKeyDown(Key.D))
-                _camera.AddLocation(ref V_D, time);
-            if (keyState.IsKeyDown(Key.Space))
-                _camera.AddLocation(ref V_Up, time);
-            if (keyState.IsKeyDown(Key.ShiftLeft))
-                _camera.AddLocation(ref V_Dn, time);*/
         }
 
         /// <summary>

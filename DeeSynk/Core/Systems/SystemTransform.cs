@@ -85,15 +85,6 @@ namespace DeeSynk.Core.Systems
             _camera.UpdateMatrices();
         }
 
-        private void Update(float time, GameObjectContainer c, bool[] monitor)
-        {
-            for (int i = 0; i < c.ObjectMemory; i++)
-            {
-                if (monitor[i])
-                    c.TransComps[i].Update(time);
-            }
-        }
-
         public void InitLocation()
         {
             //TEST START
