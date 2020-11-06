@@ -38,8 +38,8 @@ namespace DeeSynk.Core
 
         private MouseState msPrevious;
 
-        public static int width = 3200;
-        public static int height = 1800;
+        public static int width = 1920;
+        public static int height = 1080;
 
         private Stopwatch loadTimer;
 
@@ -116,8 +116,7 @@ namespace DeeSynk.Core
             _camera.OverrideLookAtVector = true;
             _camera.Location = new Vector3(0.0f, 0.25f, 1.0f);
             _camera.UpdateMatrices();
-            _mouseInput = new MouseInputQueue();
-            _game = new Game(ref _mouseInput);
+            _game = new Game(ref _camera);
             //CursorVisible = true;
 
 
@@ -176,14 +175,14 @@ namespace DeeSynk.Core
                 //| The WIP Student Video Game
 
                 if (sw.ElapsedMilliseconds % 20 == 0)
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {_game.SystemInput.KeyboardInput.DownKeys.Count()}";
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)}";
 
                 if (sw.ElapsedMilliseconds > 1000 / 120)
                 {
                     sw.Stop();
                     //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                     fpsOld = (long)(1f / timeCount * ((float)frameCount));
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {_game.SystemInput.KeyboardInput.DownKeys.Count()}"; // adds miscellaneous information to the title bar of the window
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)}"; // adds miscellaneous information to the title bar of the window
                     timeCount = 0d;
                     frameCount = 0;
                     sw.Reset();
@@ -217,12 +216,8 @@ namespace DeeSynk.Core
             //device inputs to functions on other components.  The input component should also no have knowledge
             //of the other components necessarily, so its best to keep data that might hint at what is in other components
             //out since it has no direct use for it and will have to be mapped again anyways.
-            betweenMoves.Stop();
-            MouseState ms = Mouse.GetState();
-            _mouseInput.AddLocation(new MouseLocation(ms.Y, ms.X, betweenMoves.ElapsedTicks));
+            //_mouseInput.AddLocation(new MouseLocation(ms.Y, ms.X, betweenMoves.ElapsedTicks));
             OpenTK.Input.Mouse.SetPosition(mousePos.X, mousePos.Y);
-            betweenMoves.Reset();
-            betweenMoves.Start();
         }
 
         /// <summary>

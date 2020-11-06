@@ -154,7 +154,7 @@
     <Compile Include="Core\Components\GraphicsObjects\Lights\SunLamp.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Shadows\ShadowMap.cs" />
     <Compile Include="Core\Components\GraphicsObjects\Texture.cs" />
-    <Compile Include="Core\Components\Input\KeyboardInputQueue.cs" />
+    <Compile Include="Core\Components\Input\InputConfiguration.cs" />
     <Compile Include="Core\Components\Input\MouseInputQueue.cs" />
     <Compile Include="Core\Components\Models\Templates\ModelTemplates.cs" />
     <Compile Include="Core\Components\Models\Templates\Plane.cs" />
@@ -191,6 +191,7 @@
     <Compile Include="Core\GameObjectContainer.cs" />
     <Compile Include="Core\MainWindow.cs" />
     <Compile Include="Core\Managers\ComponentManager.cs" />
+    <Compile Include="Core\Managers\InputManager.cs" />
     <Compile Include="Core\Managers\ModelManager.cs" />
     <Compile Include="Core\Managers\TextureManager.cs" />
     <Compile Include="Core\Managers\IManager.cs" />

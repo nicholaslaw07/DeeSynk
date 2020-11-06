@@ -45,8 +45,7 @@ namespace DeeSynk.Core
         private MouseInputQueue _mouseInput;
         public MouseInputQueue MouseInput { get => _mouseInput; }
 
-        private KeyboardInputQueue _keyboardInput;
-        public KeyboardInputQueue KeyboardInputQueue { get => _keyboardInput; }
+        private Camera _camera;
 
         //Systems that act as a medium for components to communicate through, specific to certain purposes
         #region SYSTEMS
@@ -65,10 +64,9 @@ namespace DeeSynk.Core
         public SystemUI SystemUI { get => _systemUI; }
         #endregion
 
-        public Game(ref MouseInputQueue mouseInput)
+        public Game(ref Camera camera)
         {
-            _mouseInput = mouseInput;
-            _keyboardInput = new KeyboardInputQueue();
+            _camera = camera;
             Load();
         }
 
@@ -80,13 +78,14 @@ namespace DeeSynk.Core
             Managers.ModelManager.GetInstance().Load();
             Managers.ShaderManager.GetInstance().Load();
             Managers.TextureManager.GetInstance().Load();
+            Managers.InputManager.GetInstance().Load();
 
             _world = new World(8);
             _ui = new UI(32);
 
             _compIdx = 0;
 
-            _systemInput = new SystemInput(ref _world, ref _ui, ref _mouseInput, ref _keyboardInput);
+            _systemInput = new SystemInput(ref _world, ref _ui, ref _camera);
             _systemRender = new SystemRender(ref _world, ref _ui);
             _systemModel = new SystemModel(ref _world, ref _ui);
             _systemTransform = new SystemTransform(ref _world, ref _ui);
@@ -96,7 +95,6 @@ namespace DeeSynk.Core
 
         public void PushCameraRef(ref Camera camera)
         {
-            _mouseInput.SetDirectMouse(ref camera);
             _systemTransform.PushCameraRef(ref camera);
             _systemRender.PushCameraRef(ref camera);
             _systemInput.PushCameraRef(ref camera);

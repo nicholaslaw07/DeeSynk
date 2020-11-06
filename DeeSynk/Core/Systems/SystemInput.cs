@@ -1,5 +1,6 @@
 ﻿using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.Input;
+using DeeSynk.Core.Managers;
 using OpenTK;
 using OpenTK.Graphics.ES11;
 using OpenTK.Input;
@@ -57,17 +58,11 @@ namespace DeeSynk.Core.Systems
         private Vector3 V_Up = new Vector3(0.0f, v, 0.0f);
         private Vector3 V_Dn = new Vector3(0.0f, -v, 0.0f);
 
-
-        private List<Key> _monitoredKeys;
-
         private World _world;
         private UI _ui;
 
         private MouseInputQueue _mouseInput;
         public MouseInputQueue MouseInput { get => _mouseInput; }
-
-        private KeyboardInputQueue _keyboardInput;
-        public KeyboardInputQueue KeyboardInput { get => _keyboardInput; }
 
         private Camera _camera; //only used if direct input is on.  this dramatically reduces latency.
 
@@ -76,37 +71,51 @@ namespace DeeSynk.Core.Systems
 
         private Stopwatch sw;
 
+        public delegate void k1();
 
-        public SystemInput(ref World world, ref UI ui, ref MouseInputQueue mouseInput, ref KeyboardInputQueue keyboardInput)
+        private Action<float> w, a, s, d, sp, ls, esc;
+        private Action<MouseMove> mouseMove;
+
+
+        public SystemInput(ref World world, ref UI ui, ref Camera camera)
         {
             _world = world;
             _ui = ui;
 
-            _mouseInput = mouseInput;
-            _keyboardInput = keyboardInput;
-
-            _monitoredKeys = new List<Key>();
-
-            
-            _monitoredKeys.Add(Key.W);
-            _monitoredKeys.Add(Key.A);
-            _monitoredKeys.Add(Key.S);
-            _monitoredKeys.Add(Key.D);
-
-            _monitoredKeys.Add(Key.ShiftLeft);
-            _monitoredKeys.Add(Key.Space);
-
-            _monitoredKeys.Add(Key.Escape);
-
-            _keyboardInput.MonitoredKeys = _monitoredKeys;
-
             sw = new Stopwatch();
             sw.Start();
+
+            _camera = camera;
+
+            w = CameraMoveFront;
+            s = CameraMoveBack;
+            a = CameraMoveLeft;
+            d = CameraMoveRight;
+            sp = CameraMoveUp;
+            ls = CameraMoveDown;
+            esc = KeyboardToExitWindow;
+
+            mouseMove = CameraRotation;
+
+            InputConfiguration config = new InputConfiguration();
+            config.KeyboardActions.Add(Key.W, new KeyboardAction(w, Key.W, KeyActionType.RepeatOnHold));
+            config.KeyboardActions.Add(Key.S, new KeyboardAction(s, Key.S, KeyActionType.RepeatOnHold));
+            config.KeyboardActions.Add(Key.A, new KeyboardAction(a, Key.A, KeyActionType.RepeatOnHold));
+            config.KeyboardActions.Add(Key.D, new KeyboardAction(d, Key.D, KeyActionType.RepeatOnHold));
+            config.KeyboardActions.Add(Key.Space, new KeyboardAction(sp, Key.Space, KeyActionType.RepeatOnHold));
+            config.KeyboardActions.Add(Key.LShift, new KeyboardAction(ls, Key.LShift, KeyActionType.RepeatOnHold));
+            config.KeyboardActions.Add(Key.Escape, new KeyboardAction(esc, Key.Escape, KeyActionType.SinglePress));
+            config.MoveAction = mouseMove;
+            var im = InputManager.GetInstance();
+            im.Configurations.Add("primary move", config);
+            im.SetConfig("primary move");
+
+            im.StartThreads(1);
         }
 
         public void StartThreads()
         {
-            _keyboardInput.StartMonitorThread(1);
+            //_keyboardInput.StartMonitorThread(2);
             //Add mouse thread
         }
 
@@ -115,134 +124,24 @@ namespace DeeSynk.Core.Systems
             _camera = camera;
         }
 
-        private void MouseMoveToCameraLook()
-        {
-            if (!_mouseInput.UsingDirectMouseMove)
-            {
-                //Do operations for non direct input
-                //Pull all deltas
-                //Add deltas to rotation
-                //Clear deltas
-            }
-        }
+        private void CameraMoveFront(float time) { _camera.AddLocation(ref V_W, time); }
+        private void CameraMoveBack(float time) { _camera.AddLocation(ref V_S, time); }
+        private void CameraMoveLeft(float time) { _camera.AddLocation(ref V_A, time); }
+        private void CameraMoveRight(float time) { _camera.AddLocation(ref V_D, time); }
+        private void CameraMoveUp(float time) { _camera.AddLocation(ref V_Up, time); }
+        private void CameraMoveDown(float time) { _camera.AddLocation(ref V_Dn, time); }
+        private void CameraRotation(MouseMove move) { _camera.AddRotation(move.dX * 0.001f, move.dY * 0.001f); }
 
-        private void KeyboardMoveToCameraMove(float time)
+        private void KeyboardToExitWindow(float time)
         {
-            if (!_keyboardInput.UsingDirectKeyboardMove)
-            {
-                if (_keyboardInput.KeysInEventList.Contains(Key.W))
-                {
-                    var t = _keyboardInput.GetTimeForAllInstances(Key.W);
-                    _camera.AddLocation(ref V_W, t);
-                    _keyboardInput.RemoveAllInstances(Key.W, _keyboardInput.DownKeys.Contains(Key.W));
-                }
-                if (_keyboardInput.KeysInEventList.Contains(Key.A))
-                {
-                    var t = _keyboardInput.GetTimeForAllInstances(Key.A);
-                    _camera.AddLocation(ref V_A, t);
-                    _keyboardInput.RemoveAllInstances(Key.A, _keyboardInput.DownKeys.Contains(Key.A));
-                }
-                if (_keyboardInput.KeysInEventList.Contains(Key.S))
-                {
-                    var t = _keyboardInput.GetTimeForAllInstances(Key.S);
-                    _camera.AddLocation(ref V_S, t);
-                    _keyboardInput.RemoveAllInstances(Key.S, _keyboardInput.DownKeys.Contains(Key.S));
-                }
-                if (_keyboardInput.KeysInEventList.Contains(Key.D))
-                {
-                    var t = _keyboardInput.GetTimeForAllInstances(Key.D);
-                    _camera.AddLocation(ref V_D, t);
-                    _keyboardInput.RemoveAllInstances(Key.D, _keyboardInput.DownKeys.Contains(Key.D));
-                }
-                if (_keyboardInput.KeysInEventList.Contains(Key.Space))
-                {
-                    var t = _keyboardInput.GetTimeForAllInstances(Key.Space);
-                    _camera.AddLocation(ref V_Up, t);
-                    _keyboardInput.RemoveAllInstances(Key.Space, _keyboardInput.DownKeys.Contains(Key.Space));
-                }
-                if (_keyboardInput.KeysInEventList.Contains(Key.LShift))
-                {
-                    var t = _keyboardInput.GetTimeForAllInstances(Key.LShift);
-                    _camera.AddLocation(ref V_Dn, t);
-                    _keyboardInput.RemoveAllInstances(Key.LShift, _keyboardInput.DownKeys.Contains(Key.LShift));
-                }
-
-            }
-        }
-        private void KeyboardToExitWindow()
-        {
-            if (_keyboardInput.KeysInEventList.Contains(Key.Escape))
-            {
-                _shutDownProgram = true;
-                _keyboardInput.IsRunning = false;
-            }
+            _shutDownProgram = true;
+            InputManager.GetInstance().IsKeyboardThreadRunning = false;
+            InputManager.GetInstance().IsMouseThreadRunning = false;
         }
 
         public void Update(float time)
         {
-            MouseMoveToCameraLook();
-            KeyboardToExitWindow();
-            KeyboardMoveToCameraMove(time);
             _mouseInput.Clear();
         }
     }
 }
-
-/*
-var keyState = Keyboard.GetState();
-
-if (keyState.IsKeyDown(Key.Escape))
-    _shutDownProgram = true;
-if (keyState.IsKeyDown(Key.W))
-    _camera.AddLocation(ref V_W, time);
-if (keyState.IsKeyDown(Key.S))
-    _camera.AddLocation(ref V_S, time);
-if (keyState.IsKeyDown(Key.A))
-    _camera.AddLocation(ref V_A, time);
-if (keyState.IsKeyDown(Key.D))
-    _camera.AddLocation(ref V_D, time);
-if (keyState.IsKeyDown(Key.Space))
-    _camera.AddLocation(ref V_Up, time);
-if (keyState.IsKeyDown(Key.ShiftLeft))
-    _camera.AddLocation(ref V_Dn, time);*/
-
-/*if (!_keyboardInput.UsingDirectKeyboardMove)
-{
-    if (_keyboardInput.KeysInEventList.Contains(Key.W))
-    {
-        _camera.AddLocation(ref V_W, time);
-        _keyboardInput.RemoveAllInstances(Key.W);
-    }
-                /*
-                if (_keyboardInput.KeysInEventList.Contains(Key.A))
-                {
-                    _camera.AddLocation(ref V_A, time); //_keyboardInput.GetTimeForAllInstances(Key.A)
-                    _keyboardInput.RemoveAllInstances(Key.A);
-                }
-                if (_keyboardInput.KeysInEventList.Contains(Key.W))
-                {
-                    _camera.AddLocation(ref V_S, time);
-                    _keyboardInput.RemoveAllInstances(Key.S);
-                }
-                if (_keyboardInput.KeysInEventList.Contains(Key.D))
-                {
-                    _camera.AddLocation(ref V_D, time);
-                    _keyboardInput.RemoveAllInstances(Key.D);
-                }
-
-                if (_keyboardInput.KeysInEventList.Contains(Key.Space))
-                {
-                    _camera.AddLocation(ref V_Up, time);
-                    _keyboardInput.RemoveAllInstances(Key.Space);
-                }
-                if (_keyboardInput.KeysInEventList.Contains(Key.LShift))
-                {
-                    _camera.AddLocation(ref V_Dn, time);
-                    _keyboardInput.RemoveAllInstances(Key.LShift);
-                }*/
-
-//if (_keyboardInput.KeysInEventList.Contains(Key.Escape))
-
-//_shutDownProgram = true;
-//_keyboardInput.Listener.Abort();
-//_keyboardInput.IsRunning = false;

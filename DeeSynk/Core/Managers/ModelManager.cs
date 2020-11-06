@@ -236,7 +236,8 @@ namespace DeeSynk.Core.Managers
 
         public void UnLoad()
         {
-            throw new NotImplementedException();
+            foreach (string s in _modelLibrary.Keys)
+                _modelLibrary.Remove(s);
         }
 
         #endregion
