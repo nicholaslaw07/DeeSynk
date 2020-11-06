@@ -121,13 +121,13 @@ namespace DeeSynk.Core.Systems
             _camera = camera;
         }
 
-        private void CameraMoveFront(float time) { _camera.AddLocation(ref V_W, time); }
-        private void CameraMoveBack(float time) { _camera.AddLocation(ref V_S, time); }
-        private void CameraMoveLeft(float time) { _camera.AddLocation(ref V_A, time); }
-        private void CameraMoveRight(float time) { _camera.AddLocation(ref V_D, time); }
-        private void CameraMoveUp(float time) { _camera.AddLocation(ref V_Up, time); }
-        private void CameraMoveDown(float time) { _camera.AddLocation(ref V_Dn, time); }
-        private void CameraRotation(MouseMove move) { _camera.AddRotation(move.dX * 0.001f, move.dY * 0.001f); }
+        public void CameraMoveFront(float time) { _camera.AddLocation(ref V_W, time); }
+        public void CameraMoveBack(float time) { _camera.AddLocation(ref V_S, time); }
+        public void CameraMoveLeft(float time) { _camera.AddLocation(ref V_A, time); }
+        public void CameraMoveRight(float time) { _camera.AddLocation(ref V_D, time); }
+        public void CameraMoveUp(float time) { _camera.AddLocation(ref V_Up, time); }
+        public void CameraMoveDown(float time) { _camera.AddLocation(ref V_Dn, time); }
+        public void CameraRotation(MouseMove move) { _camera.AddRotation(move.dX * 0.001f, move.dY * 0.001f); }
 
         private void KeyboardToExitWindow(float time)
         {
