@@ -43,9 +43,6 @@ namespace DeeSynk.Core
 
         private Stopwatch loadTimer;
 
-        private MouseInputQueue _mouseInput;
-        private Stopwatch betweenMoves;
-
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be
         /// passed to the parent class constructor. The title of the window is then set with
@@ -75,9 +72,6 @@ namespace DeeSynk.Core
             msPrevious = Mouse.GetState();
             sw = new Stopwatch();
             sw2 = new Stopwatch();
-
-            betweenMoves = new Stopwatch();
-            betweenMoves.Start();
 
             //WindowState = WindowState.Fullscreen;
         }

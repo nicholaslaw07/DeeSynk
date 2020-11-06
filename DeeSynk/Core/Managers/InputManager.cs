@@ -171,6 +171,7 @@ namespace DeeSynk.Core.Managers
             {
                 var _currentState = Mouse.GetState();
                 _activeConfig.MoveAction(new MouseMove((_ms.Y - _currentState.Y), (_ms.X - _currentState.X), _mSw.ElapsedTicks));
+                _ms = _currentState;
 
                 Thread.Sleep(_sleep);
             } while (_isMouseThreadRunning);

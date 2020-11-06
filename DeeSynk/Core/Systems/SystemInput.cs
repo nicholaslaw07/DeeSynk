@@ -61,9 +61,6 @@ namespace DeeSynk.Core.Systems
         private World _world;
         private UI _ui;
 
-        private MouseInputQueue _mouseInput;
-        public MouseInputQueue MouseInput { get => _mouseInput; }
-
         private Camera _camera; //only used if direct input is on.  this dramatically reduces latency.
 
         private bool _shutDownProgram;
@@ -141,7 +138,7 @@ namespace DeeSynk.Core.Systems
 
         public void Update(float time)
         {
-            _mouseInput.Clear();
+
         }
     }
 }

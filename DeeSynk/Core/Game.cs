@@ -42,9 +42,6 @@ namespace DeeSynk.Core
         //global index counter that works for all objects.  (i.e. two seperate objects cannot both have index 4)
         private int _compIdx;
 
-        private MouseInputQueue _mouseInput;
-        public MouseInputQueue MouseInput { get => _mouseInput; }
-
         private Camera _camera;
 
         //Systems that act as a medium for components to communicate through, specific to certain purposes
