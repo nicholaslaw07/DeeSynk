@@ -78,6 +78,14 @@ namespace DeeSynk.Core.Components.Input
         private Camera _camera;
         public Camera Camera { get => _camera; }
 
+        public KeyboardInputQueue()
+        {
+            _eventList = new List<KeyEvent>();
+            _downKeys = new List<Key>();
+            _keysInEventList = new List<Key>();
+            _monitoredKeys = new List<Key>();
+        }
+
         public KeyboardInputQueue(ref List<Key> monitoredKeys)
         {
             _eventList = new List<KeyEvent>();
@@ -170,33 +178,34 @@ namespace DeeSynk.Core.Components.Input
         public List<KeyEvent> GetInstance(Key k)
         {
             List<KeyEvent> instance = new List<KeyEvent>();
-
-            if (!_downKeys.Contains(k) && _eventList.Select(ke => ke.Key).Contains(k))
+            lock (_eventList)
             {
-                var list = _eventList.ToList();
-                var narrow = list.Where(ke => ke.Key == k);
-                var narrowDown = narrow.Where(ke => ke.KeyEventType == KeyEventType.KEY_DOWN);
-                var narrowUp = narrow.Where(ke => ke.KeyEventType == KeyEventType.KEY_UP);
-                if (narrowUp.Count() > 0)
+                if (!_downKeys.Contains(k) && _eventList.Select(ke => ke.Key).Contains(k))
                 {
-                    if (narrowDown.Count() > 0)
+                    var list = _eventList.ToList();
+                    var narrow = list.Where(ke => ke.Key == k);
+                    var narrowDown = narrow.Where(ke => ke.KeyEventType == KeyEventType.KEY_DOWN);
+                    var narrowUp = narrow.Where(ke => ke.KeyEventType == KeyEventType.KEY_UP);
+                    if (narrowUp.Count() > 0)
                     {
-                        var firstDown = narrowDown.First();
-                        var firstUp = narrow.First();
-                        if (list.IndexOf(firstDown) < list.IndexOf(firstUp))
+                        if (narrowDown.Count() > 0)
                         {
-                            instance.Add(firstDown);
-                            instance.Add(firstUp);
+                            var firstDown = narrowDown.First();
+                            var firstUp = narrow.First();
+                            if (list.IndexOf(firstDown) < list.IndexOf(firstUp))
+                            {
+                                instance.Add(firstDown);
+                                instance.Add(firstUp);
+                            }
                         }
-                    }
-                    else
-                    {
-                        foreach (KeyEvent ke in narrowUp)
-                            _eventList.Remove(ke);
+                        else
+                        {
+                            foreach (KeyEvent ke in narrowUp)
+                                _eventList.Remove(ke);
+                        }
                     }
                 }
             }
-
             return instance;
         }
 
@@ -204,7 +213,7 @@ namespace DeeSynk.Core.Components.Input
         {
             List<KeyEvent> instances = new List<KeyEvent>();
 
-            //lock (_eventList)
+            lock (_eventList)
             {
                 for (int idx = 0; idx < count; idx++)
                 {
@@ -223,7 +232,7 @@ namespace DeeSynk.Core.Components.Input
         {
             int idx = 0;
             var instances = new List<KeyEvent>();
-            //lock (_eventList)
+            lock (_eventList)
             {
                 var instance = GetInstance(k);
                 while (instance.Count == 2)
@@ -296,7 +305,7 @@ namespace DeeSynk.Core.Components.Input
 
         public int RemoveInstances(Key k, int count, bool removeDown)
         {
-            //lock (_eventList)
+            lock (_eventList)
             {
                 for (int idx = 0; idx < count; idx++)
                 {
@@ -312,9 +321,10 @@ namespace DeeSynk.Core.Components.Input
         public int RemoveAllInstances(Key k, bool removeDown)
         {
             int idx = 0;
-            //lock (_eventList)
+            lock (_eventList)
             {
-                idx = _eventList.Where(ke => ke.KeyEventType == KeyEventType.KEY_UP).Count();
+                var list = _eventList.ToList();
+                idx = list.Where(ke => ke.KeyEventType == KeyEventType.KEY_UP).Count();
                 RemoveInstances(k, idx, removeDown);
             }
             return idx;
@@ -357,13 +367,7 @@ namespace DeeSynk.Core.Components.Input
                         time += (instance.Last().Time - instance.First().Time) / 10000000.0f;
                         instance = GetInstance(k);
                     }
-                    else if (instance.Count == 0 && _downKeys.Contains(k))
-                    {
-                        /*long t0 = _eventList.Where(ke => ke.Key == k).Where(ke => ke.KeyEventType == KeyEventType.KEY_DOWN).First().Time;
-                        long t1 = _sw.ElapsedTicks;
-                        time += (t1 - t0) / 10000000.0f;
-                        break;*/
-                    }
+
                 }
 
                 if (_downKeys.Contains(k) && _eventList.Count() > 0)

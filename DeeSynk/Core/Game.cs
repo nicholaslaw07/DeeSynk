@@ -43,6 +43,10 @@ namespace DeeSynk.Core
         private int _compIdx;
 
         private MouseInputQueue _mouseInput;
+        public MouseInputQueue MouseInput { get => _mouseInput; }
+
+        private KeyboardInputQueue _keyboardInput;
+        public KeyboardInputQueue KeyboardInputQueue { get => _keyboardInput; }
 
         //Systems that act as a medium for components to communicate through, specific to certain purposes
         #region SYSTEMS
@@ -64,6 +68,7 @@ namespace DeeSynk.Core
         public Game(ref MouseInputQueue mouseInput)
         {
             _mouseInput = mouseInput;
+            _keyboardInput = new KeyboardInputQueue();
             Load();
         }
 
@@ -81,7 +86,7 @@ namespace DeeSynk.Core
 
             _compIdx = 0;
 
-            _systemInput = new SystemInput(ref _world, ref _ui, ref _mouseInput);
+            _systemInput = new SystemInput(ref _world, ref _ui, ref _mouseInput, ref _keyboardInput);
             _systemRender = new SystemRender(ref _world, ref _ui);
             _systemModel = new SystemModel(ref _world, ref _ui);
             _systemTransform = new SystemTransform(ref _world, ref _ui);

@@ -23,7 +23,7 @@ namespace DeeSynk
         static void Main()
         {
             window = new MainWindow();
-            window.Run(120, 60);
+            window.Run(180, 60);
         }
     }
 

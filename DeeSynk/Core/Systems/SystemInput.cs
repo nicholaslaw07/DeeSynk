@@ -77,11 +77,13 @@ namespace DeeSynk.Core.Systems
         private Stopwatch sw;
 
 
-        public SystemInput(ref World world, ref UI ui, ref MouseInputQueue mouseInput)
+        public SystemInput(ref World world, ref UI ui, ref MouseInputQueue mouseInput, ref KeyboardInputQueue keyboardInput)
         {
             _world = world;
             _ui = ui;
+
             _mouseInput = mouseInput;
+            _keyboardInput = keyboardInput;
 
             _monitoredKeys = new List<Key>();
 
@@ -96,7 +98,7 @@ namespace DeeSynk.Core.Systems
 
             _monitoredKeys.Add(Key.Escape);
 
-            _keyboardInput = new KeyboardInputQueue(ref _monitoredKeys);
+            _keyboardInput.MonitoredKeys = _monitoredKeys;
 
             sw = new Stopwatch();
             sw.Start();
@@ -104,7 +106,7 @@ namespace DeeSynk.Core.Systems
 
         public void StartThreads()
         {
-            _keyboardInput.StartMonitorThread(0);
+            _keyboardInput.StartMonitorThread(1);
             //Add mouse thread
         }
 

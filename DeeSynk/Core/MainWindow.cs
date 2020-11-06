@@ -69,7 +69,7 @@ namespace DeeSynk.Core
             Width = width;
             Height = height;
 
-            VSync = VSyncMode.On;
+            VSync = VSyncMode.Off;
             center = new Point(Width / 2, Height / 2);
             mousePos = PointToScreen(center);
             msPrevious = Mouse.GetState();
