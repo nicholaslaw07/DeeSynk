@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -82,14 +83,22 @@ namespace DeeSynk.Core.Managers
 
             _configurations = new Dictionary<string, InputConfiguration>();
         }
-        public void SetConfig(string name)
+
+        public bool SetConfig(string name)
         {
             //wait until the thread has finished its cycle?
             if (_configurations.TryGetValue(name, out InputConfiguration config))
             {
                 _activeConfig = config;
                 _monitoredKeys = _activeConfig.KeyboardActions.Keys.ToList();
+                return true;
             }
+            return false;
+        }
+
+        public void NewConfig(string name)
+        {
+            _configurations.Add(name, new InputConfiguration());
         }
 
         public void StartThreads(int sleep)
@@ -116,10 +125,12 @@ namespace DeeSynk.Core.Managers
                             if (!_eventList.Select(ke => ke.Key).Contains(k))
                             {
                                 _eventList.Add(new KeyPress(k, _kSw.ElapsedTicks));
+                                if (keyAction.Type == KeyActionType.SinglePress)
+                                    keyAction.Action(_kSw.ElapsedTicks / 10000000.0f);
                             }
                             else
                             {
-                                if (keyAction.KeyActionType == KeyActionType.RepeatOnHold)
+                                if (keyAction.Type == KeyActionType.RepeatOnHold)
                                 {
                                     var keyEvent = _eventList.Where(ke => ke.Key == k).First();
                                     long time = _kSw.ElapsedTicks;
@@ -128,14 +139,6 @@ namespace DeeSynk.Core.Managers
                                     _eventList.Remove(keyEvent);
                                     _eventList.Add(new KeyPress(k, time));
                                 }
-                                else if(keyAction.KeyActionType == KeyActionType.SinglePress)
-                                {
-                                    keyAction.Action(0.0f);
-                                }
-                                else
-                                {
-                                    _eventList.Add(new KeyPress(k, _kSw.ElapsedTicks));
-                                }
                             }
                         }
                         if (_eventList.Select(ke => ke.Key).Contains(k))
@@ -143,7 +146,7 @@ namespace DeeSynk.Core.Managers
                             if (kbs.IsKeyUp(k))
                             {
                                 var keyEvent = _eventList.Where(ke => ke.Key == k).First();
-                                if (keyAction.KeyActionType == KeyActionType.RepeatOnHold || keyAction.KeyActionType == KeyActionType.WaitForRelease)
+                                if (keyAction.Type == KeyActionType.RepeatOnHold || keyAction.Type == KeyActionType.WaitForRelease)
                                 {
                                     long time = _kSw.ElapsedTicks;
                                     float elapsed = (time - keyEvent.Time) / 10000000.0f;
@@ -172,6 +175,10 @@ namespace DeeSynk.Core.Managers
                 var _currentState = Mouse.GetState();
                 _activeConfig.MoveAction(new MouseMove((_ms.Y - _currentState.Y), (_ms.X - _currentState.X), _mSw.ElapsedTicks));
                 _ms = _currentState;
+
+                //ADD BUTTON LISTENING
+                //MAYBE COMBINE THIS WITH THE OTHER THREAD
+                //ADD FUNCTION SO THAT CLICK AND DRAG ON A UI ELEMENT MOVES IT WITH THE MOUSE
 
                 Thread.Sleep(_sleep);
             } while (_isMouseThreadRunning);

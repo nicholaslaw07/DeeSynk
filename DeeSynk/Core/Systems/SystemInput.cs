@@ -71,7 +71,7 @@ namespace DeeSynk.Core.Systems
         public delegate void k1();
 
         private Action<float> w, a, s, d, sp, ls, esc;
-        private Action<MouseMove> mouseMove;
+        private Action<MouseMove> mouseMove, mouseAction;
 
 
         public SystemInput(ref World world, ref UI ui, ref Camera camera)
@@ -94,7 +94,9 @@ namespace DeeSynk.Core.Systems
 
             mouseMove = CameraRotation;
 
-            InputConfiguration config = new InputConfiguration();
+            var im = InputManager.GetInstance();
+            im.Configurations.TryGetValue("primary move", out InputConfiguration config);
+
             config.KeyboardActions.Add(Key.W, new KeyboardAction(w, Key.W, KeyActionType.RepeatOnHold));
             config.KeyboardActions.Add(Key.S, new KeyboardAction(s, Key.S, KeyActionType.RepeatOnHold));
             config.KeyboardActions.Add(Key.A, new KeyboardAction(a, Key.A, KeyActionType.RepeatOnHold));
@@ -103,11 +105,11 @@ namespace DeeSynk.Core.Systems
             config.KeyboardActions.Add(Key.LShift, new KeyboardAction(ls, Key.LShift, KeyActionType.RepeatOnHold));
             config.KeyboardActions.Add(Key.Escape, new KeyboardAction(esc, Key.Escape, KeyActionType.SinglePress));
             config.MoveAction = mouseMove;
-            var im = InputManager.GetInstance();
-            im.Configurations.Add("primary move", config);
-            im.SetConfig("primary move");
 
-            im.StartThreads(1);
+            im.Configurations.TryGetValue("unlocked mouse", out InputConfiguration config1);
+            mouseAction = MouseAction;
+            config1.MoveAction = mouseAction;
+            config1.KeyboardActions.Add(Key.Escape, new KeyboardAction(esc, Key.Escape, KeyActionType.SinglePress));
         }
 
         public void StartThreads()
@@ -121,19 +123,19 @@ namespace DeeSynk.Core.Systems
             _camera = camera;
         }
 
-        public void CameraMoveFront(float time) { _camera.AddLocation(ref V_W, time); }
-        public void CameraMoveBack(float time) { _camera.AddLocation(ref V_S, time); }
-        public void CameraMoveLeft(float time) { _camera.AddLocation(ref V_A, time); }
-        public void CameraMoveRight(float time) { _camera.AddLocation(ref V_D, time); }
-        public void CameraMoveUp(float time) { _camera.AddLocation(ref V_Up, time); }
-        public void CameraMoveDown(float time) { _camera.AddLocation(ref V_Dn, time); }
-        public void CameraRotation(MouseMove move) { _camera.AddRotation(move.dX * 0.001f, move.dY * 0.001f); }
+        private void CameraMoveFront(float time) { _camera.AddLocation(ref V_W, time); }
+        private void CameraMoveBack(float time) { _camera.AddLocation(ref V_S, time); }
+        private void CameraMoveLeft(float time) { _camera.AddLocation(ref V_A, time); }
+        private void CameraMoveRight(float time) { _camera.AddLocation(ref V_D, time); }
+        private void CameraMoveUp(float time) { _camera.AddLocation(ref V_Up, time); }
+        private void CameraMoveDown(float time) { _camera.AddLocation(ref V_Dn, time); }
+        private void CameraRotation(MouseMove move) { _camera.AddRotation(move.dX * 0.001f, move.dY * 0.001f); }
+
+        private void MouseAction(MouseMove move) { return; }
 
         private void KeyboardToExitWindow(float time)
         {
             _shutDownProgram = true;
-            InputManager.GetInstance().IsKeyboardThreadRunning = false;
-            InputManager.GetInstance().IsMouseThreadRunning = false;
         }
 
         public void Update(float time)

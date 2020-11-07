@@ -72,10 +72,9 @@ namespace DeeSynk.Core
         /// </summary>
         public void Load()
         {
-            Managers.ModelManager.GetInstance().Load();
-            Managers.ShaderManager.GetInstance().Load();
-            Managers.TextureManager.GetInstance().Load();
-            Managers.InputManager.GetInstance().Load();
+            var im = InputManager.GetInstance();
+            im.Configurations.Add("primary move", new InputConfiguration());
+            im.Configurations.Add("unlocked mouse", new InputConfiguration());
 
             _world = new World(8);
             _ui = new UI(32);
@@ -387,8 +386,8 @@ namespace DeeSynk.Core
         public void Update(float time)
         {
             _systemInput.Update(time);
-            _systemUI.MoveElementBy(2, new Vector2(100.0f, 0.0f) * time);
-            _systemUI.MoveElementBy(3, new Vector2(0.0f, -100.0f) * time);
+            //_systemUI.MoveElementBy(2, new Vector2(100.0f, 0.0f) * time);
+            //_systemUI.MoveElementBy(3, new Vector2(0.0f, -100.0f) * time);
             _world.Update(time);
             _ui.Update(time);
             _systemTransform.Update(time);

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.Input;
+using DeeSynk.Core.Managers;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -23,13 +24,13 @@ namespace DeeSynk.Core
     {
         private Game _game;
 
-        private KeyboardState keyState;    // holds current keyboard state, updated every frame
         private Color4 clearColor = Color4.Black;     // the color that OpenGL uses to clear the color buffer on each frame
 
         public Camera _camera = new Camera();
 
         Point center;
         Point mousePos;
+        private bool _centerMouse;
 
         private long fpsOld = 0;
         private long frameCount = 0;
@@ -42,6 +43,8 @@ namespace DeeSynk.Core
         public static int height = 1080;
 
         private Stopwatch loadTimer;
+
+        private MouseCursor _cursor;
 
         /// <summary>
         /// Basic constructor for the game window. The base keyword allows parameters to be
@@ -70,9 +73,40 @@ namespace DeeSynk.Core
             center = new Point(Width / 2, Height / 2);
             mousePos = PointToScreen(center);
             msPrevious = Mouse.GetState();
+            _centerMouse = true;
             sw = new Stopwatch();
             sw2 = new Stopwatch();
-
+            int w = 21;
+            int h = 21;
+            byte[] data = new byte[w * h * 4];
+            int count = 0;
+            for(int y = 0; y < h; y++)
+            {
+                for(int x = 0; x < w; x++)
+                {
+                    count++;
+                    double xd = x - w / 2.0d;
+                    double yd = y - h / 2.0d;
+                    double d = Math.Sqrt(xd * xd + yd * yd);
+                    double r = 8.0d;
+                    byte alpha = (d <= r) ? (byte)255 : (byte)((1 - (d - r)/2) * 255);
+                    if (d <= r + 2)
+                    {
+                        data[(y * w + x) * 4 + 0] = 255;
+                        data[(y * w + x) * 4 + 1] = 255;
+                        data[(y * w + x) * 4 + 2] = 255;
+                        data[(y * w + x) * 4 + 3] = alpha;
+                    }
+                    else
+                    {
+                        data[(y * w + x) * 4 + 0] = 0;
+                        data[(y * w + x) * 4 + 1] = 0;
+                        data[(y * w + x) * 4 + 2] = 0;
+                        data[(y * w + x) * 4 + 3] = 0;
+                    }
+                }
+            }
+            _cursor = new MouseCursor((w+1) / 2, (h+1) / 2, w, h, data);
             //WindowState = WindowState.Fullscreen;
         }
         
@@ -89,9 +123,6 @@ namespace DeeSynk.Core
 
             width = Width;
             height = Height;
-
-            center = new Point(Width / 2, Height / 2);
-            mousePos = PointToScreen(center);
         }
 
         /// <summary>
@@ -101,22 +132,33 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
-            GL.LineWidth(3.0f);
-            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-            GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
-            GL.Enable(EnableCap.DepthTest);
+            Managers.ModelManager.GetInstance().Load();
+            Managers.ShaderManager.GetInstance().Load();
+            Managers.TextureManager.GetInstance().Load();
+            Managers.InputManager.GetInstance().Load();
+
+            SetGLState();
 
             _camera = new Camera(1.0f, (float)Width, (float)Height, 0.001f, 300f);
             _camera.OverrideLookAtVector = true;
             _camera.Location = new Vector3(0.0f, 0.25f, 1.0f);
             _camera.UpdateMatrices();
+
             _game = new Game(ref _camera);
-            //CursorVisible = true;
 
-
+            CursorVisible = true;
+            _centerMouse = true;
             this.Cursor = MouseCursor.Empty;
-            //this.WindowState = this.WindowState | WindowState.Fullscreen;
+            Action<float> c = CenterMouse;
+            var im = InputManager.GetInstance();
 
+            im.Configurations.TryGetValue("primary move", out InputConfiguration config);
+            config.KeyboardActions.Add(Key.C, new KeyboardAction(c, Key.C, KeyActionType.SinglePress));
+            im.SetConfig("primary move");
+
+            im.Configurations.TryGetValue("unlocked mouse", out InputConfiguration config1);
+            config1.KeyboardActions.Add(Key.C, new KeyboardAction(c, Key.C, KeyActionType.SinglePress));
+            im.StartThreads(1);
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
             _game.LoadGameData();
@@ -125,14 +167,19 @@ namespace DeeSynk.Core
 
             GCCollectDebug();
 
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
             loadTimer.Stop();
             Console.WriteLine("Window loaded in {0} seconds", ((float)loadTimer.ElapsedMilliseconds) / 1000.0f);
 
             sw.Start();
             sw2.Start();
+        }
+
+        private void SetGLState()
+        {
+            GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
+            GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
 
         /// <summary>
@@ -198,20 +245,32 @@ namespace DeeSynk.Core
         protected override void OnUnload(EventArgs e)
         {
             Console.WriteLine("I listen to you sleep...");
+            InputManager.GetInstance().IsKeyboardThreadRunning = false;
+            InputManager.GetInstance().IsMouseThreadRunning = false;
         }
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
-            //Every input update should be sent to SystemInput
-            //Components that use the input somehow need to specify how these inputs are used
-            //Unless these specifications are left to SystemInput
-            //The latter may be the better option since it is unlikely that many objects (aside from UI) will require input
-            //This can also easily be managed instead of having to create classes that map
-            //device inputs to functions on other components.  The input component should also no have knowledge
-            //of the other components necessarily, so its best to keep data that might hint at what is in other components
-            //out since it has no direct use for it and will have to be mapped again anyways.
-            //_mouseInput.AddLocation(new MouseLocation(ms.Y, ms.X, betweenMoves.ElapsedTicks));
-            OpenTK.Input.Mouse.SetPosition(mousePos.X, mousePos.Y);
+            if(_centerMouse)
+                OpenTK.Input.Mouse.SetPosition(mousePos.X, mousePos.Y);
+        }
+
+        private void CenterMouse(float time)
+        {
+            _centerMouse = !_centerMouse;
+            if (!_centerMouse)
+            {
+                this.Cursor = _cursor;
+                InputManager.GetInstance().SetConfig("unlocked mouse");
+                Mouse.SetPosition(mousePos.X, mousePos.Y); //cursor only appears after an update
+            }
+            else
+            {
+                this.Cursor = MouseCursor.Empty;
+                InputManager.GetInstance().SetConfig("primary move");
+                var state = Mouse.GetState();
+                Mouse.SetPosition(state.X, state.Y); //cursor only disappears after an update
+            }
         }
 
         /// <summary>
