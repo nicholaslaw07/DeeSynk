@@ -73,7 +73,6 @@ namespace DeeSynk.Core.Systems
         private Action<float> w, a, s, d, sp, ls, esc;
         private Action<MouseMove> mouseMove, mouseAction;
 
-
         public SystemInput(ref World world, ref UI ui, ref Camera camera)
         {
             _world = world;
@@ -131,7 +130,7 @@ namespace DeeSynk.Core.Systems
         private void CameraMoveDown(float time) { _camera.AddLocation(ref V_Dn, time); }
         private void CameraRotation(MouseMove move) { _camera.AddRotation(move.dX * 0.001f, move.dY * 0.001f); }
 
-        private void MouseAction(MouseMove move) { return; }
+        private void MouseAction(MouseMove move) { }
 
         private void KeyboardToExitWindow(float time)
         {

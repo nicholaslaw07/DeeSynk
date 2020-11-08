@@ -1,4 +1,5 @@
-﻿using DeeSynk.Core.Components.Models.Tools;
+﻿using DeeSynk.Core.Components.Input;
+using DeeSynk.Core.Components.Models.Tools;
 using DeeSynk.Core.Components.UI;
 using OpenTK;
 using System;
@@ -73,7 +74,7 @@ namespace DeeSynk.Core.Components.Types.UI
         /// <summary>
         /// Each index is true if the corresponding _elementID exists.
         /// </summary>
-        public bool[] ExistingElement { get => _existingElements; }
+        public bool[] ExistingElements { get => _existingElements; }
 
         /// <summary>
         /// States whether or not this UIElement has children.
@@ -250,6 +251,8 @@ namespace DeeSynk.Core.Components.Types.UI
             }
             throw new Exception("Allocated element memory full.");
         }
+
+        public abstract void ClickAt(float time, MouseClick mouseClick, MouseMove mouseMove);
 
         public abstract bool Update(float time);
     }

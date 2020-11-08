@@ -44,6 +44,8 @@ namespace DeeSynk.Core
 
         private Camera _camera;
 
+        private Vector2 _cursorPosition;
+
         //Systems that act as a medium for components to communicate through, specific to certain purposes
         #region SYSTEMS
         private SystemInput _systemInput;

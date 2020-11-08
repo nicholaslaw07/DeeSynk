@@ -47,6 +47,9 @@ namespace DeeSynk.Core.Managers
         private List<KeyPress> _eventList;
         public List<KeyPress> EventList { get => _eventList; }
 
+        private List<MouseClick> _clickList;
+        public List<MouseClick> ClickList { get => _clickList; }
+
         private int _sleep;
         public int Sleep { get => _sleep; }
 
@@ -80,6 +83,8 @@ namespace DeeSynk.Core.Managers
 
             _monitoredKeys = new List<Key>();
             _eventList = new List<KeyPress>();
+
+            _clickList = new List<MouseClick>();
 
             _configurations = new Dictionary<string, InputConfiguration>();
         }
@@ -173,8 +178,18 @@ namespace DeeSynk.Core.Managers
             do
             {
                 var _currentState = Mouse.GetState();
-                _activeConfig.MoveAction(new MouseMove((_ms.Y - _currentState.Y), (_ms.X - _currentState.X), _mSw.ElapsedTicks));
-                _ms = _currentState;
+                if(_ms.X != _currentState.X || _ms.Y != _currentState.Y)
+                {
+                    _activeConfig.MoveAction(new MouseMove((_ms.Y - _currentState.Y), (_ms.X - _currentState.X), _mSw.ElapsedTicks));
+                    _ms = _currentState;
+                }
+
+                if (_currentState.IsButtonDown(MouseButton.Left))
+                {
+                    _activeConfig.MouseButtonActions.TryGetValue(MouseButton.Left, out MouseButtonAction action);
+                    action.Action(0.0f, new MouseClick(_currentState.X, _currentState.Y, _mSw.ElapsedTicks), new MouseMove((_ms.Y - _currentState.Y), (_ms.X - _currentState.X), _mSw.ElapsedTicks));
+                    _ms = _currentState;
+                }
 
                 //ADD BUTTON LISTENING
                 //MAYBE COMBINE THIS WITH THE OTHER THREAD

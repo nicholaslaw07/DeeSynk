@@ -1,4 +1,5 @@
-﻿using DeeSynk.Core.Components.Types.UI;
+﻿using DeeSynk.Core.Components.Input;
+using DeeSynk.Core.Components.Types.UI;
 using OpenTK;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,11 @@ namespace DeeSynk.Core.Components.UI
         public override void AddChild(UIElement e)
         {
             base.AddChild(e);
+        }
+
+        public override void ClickAt(float time, MouseClick mouseClick, MouseMove mouseMove)
+        {
+            //ADD CLICK ACTION HERE
         }
 
         public override bool Update(float time)
