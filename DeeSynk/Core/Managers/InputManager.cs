@@ -54,12 +54,17 @@ namespace DeeSynk.Core.Managers
         public int Sleep { get => _sleep; }
 
         private MouseState _ms;
+        public MouseState MouseState { get => _ms; set => _ms = value; }
 
         private Stopwatch _kSw, _mSw;
+
+        private bool _rawMouseInput;
+        public bool RawMouseInput { get => _rawMouseInput; set => _rawMouseInput = value; }
 
         private InputManager()
         {
             Load();
+            _rawMouseInput = true;
         }
 
         public static ref InputManager GetInstance()
@@ -177,17 +182,36 @@ namespace DeeSynk.Core.Managers
             Thread.Sleep(1);
             do
             {
-                var _currentState = Mouse.GetState();
-                if(_ms.X != _currentState.X || _ms.Y != _currentState.Y)
+                if (_rawMouseInput)
                 {
-                    _activeConfig.MoveAction(new MouseMove((_ms.Y - _currentState.Y), (_ms.X - _currentState.X), _mSw.ElapsedTicks));
-                    _ms = _currentState;
-                }
+                    var _currentState = Mouse.GetState();
+                    if (_ms.X != _currentState.X || _ms.Y != _currentState.Y)
+                    {
+                        _activeConfig.MoveAction(new MouseMove((_ms.Y - _currentState.Y), (_ms.X - _currentState.X), _mSw.ElapsedTicks));
+                        _ms = _currentState;
+                    }
 
-                if (_currentState.IsButtonDown(MouseButton.Left))
+                    if (_currentState.IsButtonDown(MouseButton.Left))
+                    {
+                        _activeConfig.MouseButtonActions.TryGetValue(MouseButton.Left, out MouseButtonAction action);
+                        action.Action(0.0f, new MouseClick(_currentState.X, _currentState.Y, _mSw.ElapsedTicks), new MouseMove((_ms.Y - _currentState.Y), (_ms.X - _currentState.X), _mSw.ElapsedTicks));
+                        _ms = _currentState;
+                    }
+                }
+                else
                 {
-                    _activeConfig.MouseButtonActions.TryGetValue(MouseButton.Left, out MouseButtonAction action);
-                    action.Action(0.0f, new MouseClick(_currentState.X, _currentState.Y, _mSw.ElapsedTicks), new MouseMove((_ms.Y - _currentState.Y), (_ms.X - _currentState.X), _mSw.ElapsedTicks));
+                    var _currentState = Mouse.GetCursorState();
+                    if (_ms.X != _currentState.X || _ms.Y != _currentState.Y)
+                    {
+                        _activeConfig.MoveAction(new MouseMove((_ms.Y - _currentState.Y), (_ms.X - _currentState.X), _mSw.ElapsedTicks));
+                    }
+
+                    if (_currentState.IsButtonDown(MouseButton.Left))
+                    {
+                        _activeConfig.MouseButtonActions.TryGetValue(MouseButton.Left, out MouseButtonAction action);
+                        action.Action(0.0f, new MouseClick(_currentState.X, _currentState.Y, _mSw.ElapsedTicks), new MouseMove((_currentState.X - _ms.X), (_ms.Y - _currentState.Y), _mSw.ElapsedTicks));
+                    }
+
                     _ms = _currentState;
                 }
 

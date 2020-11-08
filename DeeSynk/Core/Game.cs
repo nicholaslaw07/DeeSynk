@@ -288,7 +288,7 @@ namespace DeeSynk.Core
                     int w = MainWindow.width / 5 - 10; //input
                     int h = MainWindow.height - 10;  //input
                     //var s1 = new Vector2(-MainWindow.width / 2 + 5, -MainWindow.height / 2 + 5);  //input
-                    var s1 = new Vector2(5, 5);
+                    var s1 = new Vector2(0, 0);
                     element = new UIElementContainer(4, UIElementType.UI_CONTAINER, w, h, s1, PositionType.GLOBAL, PositionReference.CORNER_BOTTOM_LEFT, 0, _compIdx);
                     activeCanvas.AddChild(element);
 

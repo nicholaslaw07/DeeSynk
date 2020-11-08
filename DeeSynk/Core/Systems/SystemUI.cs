@@ -1,5 +1,6 @@
 ﻿using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.Input;
+using DeeSynk.Core.Components.Models.Tools;
 using DeeSynk.Core.Managers;
 using OpenTK;
 using OpenTK.Input;
@@ -21,7 +22,7 @@ namespace DeeSynk.Core.Systems
         private bool[] _monitoredGameObjects;
 
         private Vector2 _screenCenter;
-        public Vector2 ScreenCenter { get => _screenCenter; }
+        public Vector2 ScreenCenter { get => _screenCenter; set => _screenCenter = value; }
 
         private Vector2 _relativeCenter;
 
@@ -57,12 +58,6 @@ namespace DeeSynk.Core.Systems
 
         }
 
-        public void SetScreenCenter()
-        {
-            var state = Mouse.GetState();
-            _screenCenter = new Vector2(state.X, state.Y);
-        }
-
         /// <summary>
         /// Moves the selected element by the specified distance in pixels.
         /// </summary>
@@ -95,9 +90,17 @@ namespace DeeSynk.Core.Systems
                 if (_ui.GameObjects[idx].Components.HasFlag(Component.UI_CANVAS))
                 {
                     var ids = _ui.CanvasComps[idx].Canvas.ElementIDs;
-                    if(CheckClick(time, mouseClick, mouseMove, idx, new Vector2(0.0f, 0.0f), out Vector2 clickLocation) != -1)
+                    var existing = _ui.CanvasComps[idx].Canvas.ExistingElement;
+                    for(int jdx = 0; jdx < ids.Length; jdx++)
                     {
-                        Console.WriteLine("Wow");
+                        if (existing[jdx])
+                        {
+                            int clickIndex = CheckClick(time, mouseClick, mouseMove, ids[jdx], new Vector2(0.0f, 0.0f), out Vector2 clickLocation);
+                            if (clickIndex != -1)
+                            {
+                                MoveElementBy(clickIndex, new Vector2(mouseMove.dX, mouseMove.dY));
+                            }
+                        }
                     }
                 }
             }
@@ -107,8 +110,9 @@ namespace DeeSynk.Core.Systems
         {
             clickLocation = new Vector2(0.0f, 0.0f);
             Vector2 clickPos = _screenCenter - new Vector2(mouseClick.X, mouseClick.Y) + _relativeCenter;
+            clickPos = new Vector2(MainWindow.width - clickPos.X, clickPos.Y);
             var elem = _ui.ElementComps[idx].Element;
-            var pos = elem.Position - elem.ReferenceCoord;
+            var pos = elem.Position + elem.ReferenceCoord - ReferenceConverter.GetReferenceOffset2(elem.Reference, new Vector2(elem.Width, elem.Height));
             var thisPos = parentLocation + elem.Position;
             if(clickPos.X >= pos.X && clickPos.X <= pos.X + elem.Width && clickPos.Y >= pos.Y && clickPos.Y <= pos.Y + elem.Height)
             {

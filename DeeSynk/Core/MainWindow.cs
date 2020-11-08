@@ -39,8 +39,8 @@ namespace DeeSynk.Core
 
         private MouseState msPrevious;
 
-        public static int width = 1280;
-        public static int height = 720;
+        public static int width = 3840;
+        public static int height = 2160;
 
         private Stopwatch loadTimer;
 
@@ -88,7 +88,7 @@ namespace DeeSynk.Core
                     double xd = x - w / 2.0d;
                     double yd = y - h / 2.0d;
                     double d = Math.Sqrt(xd * xd + yd * yd);
-                    double r = 8.0d;
+                    double r = 6.0d;
                     byte alpha = (d <= r) ? (byte)255 : (byte)((1 - (d - r)/2) * 255);
                     if (d <= r + 2)
                     {
@@ -107,7 +107,7 @@ namespace DeeSynk.Core
                 }
             }
             _cursor = new MouseCursor((w+1) / 2, (h+1) / 2, w, h, data);
-            //WindowState = WindowState.Fullscreen;
+            WindowState = WindowState.Fullscreen;
         }
         
         /// <summary>
@@ -219,19 +219,19 @@ namespace DeeSynk.Core
                 {
                     var state = Mouse.GetState();
                     var p = new Point(state.X, state.Y);
-                    var pp = PointToClient(p);
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {pp.X}, {pp.Y} | {state.X}, {state.Y}";
+                    var pp = PointToScreen(p);
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {pp.X}, {pp.Y} | {p.X}, {p.Y}";
                 }
 
                 if (sw.ElapsedMilliseconds > 1000 / 120)
                 {
                     var state = Mouse.GetState();
                     var p = new Point(state.X, state.Y);
-                    var pp = PointToClient(p);
+                    var pp = PointToScreen(p);
                     sw.Stop();
                     //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                     fpsOld = (long)(1f / timeCount * ((float)frameCount));
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {pp.X}, {pp.Y} | {state.X}, {state.Y}"; // adds miscellaneous information to the title bar of the window
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {pp.X}, {pp.Y} | {p.X}, {p.Y}"; // adds miscellaneous information to the title bar of the window
                     timeCount = 0d;
                     frameCount = 0;
                     sw.Reset();
@@ -268,16 +268,22 @@ namespace DeeSynk.Core
             if (_centerMouse)
             {
                 this.Cursor = _cursor;
-                InputManager.GetInstance().SetConfig("unlocked mouse");
+                var im = InputManager.GetInstance();
+                im.SetConfig("unlocked mouse");
                 Mouse.SetPosition(mousePos.X, mousePos.Y); //cursor only appears after an update
-                _game.SystemUI.SetScreenCenter();
+                var state = Mouse.GetCursorState();
+                _game.SystemUI.ScreenCenter = new Vector2(state.X, state.Y);
+                im.MouseState = state;
+                im.RawMouseInput = false;
             }
             else
             {
                 this.Cursor = MouseCursor.Empty;
-                InputManager.GetInstance().SetConfig("primary move");
-                var state = Mouse.GetState();
+                var im = InputManager.GetInstance();
+                im.SetConfig("primary move");
                 Mouse.SetPosition(mousePos.X, mousePos.Y); //cursor only disappears after an update
+                im.MouseState = Mouse.GetState();
+                im.RawMouseInput = true;
             }
             _centerMouse = !_centerMouse;
         }
