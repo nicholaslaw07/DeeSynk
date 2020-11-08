@@ -39,8 +39,8 @@ namespace DeeSynk.Core
 
         private MouseState msPrevious;
 
-        public static int width = 3840;
-        public static int height = 2160;
+        public static int width =  1920;
+        public static int height = 1080;
 
         private Stopwatch loadTimer;
 
@@ -107,7 +107,7 @@ namespace DeeSynk.Core
                 }
             }
             _cursor = new MouseCursor((w+1) / 2, (h+1) / 2, w, h, data);
-            WindowState = WindowState.Fullscreen;
+            //WindowState = WindowState.Fullscreen;
         }
         
         /// <summary>
