@@ -149,15 +149,20 @@ namespace DeeSynk.Core
             CursorVisible = true;
             _centerMouse = true;
             this.Cursor = MouseCursor.Empty;
-            Action<float> c = CenterMouse;
+            Action<float, MouseArgs> c = CenterMouse;
             var im = InputManager.GetInstance();
 
             im.Configurations.TryGetValue("primary move", out InputConfiguration config);
-            config.KeyboardActions.Add(Key.C, new KeyboardAction(c, Key.C, KeyActionType.SinglePress));
+            var ll = new LinkedList<InputAssignment>();
+            ll.AddLast(new InputAssignment(InputType.Keyboard, Key.C));
+            var dl = new LinkedList<Action<float, MouseArgs>>();
+            dl.AddLast(c);
+            config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            //config.InputActions.Add(Key.C, new KeyboardAction(c, Key.C, KeyActionType.SinglePress));
             im.SetConfig("primary move");
 
             im.Configurations.TryGetValue("unlocked mouse", out InputConfiguration config1);
-            config1.KeyboardActions.Add(Key.C, new KeyboardAction(c, Key.C, KeyActionType.SinglePress));
+            config1.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
             im.StartThreads(1);
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
@@ -217,21 +222,19 @@ namespace DeeSynk.Core
 
                 if (sw.ElapsedMilliseconds % 20 == 0)
                 {
-                    var state = Mouse.GetState();
+                    var state = Mouse.GetCursorState();
                     var p = new Point(state.X, state.Y);
-                    var pp = PointToScreen(p);
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {pp.X}, {pp.Y} | {p.X}, {p.Y}";
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {p.X}, {p.Y}";
                 }
 
                 if (sw.ElapsedMilliseconds > 1000 / 120)
                 {
-                    var state = Mouse.GetState();
+                    var state = Mouse.GetCursorState();
                     var p = new Point(state.X, state.Y);
-                    var pp = PointToScreen(p);
                     sw.Stop();
                     //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                     fpsOld = (long)(1f / timeCount * ((float)frameCount));
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {pp.X}, {pp.Y} | {p.X}, {p.Y}"; // adds miscellaneous information to the title bar of the window
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {p.X}, {p.Y}"; // adds miscellaneous information to the title bar of the window
                     timeCount = 0d;
                     frameCount = 0;
                     sw.Reset();
@@ -253,8 +256,7 @@ namespace DeeSynk.Core
         protected override void OnUnload(EventArgs e)
         {
             Console.WriteLine("I listen to you sleep...");
-            InputManager.GetInstance().IsKeyboardThreadRunning = false;
-            InputManager.GetInstance().IsMouseThreadRunning = false;
+            InputManager.GetInstance().IsInputThreadRunning = false;
         }
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
@@ -263,7 +265,7 @@ namespace DeeSynk.Core
                 OpenTK.Input.Mouse.SetPosition(mousePos.X, mousePos.Y);
         }
 
-        private void CenterMouse(float time)
+        private void CenterMouse(float time, MouseArgs mArgs)
         {
             if (_centerMouse)
             {
@@ -273,7 +275,7 @@ namespace DeeSynk.Core
                 Mouse.SetPosition(mousePos.X, mousePos.Y); //cursor only appears after an update
                 var state = Mouse.GetCursorState();
                 _game.SystemUI.ScreenCenter = new Vector2(state.X, state.Y);
-                im.MouseState = state;
+                im.MouseStateScreen = state;
                 im.RawMouseInput = false;
             }
             else
@@ -282,7 +284,7 @@ namespace DeeSynk.Core
                 var im = InputManager.GetInstance();
                 im.SetConfig("primary move");
                 Mouse.SetPosition(mousePos.X, mousePos.Y); //cursor only disappears after an update
-                im.MouseState = Mouse.GetState();
+                im.MouseStateRaw = Mouse.GetState();
                 im.RawMouseInput = true;
             }
             _centerMouse = !_centerMouse;

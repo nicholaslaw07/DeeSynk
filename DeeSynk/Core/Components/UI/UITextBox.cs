@@ -13,7 +13,7 @@ namespace DeeSynk.Core.Components.UI
     {
         public override string ID_GLOBAL_DEFAULT => "TEXT_BOX";
 
-        public override void ClickAt(float time, MouseClick mouseClick, MouseMove mouseMove)
+        public override void ClickAt(float time, MousePosition mouseClick, MouseMove mouseMove)
         {
             throw new NotImplementedException();
         }

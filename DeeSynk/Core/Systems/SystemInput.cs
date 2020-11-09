@@ -70,8 +70,8 @@ namespace DeeSynk.Core.Systems
 
         public delegate void k1();
 
-        private Action<float> w, a, s, d, sp, ls, esc;
-        private Action<MouseMove> mouseMove, mouseAction;
+        private Action<float, MouseArgs> w, a, s, d, sp, ls, esc;
+        private Action<float, MouseArgs> mouseMove, mouseAction;
 
         public SystemInput(ref World world, ref UI ui, ref Camera camera)
         {
@@ -96,19 +96,78 @@ namespace DeeSynk.Core.Systems
             var im = InputManager.GetInstance();
             im.Configurations.TryGetValue("primary move", out InputConfiguration config);
 
-            config.KeyboardActions.Add(Key.W, new KeyboardAction(w, Key.W, KeyActionType.RepeatOnHold));
-            config.KeyboardActions.Add(Key.S, new KeyboardAction(s, Key.S, KeyActionType.RepeatOnHold));
-            config.KeyboardActions.Add(Key.A, new KeyboardAction(a, Key.A, KeyActionType.RepeatOnHold));
-            config.KeyboardActions.Add(Key.D, new KeyboardAction(d, Key.D, KeyActionType.RepeatOnHold));
-            config.KeyboardActions.Add(Key.Space, new KeyboardAction(sp, Key.Space, KeyActionType.RepeatOnHold));
-            config.KeyboardActions.Add(Key.LShift, new KeyboardAction(ls, Key.LShift, KeyActionType.RepeatOnHold));
-            config.KeyboardActions.Add(Key.Escape, new KeyboardAction(esc, Key.Escape, KeyActionType.SinglePress));
-            config.MoveAction = mouseMove;
+            {
+                var ll = new LinkedList<InputAssignment>();
+                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.W));
+                var dl = new LinkedList<Action<float, MouseArgs>>();
+                dl.AddLast(w);
+                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            }
+            {
+                var ll = new LinkedList<InputAssignment>();
+                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.S));
+                var dl = new LinkedList<Action<float, MouseArgs>>();
+                dl.AddLast(s);
+                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            }
+            {
+                var ll = new LinkedList<InputAssignment>();
+                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.A));
+                var dl = new LinkedList<Action<float, MouseArgs>>();
+                dl.AddLast(a);
+                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            }
+            {
+                var ll = new LinkedList<InputAssignment>();
+                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.D));
+                var dl = new LinkedList<Action<float, MouseArgs>>();
+                dl.AddLast(d);
+                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            }
+            {
+                var ll = new LinkedList<InputAssignment>();
+                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.Space));
+                var dl = new LinkedList<Action<float, MouseArgs>>();
+                dl.AddLast(sp);
+                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            }
+            {
+                var ll = new LinkedList<InputAssignment>();
+                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.LShift));
+                var dl = new LinkedList<Action<float, MouseArgs>>();
+                dl.AddLast(ls);
+                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            }
+            {
+                var ll = new LinkedList<InputAssignment>();
+                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.Escape));
+                var dl = new LinkedList<Action<float, MouseArgs>>();
+                dl.AddLast(esc);
+                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            }
+            {
+                var ll = new LinkedList<InputAssignment>();
+                ll.AddLast(new InputAssignment(InputType.MouseMove));
+                var dl = new LinkedList<Action<float, MouseArgs>>();
+                dl.AddLast(mouseMove);
+                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            }
 
             im.Configurations.TryGetValue("unlocked mouse", out InputConfiguration config1);
-            mouseAction = MouseAction;
-            config1.MoveAction = mouseAction;
-            config1.KeyboardActions.Add(Key.Escape, new KeyboardAction(esc, Key.Escape, KeyActionType.SinglePress));
+            {
+                var ll = new LinkedList<InputAssignment>();
+                ll.AddLast(new InputAssignment(InputType.MouseMove));
+                var dl = new LinkedList<Action<float, MouseArgs>>();
+                dl.AddLast(mouseAction);
+                config1.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            }
+            {
+                var ll = new LinkedList<InputAssignment>();
+                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.Escape));
+                var dl = new LinkedList<Action<float, MouseArgs>>();
+                dl.AddLast(esc);
+                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            }
         }
 
         public void StartThreads()
@@ -122,17 +181,17 @@ namespace DeeSynk.Core.Systems
             _camera = camera;
         }
 
-        private void CameraMoveFront(float time) { _camera.AddLocation(ref V_W, time); }
-        private void CameraMoveBack(float time) { _camera.AddLocation(ref V_S, time); }
-        private void CameraMoveLeft(float time) { _camera.AddLocation(ref V_A, time); }
-        private void CameraMoveRight(float time) { _camera.AddLocation(ref V_D, time); }
-        private void CameraMoveUp(float time) { _camera.AddLocation(ref V_Up, time); }
-        private void CameraMoveDown(float time) { _camera.AddLocation(ref V_Dn, time); }
-        private void CameraRotation(MouseMove move) { _camera.AddRotation(move.dX * 0.001f, move.dY * 0.001f); }
+        private void CameraMoveFront(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_W, time); }
+        private void CameraMoveBack(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_S, time); }
+        private void CameraMoveLeft(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_A, time); }
+        private void CameraMoveRight(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_D, time); }
+        private void CameraMoveUp(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_Up, time); }
+        private void CameraMoveDown(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_Dn, time); }
+        private void CameraRotation(float time, MouseArgs mArgs) { _camera.AddRotation(-mArgs.dY * 0.001f, -mArgs.dX * 0.001f); }
 
         private void MouseAction(MouseMove move) { }
 
-        private void KeyboardToExitWindow(float time)
+        private void KeyboardToExitWindow(float time, MouseArgs mArgs)
         {
             _shutDownProgram = true;
         }

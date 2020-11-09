@@ -1,6 +1,7 @@
 ﻿using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.Input;
 using DeeSynk.Core.Components.Models.Tools;
+using DeeSynk.Core.Components.UI;
 using DeeSynk.Core.Managers;
 using OpenTK;
 using OpenTK.Input;
@@ -35,8 +36,8 @@ namespace DeeSynk.Core.Systems
             _relativeCenter = new Vector2(MainWindow.width / 2, MainWindow.height / 2);
 
             InputManager.GetInstance().Configurations.TryGetValue("unlocked mouse", out InputConfiguration config);
-            Action<float, MouseClick, MouseMove> action = MouseAction;
-            config.MouseButtonActions.Add(MouseButton.Left, new MouseButtonAction(action, MouseButton.Left, MouseActionType.Hybrid));
+            Action<float, MousePosition, MouseMove> action = MouseAction;
+            //config.MouseButtonActions.Add(MouseButton.Left, new MouseButtonAction(action, MouseButton.Left, MouseActionType.Hybrid));
         }
 
         public void UpdateMonitoredGameObjects()
@@ -83,7 +84,7 @@ namespace DeeSynk.Core.Systems
             }
         }
 
-        public void MouseAction(float time, MouseClick mouseClick, MouseMove mouseMove)
+        public void MouseAction(float time, MousePosition mouseClick, MouseMove mouseMove)
         {
             for (int idx = 0; idx < _monitoredGameObjects.Length; idx++)
             {
@@ -106,23 +107,22 @@ namespace DeeSynk.Core.Systems
             }
         }
 
-        private int CheckClick(float time, MouseClick mouseClick, MouseMove mouseMove, int idx, Vector2 parentLocation, out Vector2 clickLocation)
+        private int CheckClick(float time, MousePosition mouseClick, MouseMove mouseMove, int idx, Vector2 parentLocation, out Vector2 clickLocation)
         {
             clickLocation = new Vector2(0.0f, 0.0f);
             Vector2 clickPos = _screenCenter - new Vector2(mouseClick.X, mouseClick.Y) + _relativeCenter;
             clickPos = new Vector2(MainWindow.width - clickPos.X, clickPos.Y);
             var elem = _ui.ElementComps[idx].Element;
-            var pos = elem.Position + elem.ReferenceCoord - ReferenceConverter.GetReferenceOffset2(elem.Reference, new Vector2(elem.Width, elem.Height));
-            var thisPos = parentLocation + elem.Position;
-            if(clickPos.X >= pos.X && clickPos.X <= pos.X + elem.Width && clickPos.Y >= pos.Y && clickPos.Y <= pos.Y + elem.Height)
+            var pos = parentLocation + elem.Position + elem.ReferenceCoord - ReferenceConverter.GetReferenceOffset2(PositionReference.CORNER_BOTTOM_LEFT, new Vector2(elem.Width, elem.Height));
+            if (clickPos.X >= pos.X && clickPos.X <= pos.X + elem.Width && clickPos.Y >= pos.Y && clickPos.Y <= pos.Y + elem.Height)
             {
                 var existing = elem.ExistingElements;
-                for(int jdx = 0; jdx < existing.Length; jdx++)
+                for (int jdx = 0; jdx < existing.Length; jdx++)
                 {
                     if (existing[jdx])
                     {
-                        var childPos = thisPos + elem.Position;
-                        int childCheck = CheckClick(time, mouseClick, mouseMove, elem.ChildElementIDs[jdx], childPos, out clickLocation);
+                        var childPos = pos + elem.Position;
+                        int childCheck = CheckClick(time, mouseClick, mouseMove, elem.ChildElementIDs[jdx], pos, out clickLocation);
                         if (childCheck != -1)
                         {
                             clickLocation = clickPos - childPos;
@@ -130,7 +130,7 @@ namespace DeeSynk.Core.Systems
                         }
                     }
                 }
-                clickLocation = clickPos - thisPos;
+                clickLocation = clickPos - pos;
                 return idx;
             }
 

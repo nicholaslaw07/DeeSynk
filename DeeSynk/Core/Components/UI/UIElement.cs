@@ -252,7 +252,7 @@ namespace DeeSynk.Core.Components.Types.UI
             throw new Exception("Allocated element memory full.");
         }
 
-        public abstract void ClickAt(float time, MouseClick mouseClick, MouseMove mouseMove);
+        public abstract void ClickAt(float time, MousePosition mouseClick, MouseMove mouseMove);
 
         public abstract bool Update(float time);
     }
