@@ -90,16 +90,8 @@ namespace DeeSynk.Core.Managers
         private Dictionary<string, InputConfiguration> _configurations;
         public Dictionary<string, InputConfiguration> Configurations { get => _configurations; }
 
-        private List<Key> _monitoredKeys;
-
-        private List<KeyPress> _eventList;
-        public List<KeyPress> EventList { get => _eventList; }
-
         private Dictionary<InputEvent, long> _events;
         public Dictionary<InputEvent, long> Events { get => _events; }
-
-        private List<MousePosition> _clickList;
-        public List<MousePosition> ClickList { get => _clickList; }
 
         private int _sleep;
         public int Sleep { get => _sleep; }
@@ -147,16 +139,11 @@ namespace DeeSynk.Core.Managers
 
             _inputListener = new Thread(new ThreadStart(InputListen));
 
-            _monitoredKeys = new List<Key>();
-            _eventList = new List<KeyPress>();
-
             _events = new Dictionary<InputEvent, long>();
 
             _t = new Stopwatch();
             totTime = 0;
             count = 0;
-
-            _clickList = new List<MousePosition>();
 
             _configurations = new Dictionary<string, InputConfiguration>();
             _completeActions = new List<InputAction>();
@@ -231,27 +218,34 @@ namespace DeeSynk.Core.Managers
                 bool mouseMoveScreen = ((msScreen.X - _msScreen.X) != 0) || ((msScreen.Y - _msScreen.Y) != 0);
                 bool mouseScroll = (msRaw.ScrollWheelValue - _msRaw.ScrollWheelValue) != 0;
 
+                //Console.WriteLine("{0} {1} {2} {3} {4}   {5} {6} {7} {8} {9}", _msRaw.X, _msRaw.Y, msRaw.X, msRaw.Y, mouseMoveRaw, _msScreen.X, _msScreen.Y, msScreen.X, msScreen.Y, mouseMoveScreen);
+                Console.WriteLine(_events.Keys.Count());
+
                 for (int idx = 1; idx < 132; idx++)
                 {
                     var ie = new InputEvent((Key)idx);
                     if (kbs.IsKeyDown((Key)idx))
                     {
-                        if (_events.Keys.Contains(ie))
+                        if (_events.Keys.Where(ke => ke.PressType == PressType.Keyboard).Where(k => k.Key == (Key)idx).Count() == 0)
                             _events.Add(ie, t);
                     }
-                    else
+                    else if(kbs.IsKeyUp((Key)idx))
                     {
-                        if (_events.Keys.Contains(ie))
-                            _events.Remove(ie);
+                        if (_events.TryGetValue(ie, out long tt))
+                        {
+                            if (_events.Remove(ie))
+                                Console.WriteLine("yes");
+                        }
                     }
                 }
 
+                var _keys = _events.Keys;
                 for (int idx = 0; idx < 13; idx++)
                 {
                     var ie = new InputEvent((MouseButton)idx);
                     if (msRaw.IsButtonDown((MouseButton)idx))
                     {
-                        if (_events.Keys.Contains(ie))
+                        if (!_events.Keys.Contains(ie))
                             _events.Add(ie, t);
                     }
                     else
@@ -340,7 +334,7 @@ namespace DeeSynk.Core.Managers
                                 }
                             }
                         }
-                        else if (inputAction.Qualifiers == Qualifiers.DEFAULT)
+                        else
                         {
                             if ((_events.Count() - index) >= inputAction.InputCombination.Count())
                             {
@@ -365,6 +359,10 @@ namespace DeeSynk.Core.Managers
                             }
                         }
                     }
+                    else
+                    {
+                        pass = false;
+                    }
 
                     if (pass == true)
                     {
@@ -385,7 +383,11 @@ namespace DeeSynk.Core.Managers
                         }
                         continue;
                     }
+                    Console.WriteLine(pass);
                 }
+
+                _msRaw = msRaw;
+                _msScreen = msScreen;
 
                 totTime += _t.ElapsedTicks;
                 count++;
