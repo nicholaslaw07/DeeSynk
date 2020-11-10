@@ -1,6 +1,7 @@
 ﻿using OpenTK.Input;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DeeSynk.Core.Components.Input
 {
-    public enum KeyActionType
+    /*public enum KeyActionType
     {
         RepeatOnHold = 0,
         WaitForRelease = 1,
@@ -131,7 +132,7 @@ namespace DeeSynk.Core.Components.Input
             _button = button;
             _buttonActionType = buttonActionType;
         }
-    }
+    }*/
 
     //+++++----------+++++//
 
@@ -153,12 +154,14 @@ namespace DeeSynk.Core.Components.Input
 
     [Flags]
     public enum Qualifiers : byte
-    {
-        DEFAULT = 0,  //Default option is that all keys must be pressed in order with no other keys inbetween
+    {  //Default option is that all keys must be pressed in order with no other keys inbetween
         NO_ORDER = 1,
-        IGNORE_BREAKS = 1 << 1,
-        IGNORE_BEFORE = 1 << 2,
-        IGNORE_AFTER = 1 << 3
+        IN_ORDER = 1 << 1,
+        IGNORE_BREAKS = 1 << 2,
+        IGNORE_BEFORE = 1 << 3,
+        IGNORE_AFTER = 1 << 4,
+
+        IN_ORDER_IGNORE_ALL = IN_ORDER | IGNORE_BEFORE | IGNORE_AFTER
     }
 
     public struct MouseArgs
@@ -291,66 +294,81 @@ namespace DeeSynk.Core.Components.Input
         /// </summary>
         public ActionInvoke InvokeCriteria { get => _invokeCriteria; }
 
-        private LinkedList<InputAssignment> _inputCombination;
+        private List<InputAssignment> _inputCombination;
         /// <summary>
         /// Represents the order in which keys must be pressed and held (if qualifier flags is selected) in order to active the associated actions.
         /// </summary>
-        public LinkedList<InputAssignment> InputCombination { get => _inputCombination; }
+        public List<InputAssignment> InputCombination { get => _inputCombination; }
 
-        private LinkedList<Action<float, MouseArgs>> _downActions;
+        private List<Action<float, MouseArgs>> _downActions;
         /// <summary>
         /// Represents all actions that are performed when the combination is initially satisfied.  These are in order of execution from first to last.
         /// </summary>
-        public LinkedList<Action<float, MouseArgs>> DownActions { get => _downActions; set => _downActions = value; }
+        public List<Action<float, MouseArgs>> DownActions
+        {
+            get => _downActions;
+            set
+            {
+                if(value.Count() > 0)
+                {
+                    _downActions = value;
+                    _invokeCriteria |= ActionInvoke.Down;
+                }
+            }
+        }
 
-        private LinkedList<Action<float, MouseArgs>> _holdActions;
+        private List<Action<float, MouseArgs>> _holdActions;
         /// <summary>
         /// Represents all actions that are performed when the combination is maintained.  These are in order of execution from first to last.
         /// </summary>
-        public LinkedList<Action<float, MouseArgs>> HoldActions { get => _holdActions; set => _holdActions = value; }
+        public List<Action<float, MouseArgs>> HoldActions
+        {
+            get => _holdActions;
+            set
+            {
+                if (value.Count() > 0)
+                {
+                    _holdActions = value;
+                    _invokeCriteria |= ActionInvoke.Hold;
+                }
+            }
+        }
 
-        private LinkedList<Action<float, MouseArgs>> _upActions;
+        private List<Action<float, MouseArgs>> _upActions;
         /// <summary>
         /// Represents all actions that are performed when the combination is released.  These are in order of execution from first to last.
         /// </summary>
-        public LinkedList<Action<float, MouseArgs>> UpActions { get => _upActions; set => _upActions = value; }
+        public List<Action<float, MouseArgs>> UpActions
+        {
+            get => _upActions;
+            set
+            {
+                if (value.Count() > 0)
+                {
+                    _upActions = value;
+                    _invokeCriteria |= ActionInvoke.Up;
+                }
+            }
+        }
 
         public InputAction()
         {
-            _inputCombination = new LinkedList<InputAssignment>();
-            _downActions = new LinkedList<Action<float, MouseArgs>>();
-            _holdActions = new LinkedList<Action<float, MouseArgs>>();
-            _upActions = new LinkedList<Action<float, MouseArgs>>();
+            _inputCombination = new List<InputAssignment>();
+            _downActions = new List<Action<float, MouseArgs>>();
+            _holdActions = new List<Action<float, MouseArgs>>();
+            _upActions = new List<Action<float, MouseArgs>>();
         }
 
-        public InputAction(Qualifiers qualifiers, ActionInvoke invokeCriteria, LinkedList<InputAssignment> inputCombination, LinkedList<Action<float, MouseArgs>> downActions, LinkedList<Action<float, MouseArgs>> holdActions, LinkedList<Action<float, MouseArgs>> upActions)
+        public InputAction(Qualifiers qualifiers, List<InputAssignment> inputCombination)
         {
             if (inputCombination.Count() > 1 && (inputCombination.First().InputType == InputType.MouseScroll || inputCombination.First().InputType == InputType.MouseMove))
                 throw new ArgumentException("Mouse scroll or mouse move cannot be the first argument in a combination.");
 
             _qualifiers = qualifiers;
-            _invokeCriteria = invokeCriteria;
             _inputCombination = inputCombination;
-            _downActions = downActions;
-            _holdActions = holdActions;
-            _upActions = upActions;
-        }
-
-        public InputAction(Qualifiers qualifiers, ActionInvoke invokeCriteria, LinkedList<InputAssignment> inputCombination, LinkedList<Action<float, MouseArgs>> actions)
-        {
-            if (inputCombination.Count() > 1 && (inputCombination.First().InputType == InputType.MouseScroll || inputCombination.First().InputType == InputType.MouseMove))
-                throw new ArgumentException("Mouse scroll or mouse move cannot be the first argument in a combination.");
-
-            _qualifiers = qualifiers;
-            _invokeCriteria = invokeCriteria;
-            _inputCombination = inputCombination;
-
-            switch (invokeCriteria)
-            {
-                case (ActionInvoke.Down): _downActions = actions; _holdActions = new LinkedList<Action<float, MouseArgs>>(); _upActions = new LinkedList<Action<float, MouseArgs>>(); break;
-                case (ActionInvoke.Hold): _holdActions = actions; _downActions = new LinkedList<Action<float, MouseArgs>>(); _upActions = new LinkedList<Action<float, MouseArgs>>(); break;
-                case (ActionInvoke.Up): _upActions = actions; _downActions = new LinkedList<Action<float, MouseArgs>>(); _holdActions = new LinkedList<Action<float, MouseArgs>>(); break;
-            }
+            _downActions = new List<Action<float, MouseArgs>>();
+            _holdActions = new List<Action<float, MouseArgs>>();
+            _upActions = new List<Action<float, MouseArgs>>();
         }
 
         public void RunDownActions(float time, MouseArgs mArg)
@@ -374,64 +392,15 @@ namespace DeeSynk.Core.Components.Input
 
     public class InputConfiguration
     {
-        /*private Dictionary<Key, KeyboardAction> _keyboardActions;
-        public Dictionary<Key, KeyboardAction> KeyboardActions { get => _keyboardActions; set => _keyboardActions = value; }
-
-        private Dictionary<MouseButton, MouseButtonAction> _mouseButtonActions;
-        public Dictionary<MouseButton, MouseButtonAction> MouseButtonActions { get => _mouseButtonActions; set => _mouseButtonActions = value; }
-
-        private Action<MouseMove> _moveAction;
-        public Action<MouseMove> MoveAction { get => _moveAction; set => _moveAction = value; }
-
-        private Action<MouseScroll> _scrollAction;
-        public Action<MouseScroll> ScrollAction { get => _scrollAction; set => _scrollAction = value; }*/
-
-
-        //+++++---------+++++//
-
         private bool _rawMouse;
         public bool RawMouse { get => _rawMouse; set => _rawMouse = value; }
 
         private LinkedList<InputAction> _inputActions;
         public LinkedList<InputAction> InputActions { get => _inputActions; set => _inputActions = value; }
 
-        private bool _hasMoveAction;
-        public bool HasMoveAction { get => _hasMoveAction; }
-
-        private bool _hasScrollAction;
-        public bool HasScrollAction { get => _hasScrollAction; }
-
-        private bool _hasButtonAction;
-        public bool HasButtonAction { get => _hasButtonAction; }
-
-        private bool _hasKeyAction;
-        public bool HasKeyAction { get => _hasKeyAction; }
-
         public InputConfiguration()
         {
             _inputActions = new LinkedList<InputAction>();
-        }
-
-        public void UpdateActionState()
-        {
-            _hasMoveAction = false;
-            _hasScrollAction = false;
-            _hasButtonAction = false;
-            _hasMoveAction = false;
-
-            foreach(var action in _inputActions)
-            {
-                foreach(var assignment in action.InputCombination)
-                {
-                    switch (assignment.InputType)
-                    {
-                        case (InputType.MouseMove): _hasMoveAction |= true; break;
-                        case (InputType.Keyboard): _hasKeyAction |= true; break;
-                        case (InputType.MouseButton): _hasButtonAction |= true; break;
-                        case (InputType.MouseScroll): _hasScrollAction|= true; break;
-                    }
-                }
-            }
         }
     }
 }

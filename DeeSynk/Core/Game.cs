@@ -104,7 +104,6 @@ namespace DeeSynk.Core
             InjectWorldData();
             InjectUIData();
             _init = true;
-            _systemInput.StartThreads();
         }
 
         public void CreateComponents()

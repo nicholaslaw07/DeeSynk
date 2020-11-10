@@ -35,7 +35,7 @@ namespace DeeSynk.Core.Components.UI
             base.AddChild(e);
         }
 
-        public override void ClickAt(float time, MousePosition mouseClick, MouseMove mouseMove)
+        public override void ClickAt(float time, MouseArgs args)
         {
             //ADD CLICK ACTION HERE
         }

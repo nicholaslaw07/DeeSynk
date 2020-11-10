@@ -152,17 +152,25 @@ namespace DeeSynk.Core
             Action<float, MouseArgs> c = CenterMouse;
             var im = InputManager.GetInstance();
 
-            im.Configurations.TryGetValue("primary move", out InputConfiguration config);
-            var ll = new LinkedList<InputAssignment>();
-            ll.AddLast(new InputAssignment(InputType.Keyboard, Key.C));
-            var dl = new LinkedList<Action<float, MouseArgs>>();
-            dl.AddLast(c);
-            config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            //config.InputActions.Add(Key.C, new KeyboardAction(c, Key.C, KeyActionType.SinglePress));
-            im.SetConfig("primary move");
-
-            im.Configurations.TryGetValue("unlocked mouse", out InputConfiguration config1);
-            config1.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
+            {
+                var ic = new List<InputAssignment>();
+                ic.Add(new InputAssignment(InputType.Keyboard, Key.C));
+                var dl = new List<Action<float, MouseArgs>>();
+                dl.Add(c);
+                {
+                    im.Configurations.TryGetValue("primary move", out InputConfiguration config);
+                    var ia = new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ic);
+                    ia.UpActions = dl;
+                    config.InputActions.AddLast(ia);
+                    im.SetConfig("primary move");
+                }
+                {
+                    im.Configurations.TryGetValue("unlocked mouse", out InputConfiguration config1);
+                    var ia = new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ic);
+                    ia.UpActions = dl;
+                    config1.InputActions.AddLast(ia);
+                }
+            }
             im.StartThreads(1);
 
             Console.WriteLine(GL.GetString(StringName.Renderer));
@@ -224,17 +232,19 @@ namespace DeeSynk.Core
                 {
                     var state = Mouse.GetCursorState();
                     var p = new Point(state.X, state.Y);
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {p.X}, {p.Y}";
+                    var t = InputManager.GetInstance().AverageTime / 10000.0f;
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {p.X}, {p.Y} | {t}ms";
                 }
 
                 if (sw.ElapsedMilliseconds > 1000 / 120)
                 {
                     var state = Mouse.GetCursorState();
                     var p = new Point(state.X, state.Y);
+                    var t = InputManager.GetInstance().AverageTime / 10000.0f;
                     sw.Stop();
                     //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                     fpsOld = (long)(1f / timeCount * ((float)frameCount));
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {p.X}, {p.Y}"; // adds miscellaneous information to the title bar of the window
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {Width}x{Height} | {RoundVector(_camera.Location, 2)} | {p.X}, {p.Y} | {t}ms"; // adds miscellaneous information to the title bar of the window
                     timeCount = 0d;
                     frameCount = 0;
                     sw.Reset();
@@ -265,7 +275,7 @@ namespace DeeSynk.Core
                 OpenTK.Input.Mouse.SetPosition(mousePos.X, mousePos.Y);
         }
 
-        private void CenterMouse(float time, MouseArgs mArgs)
+        private void CenterMouse(float time, MouseArgs args)
         {
             if (_centerMouse)
             {

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using OpenTK.Graphics.ES11;
 using OpenTK.Input;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
@@ -21,10 +22,10 @@ namespace DeeSynk.Core.Managers
         MouseButton = 2
     }
 
-    public class InputEvent
+    public struct Press : IEquatable<Press>
     {
-        private PressType _pressType;
-        public PressType PressType { get => _pressType; }
+        private PressType _type;
+        public PressType Type { get => _type; }
 
         private Key _key;
         public Key Key { get => _key; }
@@ -32,50 +33,76 @@ namespace DeeSynk.Core.Managers
         private MouseButton _button;
         public MouseButton Button { get => _button; }
 
-        public InputEvent()
+        public Press(Key key)
         {
-            _pressType = PressType.INVALID;
-        }
-
-        public InputEvent(Key key)
-        {
-            _pressType = PressType.Keyboard;
+            _type = PressType.Keyboard;
             _key = key;
+            _button = MouseButton.Button9;
         }
 
-        public InputEvent(MouseButton button)
+        public Press(MouseButton button)
         {
-            _pressType = PressType.MouseButton;
+            _type = PressType.MouseButton;
+            _key = Key.Unknown;
             _button = button;
         }
 
-        public InputEvent(InputAssignment assignment)
+        public Press(InputAssignment assignment)
         {
-            if (assignment.InputType == InputType.Keyboard)
+            switch (assignment.InputType)
             {
-                _pressType = PressType.Keyboard;
-                _key = assignment.Key;
+                case (InputType.Keyboard): _type = PressType.Keyboard; _key = assignment.Key; _button = MouseButton.Button9; break;
+                case (InputType.MouseButton): _type = PressType.MouseButton; _key = Key.Unknown; _button = assignment.Button; break;
+                default: _type = PressType.INVALID; _key = Key.Unknown; _button = MouseButton.Button9; break;
             }
-            else if (assignment.InputType == InputType.MouseButton)
-            {
-                _pressType = PressType.MouseButton;
-                _button = assignment.Button;
-            }
-            else
-                _pressType = PressType.INVALID;
+        }
+
+        public bool Equals(Press other)
+        {
+            if (_type == other._type && _key == other._key && _button == other._button)
+                return true;
+            return false;
+        }
+
+        public static bool operator ==(Press p1, Press p2)
+        {
+            return p1.Equals(p2);
+        }
+
+        public static bool operator !=(Press p1, Press p2)
+        {
+            return !p1.Equals(p2);
+        }
+
+        public override string ToString()
+        {
+            return $"{_type} {_key} {_button}";
+        }
+    }
+
+    public class InputEvent
+    {
+        private Press _press;
+        public Press Press { get => _press; }
+
+        private long _time;
+        public long Time { get => _time; }
+
+        public InputEvent()
+        {
+            _press = new Press();
+            _time = 0L;
+        }
+
+        public InputEvent(Press press, long time)
+        {
+            _press = press;
+            _time = time;
         }
     }
 
     public class InputManager : IManager
     {
-        //Can we justify this???
-        //We could load control sets and schemes that then bind serialized actions to control configurations
-        //This would make the Input a more global thing.  This removes the need possible for some functionality of system input.
-        //This also allows us to more easily bind functions to the MainWindow.
-        //This paves the way for action and delegate bindings which goes slightly against ECS but removes the need for constantly scanning all objects.
-        //However this could also be harmful.
-        //I guess the issue is that I'm having a hard time justifying SystemInput or InputManager.
-
         private static InputManager _inputManager;
 
         private Thread _inputListener;
@@ -90,8 +117,7 @@ namespace DeeSynk.Core.Managers
         private Dictionary<string, InputConfiguration> _configurations;
         public Dictionary<string, InputConfiguration> Configurations { get => _configurations; }
 
-        private Dictionary<InputEvent, long> _events;
-        public Dictionary<InputEvent, long> Events { get => _events; }
+        private List<InputEvent> _events;
 
         private int _sleep;
         public int Sleep { get => _sleep; }
@@ -102,7 +128,7 @@ namespace DeeSynk.Core.Managers
         private MouseState _msScreen;
         public MouseState MouseStateScreen { get => _msScreen; set => _msScreen = value; }
 
-        private Stopwatch _kSw, _mSw;
+        private Stopwatch _kSw;
 
         private bool _rawMouseInput;
         public bool RawMouseInput { get => _rawMouseInput; set => _rawMouseInput = value; }
@@ -114,6 +140,10 @@ namespace DeeSynk.Core.Managers
         private Stopwatch _t;
         private long totTime;
         private long count;
+        private long _avgTime;
+        private long _maxTime;
+        public long AverageTime { get => _avgTime; }
+        public long MaxTime { get => _maxTime; }
 
         private InputManager()
         {
@@ -135,11 +165,10 @@ namespace DeeSynk.Core.Managers
         public void Load()
         {
             _kSw = new Stopwatch();
-            _mSw = new Stopwatch();
 
             _inputListener = new Thread(new ThreadStart(InputListen));
 
-            _events = new Dictionary<InputEvent, long>();
+            _events = new List<InputEvent>();
 
             _t = new Stopwatch();
             totTime = 0;
@@ -153,7 +182,6 @@ namespace DeeSynk.Core.Managers
 
         public bool SetConfig(string name)
         {
-            //wait until the thread has finished its cycle?
             if (_configurations.TryGetValue(name, out InputConfiguration config))
             {
                 _activeConfig = config;
@@ -173,38 +201,12 @@ namespace DeeSynk.Core.Managers
             _inputListener.Start();
         }
 
-        //Add a general input event.
-        //This will allow for the detection of mouse movement, mouse buttons, and key presses simultaneously.
-        //The main challenge will be to find a way to distinguish say W versus Ctrl+W.\
-        //This will require that keys be pressed in the correct order.
-        //This is what the modifier keys are for.
-        //While me way not neccessarily disallow it.  We should establish convention that only modifier keys are used
-        //in combination with other keys.
-        //In the case where we have a key pair and single key that both begin with the same key then the first key will active and
-        //once the second key of the pair is added to the combo then the function for the pair will activate.
-        //We also need to add the ability to add multiple Actions to a single keypress.
-
-        //Update events list with up and down for kb and mb
-        //Check if actions are satisfied and compare to dictionary from previous loop.
-        //If action status is different, update dictionary to reflect this or simply refresh dictionary each loop.
-        //Ensure that the checks account for all qualifiers.
-        //After each check ensure that all necessary actions are completed depending on the state change type (up, down, hold)
-        //Get rid of old garbage code and update all action methods to include the general parameters.
-
-        //Add auto detect sleep if code takes more than a certain period of time to compelte.
-
-        //Ensure that this can be optimized also.  The principle seems inefficient as it is.  40-50 microsends seems excessive.
-
-
-        //Updates the current state to match all inputs that occured between updates.
-
         private void InputListen() //stopwatch should never need to be restarted in theory
         {
             _isInputThreadRunning = true;
             _msRaw = Mouse.GetState();
             _msScreen = Mouse.GetCursorState();
             _kSw.Start();
-            _mSw.Start();
             _t.Start();
             do
             {
@@ -215,80 +217,71 @@ namespace DeeSynk.Core.Managers
                 long t = _kSw.ElapsedTicks;
 
                 bool mouseMoveRaw = ((msRaw.X - _msRaw.X) != 0) || ((msRaw.Y - _msRaw.Y) != 0);
-                bool mouseMoveScreen = ((msScreen.X - _msScreen.X) != 0) || ((msScreen.Y - _msScreen.Y) != 0);
                 bool mouseScroll = (msRaw.ScrollWheelValue - _msRaw.ScrollWheelValue) != 0;
-
-                //Console.WriteLine("{0} {1} {2} {3} {4}   {5} {6} {7} {8} {9}", _msRaw.X, _msRaw.Y, msRaw.X, msRaw.Y, mouseMoveRaw, _msScreen.X, _msScreen.Y, msScreen.X, msScreen.Y, mouseMoveScreen);
-                Console.WriteLine(_events.Keys.Count());
 
                 for (int idx = 1; idx < 132; idx++)
                 {
-                    var ie = new InputEvent((Key)idx);
-                    if (kbs.IsKeyDown((Key)idx))
+                    Key k = (Key)idx;
+                    var ie = new InputEvent(new Press(k), t);
+                    if (kbs.IsKeyDown(k))
                     {
-                        if (_events.Keys.Where(ke => ke.PressType == PressType.Keyboard).Where(k => k.Key == (Key)idx).Count() == 0)
-                            _events.Add(ie, t);
+                        if (!IsEventRegistered(k))
+                            _events.Add(ie);
                     }
-                    else if(kbs.IsKeyUp((Key)idx))
+                    else //if(kbs.IsKeyUp(k))
                     {
-                        if (_events.TryGetValue(ie, out long tt))
-                        {
-                            if (_events.Remove(ie))
-                                Console.WriteLine("yes");
-                        }
+                        if (IsEventRegistered(k))
+                            Remove(k);
                     }
                 }
 
-                var _keys = _events.Keys;
                 for (int idx = 0; idx < 13; idx++)
                 {
-                    var ie = new InputEvent((MouseButton)idx);
-                    if (msRaw.IsButtonDown((MouseButton)idx))
+                    MouseButton b = (MouseButton)idx;
+                    var ie = new InputEvent(new Press((MouseButton)idx), t);
+                    if (msRaw.IsButtonDown(b))
                     {
-                        if (!_events.Keys.Contains(ie))
-                            _events.Add(ie, t);
+                        if (!IsEventRegistered(b))
+                            _events.Add(ie);
                     }
-                    else
+                    else //if(kbs.IsKeyUp(k))
                     {
-                        if (_events.Keys.Contains(ie))
-                            _events.Remove(ie);
+                        if (IsEventRegistered(b))
+                            Remove(b);
                     }
                 }
-
-                //Add error checking on InputAction so that certain qualifiers aren't paired with mouse movements and such (NO_ORDER)
 
                 float mDt = _mouseTimer.ElapsedTicks / 10000000.0f; //converts ticks to seconds
                 _mouseTimer.Restart();
-                MouseArgs mArgs = (_rawMouseInput) ? new MouseArgs(_rawMouseInput, msRaw.X - _msRaw.X, msRaw.Y - _msRaw.Y, msRaw.X, msRaw.Y, msRaw.ScrollWheelValue, msRaw.ScrollWheelValue - _msRaw.ScrollWheelValue, t) :
-                    new MouseArgs(_rawMouseInput, msScreen.X - _msScreen.X, msScreen.Y - _msScreen.Y, msScreen.X, msScreen.Y, _msScreen.ScrollWheelValue, _msScreen.ScrollWheelValue - _msScreen.ScrollWheelValue, t);
+                MouseArgs args = (_activeConfig.RawMouse) ? new MouseArgs(_rawMouseInput, msRaw.X - _msRaw.X, msRaw.Y - _msRaw.Y, msRaw.X, msRaw.Y, msRaw.ScrollWheelValue, msRaw.ScrollWheelValue - _msRaw.ScrollWheelValue, t) :
+                    new MouseArgs(_activeConfig.RawMouse, msScreen.X - _msScreen.X, msScreen.Y - _msScreen.Y, msScreen.X, msScreen.Y, _msScreen.ScrollWheelValue, _msScreen.ScrollWheelValue - _msScreen.ScrollWheelValue, t);
 
                 foreach (InputAction inputAction in _activeConfig.InputActions)
                 {
                     bool pass = true;
-                    var node = inputAction.InputCombination.First;
-                    var first = node.Value;
-                    var lastNode = inputAction.InputCombination.Last;
-                    var last = lastNode.Value;
-                    bool mUpdate = (first.InputType == InputType.MouseMove && (mouseMoveRaw || mouseMoveScreen)) || (first.InputType == InputType.MouseScroll && mouseScroll);
-                    if (mUpdate)
+                    var first = inputAction.InputCombination.First();
+                    var last = inputAction.InputCombination.Last();
+                    var q = inputAction.Qualifiers;
+                    if ((first.InputType == InputType.MouseMove && mouseMoveRaw) || (first.InputType == InputType.MouseScroll && mouseScroll))
                     {
-                        inputAction.RunDownActions(mDt, mArgs);
+                        inputAction.RunDownActions(mDt, args);
                         continue;
                     }
 
-                    if (!inputAction.Qualifiers.HasFlag(Qualifiers.IGNORE_BEFORE))
+                    if (!q.HasFlag(Qualifiers.IGNORE_BEFORE)) //This requires that the first key pressed be the first key of the sequence (Only Ctrl+LShift+Y   not   A+Ctrl+Shift+Y)
                     {
-                        if (_events.Keys.First() != new InputEvent(first))
+                        if (_events.First().Press != new Press(first))
                             continue;
                     }
 
-                    if (!inputAction.Qualifiers.HasFlag(Qualifiers.IGNORE_AFTER))
+                    if (!q.HasFlag(Qualifiers.IGNORE_AFTER)) //This requires that the last key pressed be the first key of the sequence (Only Ctrl+LShift+Y   not   Ctrl+Shift+Y+A)
                     {
-                        if (_events.Keys.Last() != new InputEvent(last))
+                        if (_events.Last().Press != new Press(last))
                             continue;
                     }
 
                     int endOffset = 0;
+                    bool mUpdate = (mouseMoveRaw) || (mouseScroll);
                     if (last.InputType == InputType.MouseMove || last.InputType == InputType.MouseScroll)
                     {
                         if (mUpdate)
@@ -297,62 +290,66 @@ namespace DeeSynk.Core.Managers
                             continue;
                     }
 
-                    int index = _events.Keys.IndexOf(new InputEvent(first));
+                    var press = _events.Select(ie => ie.Press);
+                    int index = press.IndexOf(new Press(first));
+                    
 
-                    if(index != -1)
+                    if (index != -1)
                     {
-                        if (inputAction.Qualifiers.HasFlag(Qualifiers.IGNORE_BREAKS))
+                        if (q.HasFlag(Qualifiers.NO_ORDER))
                         {
-                            if(_events.Count() >= inputAction.InputCombination.Count())
+                            foreach (var assign in inputAction.InputCombination)
                             {
-                                long prevT = 0L;
-                                for (var n = node; (endOffset == -1) ? ((n.Next != null) ? n.Next.Next : null ) != null : n.Next != null; n = n.Next)
-                                {
-                                    int idx = _events.Keys.IndexOf(new InputEvent(n.Value));
-                                    if(idx != -1)
-                                    {
-                                        long tt = _events.Values.ElementAt(idx);
-                                        if (tt >= prevT)
-                                            prevT = tt;
-                                        else
-                                        {
-                                            pass = false;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else if (inputAction.Qualifiers.HasFlag(Qualifiers.NO_ORDER))
-                        {
-                            foreach(var assign in inputAction.InputCombination)
-                            {
-                                if(!_events.Keys.Contains(new InputEvent(assign)))
+                                if (!press.Contains(new Press(assign)))
                                 {
                                     pass = false;
                                     break;
                                 }
                             }
                         }
-                        else
+                        else if (q.HasFlag(Qualifiers.IN_ORDER))
                         {
-                            if ((_events.Count() - index) >= inputAction.InputCombination.Count())
+                            if (q.HasFlag(Qualifiers.IGNORE_BREAKS))
                             {
-                                long prevT = 0L;
-                                for (int idx = 0; idx < inputAction.InputCombination.Count() + endOffset; idx++)
+                                if (_events.Count() >= inputAction.InputCombination.Count())
                                 {
-                                    if (_events.Keys.ElementAt(index + idx) == new InputEvent(node.Value))
+                                    long prevT = 0L;
+                                    foreach(InputAssignment a in inputAction.InputCombination)
                                     {
-                                        long tt = _events.Values.ElementAt(index + idx);
-                                        if (tt >= prevT)
+                                        int idx = press.IndexOf(new Press(a));
+                                        if(idx != -1)
                                         {
-                                            prevT = tt;
-                                            node = node.Next;
+                                            long tt = _events.ElementAt(idx).Time;
+                                            if (tt >= prevT)
+                                                prevT = tt;
+                                            else
+                                            {
+                                                pass = false;
+                                                break;
+                                            }
                                         }
-                                        else
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if ((_events.Count() - index) >= inputAction.InputCombination.Count())
+                                {
+                                    long prevT = 0L;
+                                    for (int idx = 0; idx < inputAction.InputCombination.Count() + endOffset; idx++)
+                                    {
+                                        if (_events.ElementAt(index + idx).Press == new Press(inputAction.InputCombination.ElementAt(idx)))
                                         {
-                                            pass = false;
-                                            break;
+                                            long tt = _events.ElementAt(index + idx).Time;
+                                            if (tt >= prevT)
+                                            {
+                                                prevT = tt;
+                                            }
+                                            else
+                                            {
+                                                pass = false;
+                                                break;
+                                            }
                                         }
                                     }
                                 }
@@ -368,40 +365,93 @@ namespace DeeSynk.Core.Managers
                     {
                         if (!_completeActions.Contains(inputAction))
                         {
-                            inputAction.RunDownActions(mDt, mArgs);
+                            if(inputAction.InvokeCriteria.HasFlag(ActionInvoke.Down))
+                                inputAction.RunDownActions(mDt, args);
                             _completeActions.Add(inputAction);
                         }
                         else if (_completeActions.Contains(inputAction))
-                            inputAction.RunHoldActions(mDt, mArgs);
+                        {
+                            if (inputAction.InvokeCriteria.HasFlag(ActionInvoke.Hold))
+                                inputAction.RunHoldActions(mDt, args);
+                        }
                     }
                     else
                     {
                         if (_completeActions.Contains(inputAction))
                         {
-                            inputAction.RunUpActions(mDt, mArgs);
+                            if (inputAction.InvokeCriteria.HasFlag(ActionInvoke.Up))
+                                inputAction.RunUpActions(mDt, args);
                             _completeActions.Remove(inputAction);
                         }
-                        continue;
                     }
-                    Console.WriteLine(pass);
                 }
 
-                _msRaw = msRaw;
-                _msScreen = msScreen;
+                if (mouseMoveRaw || mouseScroll)
+                {
+                    _msRaw = msRaw;
+                    _msScreen = msScreen;
+                }
 
-                totTime += _t.ElapsedTicks;
+                var elapsed = _t.ElapsedTicks;
+                totTime += elapsed;
                 count++;
+                if (elapsed > _maxTime)
+                    _maxTime = elapsed;
+
                 if(count == 1000)
                 {
-                    Console.WriteLine(totTime / count / 10000.0f);
+                    _avgTime = totTime / count;
                     count = 0;
                     totTime = 0;
+                    _maxTime = 0;
                 }
                 _t.Reset();
 
                 Thread.Sleep(_sleep);
                 _t.Start();
             } while (_isInputThreadRunning);
+        }
+
+        private bool IsEventRegistered(Key k)
+        {
+            foreach(InputEvent ie in _events)
+            {
+                if (ie.Press.Type == PressType.Keyboard && ie.Press.Key == k)
+                    return true;
+            }
+            return false;
+        }
+
+        private bool IsEventRegistered(MouseButton b)
+        {
+            foreach (InputEvent ie in _events)
+            {
+                if (ie.Press.Type == PressType.MouseButton && ie.Press.Button == b)
+                    return true;
+            }
+            return false;
+        }
+
+        private bool Remove(Key k)
+        {
+            int idx = _events.Select(ie => ie.Press).IndexOf(new Press(k));
+            if (idx > -1)
+            {
+                _events.RemoveAt(idx);
+                return true;
+            }
+            return false;
+        }
+
+        private bool Remove(MouseButton b)
+        {
+            int idx = _events.Select(ie => ie.Press).IndexOf(new Press(b));
+            if (idx > -1)
+            {
+                _events.RemoveAt(idx);
+                return true;
+            }
+            return false;
         }
 
         public void UnLoad()
@@ -411,80 +461,34 @@ namespace DeeSynk.Core.Managers
     }
 }
 
-/*
-foreach(Key k in _monitoredKeys)
-{
-    if (_activeConfig.KeyboardActions.TryGetValue(k, out KeyboardAction keyAction))
-    {
-        if (kbs.IsKeyDown(k))
-        {
-            if (!_eventList.Select(ke => ke.Key).Contains(k))
-            {
-                _eventList.Add(new KeyPress(k, _kSw.ElapsedTicks));
-                if (keyAction.Type == KeyActionType.SinglePress)
-                    keyAction.Action(_kSw.ElapsedTicks / 10000000.0f);
-            }
-            else
-            {
-                if (keyAction.Type == KeyActionType.RepeatOnHold)
-                {
-                    var keyEvent = _eventList.Where(ke => ke.Key == k).First();
-                    long time = _kSw.ElapsedTicks;
-                    float elapsed = (time - keyEvent.Time) / 10000000.0f;
-                    keyAction.Action(elapsed);
-                    _eventList.Remove(keyEvent);
-                    _eventList.Add(new KeyPress(k, time));
-                }
-            }
-        }
-        if (_eventList.Select(ke => ke.Key).Contains(k))
-        {
-            if (kbs.IsKeyUp(k))
-            {
-                var keyEvent = _eventList.Where(ke => ke.Key == k).First();
-                if (keyAction.Type == KeyActionType.RepeatOnHold || keyAction.Type == KeyActionType.WaitForRelease)
-                {
-                    long time = _kSw.ElapsedTicks;
-                    float elapsed = (time - keyEvent.Time) / 10000000.0f;
-                    keyAction.Action(elapsed);
-                    _eventList.Remove(keyEvent);
-                }
-                else
-                    _eventList.Remove(keyEvent);
-            }
-        }
-    }
-}
+//Add error checking on the qualifiers when InputAction is constructed
+//Remove the linked lists from the constructor
+//Add a validate method that ensures nothing bad will happen.  Throws an exception if the user did not set up the configuration properly.
+//Set up everything so that actions can be added after they are created?
+//Add in the ability to load configurations.  We shouldn't have all of the configuration setup spread everywhere.
+//Turn MouseArgs into a general inputArgs class so that key and button presses are passed.
 
-if (_rawMouseInput)
-{
-    var _currentState = Mouse.GetState();
-    if (_msRaw.X != _currentState.X || _msRaw.Y != _currentState.Y)
-    {
-        _activeConfig.MoveAction(new MouseMove((_msRaw.Y - _currentState.Y), (_msRaw.X - _currentState.X), _mSw.ElapsedTicks));
-        _msRaw = _currentState;
-    }
+//Add a general input event.
+//This will allow for the detection of mouse movement, mouse buttons, and key presses simultaneously.
+//The main challenge will be to find a way to distinguish say W versus Ctrl+W.\
+//This will require that keys be pressed in the correct order.
+//This is what the modifier keys are for.
+//While me way not neccessarily disallow it.  We should establish convention that only modifier keys are used
+//in combination with other keys.
+//In the case where we have a key pair and single key that both begin with the same key then the first key will active and
+//once the second key of the pair is added to the combo then the function for the pair will activate.
+//We also need to add the ability to add multiple Actions to a single keypress.
 
-    if (_currentState.IsButtonDown(MouseButton.Left))
-    {
-        _activeConfig.MouseButtonActions.TryGetValue(MouseButton.Left, out MouseButtonAction action);
-        action.Action(0.0f, new MousePosition(_currentState.X, _currentState.Y, _mSw.ElapsedTicks), new MouseMove((_msRaw.Y - _currentState.Y), (_msRaw.X - _currentState.X), _mSw.ElapsedTicks));
-        _msRaw = _currentState;
-    }
-}
-else //cursor input
-{
-    var _currentState = Mouse.GetCursorState();
-    if (_msRaw.X != _currentState.X || _msRaw.Y != _currentState.Y)
-    {
-        _activeConfig.MoveAction(new MouseMove((_msRaw.Y - _currentState.Y), (_msRaw.X - _currentState.X), _mSw.ElapsedTicks));
-    }
+//Update events list with up and down for kb and mb
+//Check if actions are satisfied and compare to dictionary from previous loop.
+//If action status is different, update dictionary to reflect this or simply refresh dictionary each loop.
+//Ensure that the checks account for all qualifiers.
+//After each check ensure that all necessary actions are completed depending on the state change type (up, down, hold)
+//Get rid of old garbage code and update all action methods to include the general parameters.
 
-    if (_currentState.IsButtonDown(MouseButton.Left))
-    {
-        _activeConfig.MouseButtonActions.TryGetValue(MouseButton.Left, out MouseButtonAction action);
-        action.Action(0.0f, new MousePosition(_currentState.X, _currentState.Y, _mSw.ElapsedTicks), new MouseMove((_currentState.X - _msRaw.X), (_msRaw.Y - _currentState.Y), _mSw.ElapsedTicks));
-    }
+//Add auto detect sleep if code takes more than a certain period of time to compelte.
 
-    _msRaw = _currentState;
-}*/
+//Ensure that this can be optimized also.  The principle seems inefficient as it is.  40-50 microsends seems excessive.
+
+
+//Updates the current state to match all inputs that occured between updates.

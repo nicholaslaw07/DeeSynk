@@ -95,85 +95,19 @@ namespace DeeSynk.Core.Systems
 
             var im = InputManager.GetInstance();
             im.Configurations.TryGetValue("primary move", out InputConfiguration config);
-
-            {
-                var ll = new LinkedList<InputAssignment>();
-                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.W));
-                var dl = new LinkedList<Action<float, MouseArgs>>();
-                dl.AddLast(w);
-                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            }
-            {
-                var ll = new LinkedList<InputAssignment>();
-                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.S));
-                var dl = new LinkedList<Action<float, MouseArgs>>();
-                dl.AddLast(s);
-                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            }
-            {
-                var ll = new LinkedList<InputAssignment>();
-                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.A));
-                var dl = new LinkedList<Action<float, MouseArgs>>();
-                dl.AddLast(a);
-                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            }
-            {
-                var ll = new LinkedList<InputAssignment>();
-                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.D));
-                var dl = new LinkedList<Action<float, MouseArgs>>();
-                dl.AddLast(d);
-                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            }
-            {
-                var ll = new LinkedList<InputAssignment>();
-                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.Space));
-                var dl = new LinkedList<Action<float, MouseArgs>>();
-                dl.AddLast(sp);
-                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            }
-            {
-                var ll = new LinkedList<InputAssignment>();
-                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.LShift));
-                var dl = new LinkedList<Action<float, MouseArgs>>();
-                dl.AddLast(ls);
-                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            }
-            {
-                var ll = new LinkedList<InputAssignment>();
-                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.Escape));
-                var dl = new LinkedList<Action<float, MouseArgs>>();
-                dl.AddLast(esc);
-                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            }
-            {
-                var ll = new LinkedList<InputAssignment>();
-                ll.AddLast(new InputAssignment(InputType.MouseMove));
-                var dl = new LinkedList<Action<float, MouseArgs>>();
-                dl.AddLast(mouseMove);
-                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            }
+            AddCameraMove(config, Key.W, w);
+            AddCameraMove(config, Key.A, a);
+            AddCameraMove(config, Key.S, s);
+            AddCameraMove(config, Key.D, d);
+            AddCameraMove(config, Key.Space, sp);
+            AddCameraMove(config, Key.LShift, ls);
+            AddEscape(config, Key.Escape, esc);
+            AddMouseAction(config, mouseMove);
+            config.RawMouse = true;
 
             im.Configurations.TryGetValue("unlocked mouse", out InputConfiguration config1);
-            {
-                var ll = new LinkedList<InputAssignment>();
-                ll.AddLast(new InputAssignment(InputType.MouseMove));
-                var dl = new LinkedList<Action<float, MouseArgs>>();
-                dl.AddLast(mouseAction);
-                config1.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            }
-            {
-                var ll = new LinkedList<InputAssignment>();
-                ll.AddLast(new InputAssignment(InputType.Keyboard, Key.Escape));
-                var dl = new LinkedList<Action<float, MouseArgs>>();
-                dl.AddLast(esc);
-                config.InputActions.AddLast(new InputAction(Qualifiers.IGNORE_AFTER | Qualifiers.IGNORE_BEFORE, ActionInvoke.Down, ll, dl));
-            }
-        }
-
-        public void StartThreads()
-        {
-            //_keyboardInput.StartMonitorThread(2);
-            //Add mouse thread
+            config1.RawMouse = false;
+            AddEscape(config1, Key.Escape, esc);
         }
 
         public void PushCameraRef(ref Camera camera)
@@ -181,17 +115,17 @@ namespace DeeSynk.Core.Systems
             _camera = camera;
         }
 
-        private void CameraMoveFront(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_W, time); }
-        private void CameraMoveBack(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_S, time); }
-        private void CameraMoveLeft(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_A, time); }
-        private void CameraMoveRight(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_D, time); }
-        private void CameraMoveUp(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_Up, time); }
-        private void CameraMoveDown(float time, MouseArgs mArgs) { _camera.AddLocation(ref V_Dn, time); }
-        private void CameraRotation(float time, MouseArgs mArgs) { _camera.AddRotation(-mArgs.dY * 0.001f, -mArgs.dX * 0.001f); }
+        public void CameraMoveFront(float time, MouseArgs args) { _camera.AddLocation(ref V_W, time); }
+        public void CameraMoveBack(float time, MouseArgs args) { _camera.AddLocation(ref V_S, time); }
+        public void CameraMoveLeft(float time, MouseArgs args) { _camera.AddLocation(ref V_A, time); }
+        public void CameraMoveRight(float time, MouseArgs args) { _camera.AddLocation(ref V_D, time); }
+        public void CameraMoveUp(float time, MouseArgs args) { _camera.AddLocation(ref V_Up, time); }
+        public void CameraMoveDown(float time, MouseArgs args) { _camera.AddLocation(ref V_Dn, time); }
+        public void CameraRotation(float time, MouseArgs args) { _camera.AddRotation(-args.dY * 0.001f, -args.dX * 0.001f); }
 
-        private void MouseAction(MouseMove move) { }
+        private void MouseAction(float time, MouseArgs args) { }
 
-        private void KeyboardToExitWindow(float time, MouseArgs mArgs)
+        private void KeyboardToExitWindow(float time, MouseArgs args)
         {
             _shutDownProgram = true;
         }
@@ -199,6 +133,67 @@ namespace DeeSynk.Core.Systems
         public void Update(float time)
         {
 
+        }
+
+        //Currently these functions have no reason to be in SystemInput.  It's also the case that SystemInput has no defined purpose right now.
+        //In theory, SystemInput should act as the mediator between controllable objects or those that accept input and those which are affected by the objects that accept input.
+        //It is very possible this class will not exist in the future since all control interactions are now invoked by InputManager so using the Update function in this class is useless.
+
+        private void AddCameraMove(InputConfiguration config, Key k, Action<float, MouseArgs> function)
+        {
+            var combo = new List<InputAssignment>();
+            combo.Add(new InputAssignment(InputType.Keyboard, k));
+            var functions = new List<Action<float, MouseArgs>>();
+            functions.Add(function);
+            var inputAction = new InputAction(Qualifiers.IN_ORDER_IGNORE_ALL, combo);
+            inputAction.DownActions = functions;
+            inputAction.HoldActions = functions;
+            config.InputActions.AddLast(inputAction);
+        }
+        private void AddCameraMove(InputConfiguration config, Key k, List<Action<float, MouseArgs>> functions)
+        {
+            var combo = new List<InputAssignment>();
+            combo.Add(new InputAssignment(InputType.Keyboard, k));
+            var inputAction = new InputAction(Qualifiers.IN_ORDER_IGNORE_ALL, combo);
+            inputAction.DownActions = functions;
+            inputAction.HoldActions = functions;
+            config.InputActions.AddLast(inputAction);
+        }
+        private void AddEscape(InputConfiguration config, Key k, Action<float, MouseArgs> function)
+        {
+            var combo = new List<InputAssignment>();
+            combo.Add(new InputAssignment(InputType.Keyboard, k));
+            var functions = new List<Action<float, MouseArgs>>();
+            functions.Add(function);
+            var inputAction = new InputAction(Qualifiers.IN_ORDER_IGNORE_ALL, combo);
+            inputAction.UpActions = functions;
+            config.InputActions.AddLast(inputAction);
+        }
+        private void AddEscape(InputConfiguration config, Key k, List<Action<float, MouseArgs>> functions)
+        {
+            var combo = new List<InputAssignment>();
+            combo.Add(new InputAssignment(InputType.Keyboard, k));
+            var inputAction = new InputAction(Qualifiers.IN_ORDER_IGNORE_ALL, combo);
+            inputAction.UpActions = functions;
+            config.InputActions.AddLast(inputAction);
+        }
+        private void AddMouseAction(InputConfiguration config, Action<float, MouseArgs> function)
+        {
+            var combo = new List<InputAssignment>();
+            combo.Add(new InputAssignment(InputType.MouseMove));
+            var functions = new List<Action<float, MouseArgs>>();
+            functions.Add(function);
+            var inputAction = new InputAction(Qualifiers.IN_ORDER_IGNORE_ALL, combo);
+            inputAction.DownActions = functions;
+            config.InputActions.AddLast(inputAction);
+        }
+        private void AddMouseAction(InputConfiguration config, List<Action<float, MouseArgs>> functions)
+        {
+            var combo = new List<InputAssignment>();
+            combo.Add(new InputAssignment(InputType.MouseMove));
+            var inputAction = new InputAction(Qualifiers.IN_ORDER_IGNORE_ALL, combo);
+            inputAction.DownActions = functions;
+            config.InputActions.AddLast(inputAction);
         }
     }
 }
