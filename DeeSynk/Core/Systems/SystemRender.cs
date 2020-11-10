@@ -9,6 +9,7 @@ using DeeSynk.Core.Algorithms;
 using DeeSynk.Core.Components;
 using DeeSynk.Core.Components.GraphicsObjects;
 using DeeSynk.Core.Components.GraphicsObjects.Lights;
+using DeeSynk.Core.Components.GraphicsObjects.Shadows;
 using DeeSynk.Core.Components.Models;
 using DeeSynk.Core.Components.Types.Render;
 using DeeSynk.Core.Managers;
@@ -49,6 +50,8 @@ namespace DeeSynk.Core.Systems
 
 
         int[] ssbos;
+        private ShadowMap sm;
+        private int _tex;
 
         //SHADOW END
 
@@ -69,26 +72,43 @@ namespace DeeSynk.Core.Systems
             _fbos = _world.FBOs;
 
             sw = new Stopwatch();
+        }
 
+        public void LoadTestCompute()
+        {
             ssbos = new int[2];
             GL.GenBuffers(2, ssbos);
 
-            float[] inputData = new float[16];
-            inputData[0] = 1.0f;
-            for (int i = 1; i < 16; i++)
-                inputData[i] = inputData[i - 1] + 1.0f;
+            Vector4[] inputData = new Vector4[3];
+            inputData[0] = new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+            inputData[1] = new Vector4(1.0f, 0.0f, 1.0f, 1.0f);
+            inputData[2] = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
-            float[] outputData = new float[16];
+            float[] outputData = new float[MainWindow.width * MainWindow.height * 4 * 4];
 
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, ssbos[0]);
-            GL.BufferData(BufferTarget.ShaderStorageBuffer, 16 * 4, inputData, BufferUsageHint.DynamicRead);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, 12 * 4, inputData, BufferUsageHint.DynamicRead);
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 1, ssbos[0]);
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
 
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, ssbos[1]);
-            GL.BufferData(BufferTarget.ShaderStorageBuffer, 16 * 4, outputData, BufferUsageHint.DynamicRead);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, MainWindow.width * MainWindow.height * 4 * 4, outputData, BufferUsageHint.DynamicRead);
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 2, ssbos[1]);
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
+
+            sm = new ShadowMap(MainWindow.width, MainWindow.height, TextureUnit.Texture9);
+
+            GL.GenTextures(1, out _tex);
+
+            GL.BindTexture(TextureTarget.Texture2D, _tex);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, MainWindow.width, MainWindow.height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (float)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (float)TextureWrapMode.ClampToEdge);
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+
+            GL.BindTexture(TextureTarget.Texture2D, 0);
         }
 
         public void PushCameraRef(ref Camera camera)
@@ -145,23 +165,80 @@ namespace DeeSynk.Core.Systems
             //Render camera depth map then convert points to kd tree
             //Test visibility of points in frame of the light save to stencil
             //Render normally
+            //RunCompute(ref systemTransform);
 
             RenderDepthMaps(ref systemTransform);
             RenderScene(ref systemTransform);
             RenderPost(ref systemTransform);
             RenderUI(ref systemTransform);
+        }
 
+        public void RunCompute(ref SystemTransform systemTransform)
+        {
+            RenderCameraDepth(ref systemTransform);
             int s = ShaderManager.GetInstance().GetProgram("computeTest");
             GL.UseProgram(s);
-            GL.DispatchCompute(1, 1, 1);
-            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, ssbos[1]);
-            float[] od = new float[16];
-            GL.GetBufferSubData(BufferTarget.ShaderStorageBuffer, IntPtr.Zero, 64, od);
+            GL.BindImageTexture(0, sm.Texture, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rgba32f);
+            //GL.Uniform1(GL.GetUniformLocation(s, "cameraDepth"), 0);
+            GL.DispatchCompute(MainWindow.width, MainWindow.height, 1);
+            GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits);
+            //GL.BindBuffer(BufferTarget.ShaderStorageBuffer, ssbos[1]);
+            //float[] od = new float[MainWindow.width * MainWindow.height * 4 * 4];
+            //GL.GetBufferSubData(BufferTarget.ShaderStorageBuffer, IntPtr.Zero, MainWindow.width * MainWindow.height * 4 * 4, od);
+            //Console.WriteLine(od[12000] + " " + od[101010]);
+            //for(int idx = 3; idx < od.Length; idx+=4)
+            //{
+            //    if(od[idx] != 1 && od[idx] != 0)
+            //    {
+            //        Console.WriteLine(od[idx]);
+            //    }
+            //}
+            //Console.WriteLine(GL.GetError());
+        }
+
+        public void RenderCameraDepth(ref SystemTransform systemTransform)
+        {
+            int[] currentViewPort = new int[4];
+            GL.GetInteger(GetPName.Viewport, currentViewPort);
+
+            GL.UseProgram(ShaderManager.GetInstance().GetProgram("cameraDepth"));
+
+            GL.Enable(EnableCap.CullFace);
+
+            GL.CullFace(CullFaceMode.Front);
+            sm.BindFBO();
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+
+            for (int idx = 0; idx < _world.ObjectMemory; idx++)
+            {
+                if (_world.ExistingGameObjects[idx] && idx < 9)
+                {
+                    if (_world.GameObjects[idx].Components.HasFlag(RenderQualfier))
+                    {
+                        Bind(idx, false, _world);
+                        systemTransform.PushModelMatrix(idx, _world);
+                        int elementCount = (idx == 8) ? 36001686 : ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
+                        GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                    }
+                }
+            }
+            GL.CullFace(CullFaceMode.Back);
+            GL.Disable(EnableCap.CullFace);
+
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.Viewport(currentViewPort[0], currentViewPort[1], currentViewPort[2], currentViewPort[3]);
+            GL.Clear(ClearBufferMask.DepthBufferBit);
         }
 
         private void RenderDepthMaps(ref SystemTransform systemTransform)
         {
             //sw.Start();
+            for (int i = 0; i < _world.ObjectMemory; i++)
+            {
+                if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
+                    _world.LightComps[i].LightObject.ShadowMap.BindTexture();
+            }
+
             int[] currentViewPort = new int[4];
             GL.GetInteger(GetPName.Viewport, currentViewPort);
 
@@ -441,12 +518,6 @@ namespace DeeSynk.Core.Systems
 
                         systemTransform.PushModelMatrix(idx, _world);
                         int elementCount = ModelManager.GetInstance().GetModel(ref _staticModelComps[idx]).ElementCount;
-
-                        for (int i = 0; i < _world.ObjectMemory; i++)
-                        {
-                            if (_world.GameObjects[i].Components.HasFlag(Component.LIGHT))
-                                _world.LightComps[i].LightObject.ShadowMap.BindTexture();
-                        }
 
                         GL.DrawElements(PrimitiveType.Triangles, elementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
                     }

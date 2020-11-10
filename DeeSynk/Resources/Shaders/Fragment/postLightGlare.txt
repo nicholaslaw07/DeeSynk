@@ -108,16 +108,6 @@ float Depth(int index, int lightType, vec4 lightCoord)  // 0=spot 1=sun
 	UVCoords.y = 0.5 * (ProjCoords.y) + 0.5;
 	float z = ProjCoords.z;
 
-	float Depth = 0.0f;
-
- 	switch(index)
-	{
-		case(0): Depth = texture((lightType == 0) ? spotLight0 : sunLamp0, UVCoords).x; break;
-		case(1): Depth = texture((lightType == 0) ? spotLight1 : sunLamp1, UVCoords).x; break;
-		case(2): Depth = texture((lightType == 0) ? spotLight2 : sunLamp2, UVCoords).x; break;
-		case(3): Depth = texture((lightType == 0) ? spotLight3 : sunLamp3, UVCoords).x; break;
-	}
-
 	return ProjCoords.z;
 }
 
@@ -159,7 +149,7 @@ void main(void)
 
 	if(isInCross(newTex))
 		c = vec4(1-c.x, 1-c.y, 1-c.z, 1.0);
-	
+
 	color = c;
 
 	

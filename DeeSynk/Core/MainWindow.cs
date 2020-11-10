@@ -139,7 +139,8 @@ namespace DeeSynk.Core
 
             SetGLState();
 
-            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.001f, 300f);
+            //_camera = new Camera(1.0f, (float)Width, (float)Height, 0.001f, 300f);
+            _camera = new Camera(1.0f, (float)Width, (float)Height, 0.1f, 10f);
             _camera.OverrideLookAtVector = true;
             _camera.Location = new Vector3(0.0f, 0.25f, 1.0f);
             _camera.UpdateMatrices();

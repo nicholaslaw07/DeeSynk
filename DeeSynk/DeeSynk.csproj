@@ -232,6 +232,7 @@
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded2.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Fragment\cameraDepth.txt" />
     <Content Include="Resources\Shaders\Fragment\testUI.txt" />
     <Content Include="Resources\Shaders\Fragment\shadowVolume.txt" />
     <Content Include="Resources\Shaders\Fragment\detectEdgesTest.txt" />
@@ -251,6 +252,7 @@
     <Content Include="Resources\Shaders\Vertex\coloredPhongShaded2.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhongShaded.txt" />
     <Content Include="Resources\Shaders\Vertex\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Vertex\cameraDepth.txt" />
     <Content Include="Resources\Shaders\Vertex\testUI.txt" />
     <Content Include="Resources\Shaders\Vertex\shadowVolume.txt" />
     <Content Include="Resources\Shaders\Vertex\detectEdgesTest.txt" />

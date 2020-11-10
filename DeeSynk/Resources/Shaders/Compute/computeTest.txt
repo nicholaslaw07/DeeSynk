@@ -1,15 +1,20 @@
 ﻿#version 460 core
-layout(local_size_x = 1) in;
 
-layout(std430, binding = 1) buffer testIn
+layout(local_size_x = 1, local_size_y = 1) in;
+
+struct inData
 {
-	vec4 inBuf[];
+	vec4 location;
+	vec3 normal;
 };
 
-layout(std430, binding = 2) buffer testOut
+layout(binding = 2) buffer testOut
 {
 	vec4 outBuf[];
 };
+
+layout(binding = 0, rgba32f) uniform image2D cameraDepth;
+layout(rgba32f) uniform image2D cameraOut;
 
 layout(binding = 2) uniform Camera
 {
@@ -38,10 +43,49 @@ layout(binding=7) uniform SunLamp
 
 void main() 
 {
-	uint idx = gl_GlobalInvocationID.x;
-	for(int i = 0; i < 4; i++)
+	uint xId = gl_GlobalInvocationID.x;
+	uint yId = gl_GlobalInvocationID.y;
+
+	ivec2 dimension = imageSize(cameraDepth);
+	float depth = imageLoad(cameraDepth, ivec2(gl_GlobalInvocationID.xy)).x;
+	memoryBarrier();
+	//imageStore(cameraOut, ivec2(gl_GlobalInvocationID.xy), vec4(1.0, 1.0, 1.0, 1.0));
+
+	outBuf[dimension.x * yId + xId] = vec4(xId, yId, depth, 1.0f);
+
+	//int idx = 1;
+
+	/*
+	vec4 p0 = inBuf[idx * 3 + 0].location;
+	vec4 p1 = inBuf[idx * 3 + 1].location;
+	vec4 p2 = inBuf[idx * 3 + 2].location;
+
+	p0 = camera.projection * p0;
+	p1 = camera.projection * p1;
+	p2 = camera.projection * p2;
+
+	vec4 p = vec4(0.0, 1.0, 1.0, 1.0);
+
+
+	float a = 0.5 * (-p1.y * p2.x + p0.y * (-p1.x + p2.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y);
+	float s = 1/(2*a)*(p0.y*p2.x-p0.x*p2.y+(p2.y-p0.y)*p.x + (p0.x-p2.x)*p.y);
+	float t = 1/(2*a)*(p0.x*p1.y-p0.y*p1.x+(p0.y-p1.y)*p.x + (p1.x-p0.x)*p.y);
+	if(s >= 0  && t >= 0 && (1-s-t) >= 0)
 	{
-		outBuf[idx * 4 + i] = inBuf[idx * 4 + i] * 2;
-		//outBuf(idx * 4 + i) = vec4(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y, gl_GlobalInvocationID.z, 0.0)
+		outBuf[idx * 3 + 0] = vec4(1);
+		outBuf[idx * 3 + 1] = vec4(1);
+		outBuf[idx * 3 + 2] = vec4(1);
 	}
+	else
+	{
+		outBuf[idx * 3 + 0] = vec4(0);
+		outBuf[idx * 3 + 1] = vec4(0);
+		outBuf[idx * 3 + 2] = vec4(0);
+	}*/
+
+	//for(int i = 0; i < 4; i++)
+	//{
+	//	outBuf[idx * 4 + i] = inBuf[idx * 4 + i] * 2;
+		//outBuf(idx * 4 + i) = vec4(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y, gl_GlobalInvocationID.z, 0.0)
+	//}
 }
