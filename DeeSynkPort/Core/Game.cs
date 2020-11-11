@@ -168,7 +168,7 @@ namespace DeeSynk.Core
                 _world.StaticModelComps[2] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelTemplates.PlaneXY); //input
                 _world.StaticModelComps[2].TemplateData = new Plane(_world.StaticModelComps[1].ModelProperties, new Vector2(1.0f, 1.0f), new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f)); //kinda input
                 tComps = TransformComponents.TRANSLATION;
-                _world.TransComps[2] = new ComponentTransform(tComps, true, locX: -0.5f, locY: -0.5f, locZ: -1.0f); //input
+                _world.TransComps[2] = new ComponentTransform(tComps, true, locX: 0.0f, locY: 0.0f, locZ: -1.0f); //input
 
                 //int total = 0;
                 //int totalElements = ModelManager.GetInstance().GetModel("1").ElementCount;
@@ -258,7 +258,7 @@ namespace DeeSynk.Core
                 _world.LightComps[_compIdx].LightObject.ShadowMap = new ShadowMap(8192, 8192, TextureUnit.Texture5);
 
                 _compIdx = _world.NextComponentIndex();
-                _world.CameraComps[_compIdx] = new ComponentCamera(new Camera(CameraMode.ORTHOGRAPHIC, 0.5f, 0.5f, -1.0f, 2.0f));
+                _world.CameraComps[_compIdx] = new ComponentCamera(new Camera(CameraMode.ORTHOGRAPHIC, 1.0f, 1.0f, -1.0f, 2.0f));
                 _world.CameraComps[_compIdx].Camera.BuildUBO(11, 7);
             }
         }

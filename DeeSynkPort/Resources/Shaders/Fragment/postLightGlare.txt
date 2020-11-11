@@ -6,7 +6,6 @@ in vec4 vs_lightPosTSun[4];
 in vec4 vs_lightCoordSpot[4];
 in vec4 vs_lightCoordSun[4];
 
-layout(binding=0) uniform sampler2D tex;
 
 layout(binding=1) uniform sampler2D spotLight0;
 layout(binding=2) uniform sampler2D spotLight1;
@@ -18,6 +17,7 @@ layout(binding=6) uniform sampler2D sunLamp1;
 layout(binding=7) uniform sampler2D sunLamp2;
 layout(binding=8) uniform sampler2D sunLamp3;
 
+layout(binding=9) uniform sampler2D tex;
 out vec4 color;
 
 layout(binding = 2) uniform Camera
@@ -113,9 +113,7 @@ float Depth(int index, int lightType, vec4 lightCoord)  // 0=spot 1=sun
 
 void main(void)
 {
-	vec4 c = texture(spotLight0, vs_texCoord);
-	if(c.a < 0.9)
-		discard;
+	vec4 c = texture(tex, vs_texCoord);
 	
 	vec2 newTex = (vs_texCoord - vec2(0.5, 0.5)) * 2;
 

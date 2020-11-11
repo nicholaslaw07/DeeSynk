@@ -263,8 +263,10 @@ namespace DeeSynk.Core
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
-            //if(_centerMouse)
-            //    MousePosition = new Vector2(mousePos.X, mousePos.Y);
+            if (_centerMouse)
+                this.CursorGrabbed = true;
+            else
+                this.CursorGrabbed = false;
         }
 
         private void CenterMouse(float time, MouseArgs args)
@@ -277,8 +279,6 @@ namespace DeeSynk.Core
                 im.SetConfig("unlocked mouse");
                 MousePosition = new Vector2(mousePos.X, mousePos.Y); //cursor only appears after an update
                 _game.SystemUI.ScreenCenter = new Vector2(Cursor.X, Cursor.Y);
-                //im.MouseStateScreen = state;
-                im.RawMouseInput = false;
             }
             else
             {
@@ -287,11 +287,8 @@ namespace DeeSynk.Core
                 var im = InputManager.GetInstance();
                 im.SetConfig("primary move");
                 MousePosition = new Vector2(mousePos.X, mousePos.Y); //cursor only disappears after an update
-                //im.MouseStateRaw = Mouse.GetState();
-                im.RawMouseInput = true;
             }
             _centerMouse = !_centerMouse;
-
             MousePosition = new Vector2(mousePos.X, mousePos.Y);
         }
 

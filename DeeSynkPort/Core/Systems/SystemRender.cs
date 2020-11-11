@@ -515,14 +515,14 @@ namespace DeeSynk.Core.Systems
                     Component comps = _world.GameObjects[idx].Components;
                     if (comps.HasFlag(RenderQualfier) && _renderComps[idx].IsFinalRenderPlane)
                     {
-                        Bind(1, true, _world);
+                        Bind(idx, true, _world);
                         //var s = ShaderManager.GetInstance().GetProgram("shadowTextured2");
                         //GL.UseProgram(s);
 
 
                         if (comps.HasFlag(Component.TEXTURE))
                         {
-                            _fbos[0].Texture.Bind();
+                            _fbos[0].Texture.Bind(TextureUnit.Texture9, false);
                             //GL.ActiveTexture(TextureUnit.Texture0);
                             //GL.BindTexture(TextureTarget.Texture2D, _fbos[0].Texture.TextureId);
                             //Debug.WriteLine(_fbos[0].Texture.TextureId);
