@@ -1,0 +1,148 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <StartupObject>DeeSynk.Program</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Core\systemtools\**" />
+    <EmbeddedResource Remove="Core\systemtools\**" />
+    <None Remove="Core\systemtools\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\Models\Collada\Schema\collada_schema_1_5.xml" />
+    <None Remove="Resources\Shaders\Compute\computeTest.txt" />
+    <None Remove="Resources\Shaders\Fragment\cameraDepth.txt" />
+    <None Remove="Resources\Shaders\Fragment\cellShading.txt" />
+    <None Remove="Resources\Shaders\Fragment\coloredPhong.txt" />
+    <None Remove="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
+    <None Remove="Resources\Shaders\Fragment\coloredPhongShaded2.txt" />
+    <None Remove="Resources\Shaders\Fragment\defaultColored.txt" />
+    <None Remove="Resources\Shaders\Fragment\defaultPostFinal.txt" />
+    <None Remove="Resources\Shaders\Fragment\defaultTextured.txt" />
+    <None Remove="Resources\Shaders\Fragment\defaultTextured_Instanced.txt" />
+    <None Remove="Resources\Shaders\Fragment\detectEdges.txt" />
+    <None Remove="Resources\Shaders\Fragment\detectEdgesTest.txt" />
+    <None Remove="Resources\Shaders\Fragment\postLightGlare.txt" />
+    <None Remove="Resources\Shaders\Fragment\shadowColored.txt" />
+    <None Remove="Resources\Shaders\Fragment\shadowTextured.txt" />
+    <None Remove="Resources\Shaders\Fragment\shadowTextured2.txt" />
+    <None Remove="Resources\Shaders\Fragment\shadowVolume.txt" />
+    <None Remove="Resources\Shaders\Fragment\testUI.txt" />
+    <None Remove="Resources\Shaders\Geometry\detectEdges.txt" />
+    <None Remove="Resources\Shaders\Geometry\detectEdgesTest.txt" />
+    <None Remove="Resources\Shaders\Geometry\shadowVolume.txt" />
+    <None Remove="Resources\Shaders\Vertex\cameraDepth.txt" />
+    <None Remove="Resources\Shaders\Vertex\cellShading.txt" />
+    <None Remove="Resources\Shaders\Vertex\coloredPhong.txt" />
+    <None Remove="Resources\Shaders\Vertex\coloredPhongShaded.txt" />
+    <None Remove="Resources\Shaders\Vertex\coloredPhongShaded2.txt" />
+    <None Remove="Resources\Shaders\Vertex\defaultColored.txt" />
+    <None Remove="Resources\Shaders\Vertex\defaultPostFinal.txt" />
+    <None Remove="Resources\Shaders\Vertex\defaultTextured.txt" />
+    <None Remove="Resources\Shaders\Vertex\defaultTextured_Instanced.txt" />
+    <None Remove="Resources\Shaders\Vertex\detectEdges.txt" />
+    <None Remove="Resources\Shaders\Vertex\detectEdgesTest.txt" />
+    <None Remove="Resources\Shaders\Vertex\postLightGlare.txt" />
+    <None Remove="Resources\Shaders\Vertex\shadowColored.txt" />
+    <None Remove="Resources\Shaders\Vertex\shadowTextured.txt" />
+    <None Remove="Resources\Shaders\Vertex\shadowTextured2.txt" />
+    <None Remove="Resources\Shaders\Vertex\shadowVolume.txt" />
+    <None Remove="Resources\Shaders\Vertex\testUI.txt" />
+    <None Remove="Resources\Textures\Atlases\Atlas_0\Ball - Copy.bmp" />
+    <None Remove="Resources\Textures\Atlases\Atlas_0\Ball.bmp" />
+    <None Remove="Resources\Textures\Atlases\Atlas_0\Ball2.bmp" />
+    <None Remove="Resources\Textures\Atlases\Atlas_1\Test1.bmp" />
+    <None Remove="Resources\Textures\Atlases\Atlas_1\Test2.bmp" />
+    <None Remove="Resources\Textures\Atlases\Atlas_1\Test3.bmp" />
+    <None Remove="Resources\Textures\Single_Textures\wood.bmp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\Models\Collada\Schema\collada_schema_1_5.xml" />
+    <Content Include="Resources\Shaders\Compute\computeTest.txt" />
+    <Content Include="Resources\Shaders\Fragment\cameraDepth.txt" />
+    <Content Include="Resources\Shaders\Fragment\cellShading.txt" />
+    <Content Include="Resources\Shaders\Fragment\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Fragment\coloredPhongShaded.txt" />
+    <Content Include="Resources\Shaders\Fragment\coloredPhongShaded2.txt" />
+    <Content Include="Resources\Shaders\Fragment\defaultColored.txt" />
+    <Content Include="Resources\Shaders\Fragment\defaultPostFinal.txt" />
+    <Content Include="Resources\Shaders\Fragment\defaultTextured.txt" />
+    <Content Include="Resources\Shaders\Fragment\defaultTextured_Instanced.txt" />
+    <Content Include="Resources\Shaders\Fragment\detectEdges.txt" />
+    <Content Include="Resources\Shaders\Fragment\detectEdgesTest.txt" />
+    <Content Include="Resources\Shaders\Fragment\postLightGlare.txt" />
+    <Content Include="Resources\Shaders\Fragment\shadowColored.txt" />
+    <Content Include="Resources\Shaders\Fragment\shadowTextured.txt" />
+    <Content Include="Resources\Shaders\Fragment\shadowTextured2.txt" />
+    <Content Include="Resources\Shaders\Fragment\shadowVolume.txt" />
+    <Content Include="Resources\Shaders\Fragment\testUI.txt" />
+    <Content Include="Resources\Shaders\Geometry\detectEdges.txt" />
+    <Content Include="Resources\Shaders\Geometry\detectEdgesTest.txt" />
+    <Content Include="Resources\Shaders\Geometry\shadowVolume.txt" />
+    <Content Include="Resources\Shaders\Vertex\cameraDepth.txt" />
+    <Content Include="Resources\Shaders\Vertex\cellShading.txt" />
+    <Content Include="Resources\Shaders\Vertex\coloredPhong.txt" />
+    <Content Include="Resources\Shaders\Vertex\coloredPhongShaded.txt" />
+    <Content Include="Resources\Shaders\Vertex\coloredPhongShaded2.txt" />
+    <Content Include="Resources\Shaders\Vertex\defaultColored.txt" />
+    <Content Include="Resources\Shaders\Vertex\defaultPostFinal.txt" />
+    <Content Include="Resources\Shaders\Vertex\defaultTextured.txt" />
+    <Content Include="Resources\Shaders\Vertex\defaultTextured_Instanced.txt" />
+    <Content Include="Resources\Shaders\Vertex\detectEdges.txt" />
+    <Content Include="Resources\Shaders\Vertex\detectEdgesTest.txt" />
+    <Content Include="Resources\Shaders\Vertex\postLightGlare.txt" />
+    <Content Include="Resources\Shaders\Vertex\shadowColored.txt" />
+    <Content Include="Resources\Shaders\Vertex\shadowTextured.txt" />
+    <Content Include="Resources\Shaders\Vertex\shadowTextured2.txt" />
+    <Content Include="Resources\Shaders\Vertex\shadowVolume.txt" />
+    <Content Include="Resources\Shaders\Vertex\testUI.txt" />
+    <Content Include="Resources\Textures\Atlases\Atlas_0\Ball - Copy.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_0\Ball.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_0\Ball2.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_1\Test1.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_1\Test2.bmp" />
+    <Content Include="Resources\Textures\Atlases\Atlas_1\Test3.bmp" />
+    <Content Include="Resources\Textures\Single_Textures\wood.bmp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\Fonts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Resources\temp\armadillo.obj" />
+    <None Include="Resources\temp\dragon_vrip.obj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.0" />
+    <PackageReference Include="OpenTK" Version="4.1.0" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" />
+    <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
+    <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+  </ItemGroup>
+
+</Project>
