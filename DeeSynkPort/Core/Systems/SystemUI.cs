@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.Diagnostics;
 
 namespace DeeSynk.Core.Systems
 {
@@ -43,7 +44,7 @@ namespace DeeSynk.Core.Systems
             List<Action<float, MouseArgs>> actions = new List<Action<float, MouseArgs>>();
             actions.Add(action);
             List<InputAssignment> combo = new List<InputAssignment>();
-            combo.Add(new InputAssignment(InputType.MouseButton, MouseButton.Left));
+            combo.Add(new InputAssignment(InputType.MouseButton, MouseButton.Button1));
             combo.Add(new InputAssignment(InputType.MouseMove));
             InputAction ia = new InputAction(Qualifiers.IN_ORDER_IGNORE_ALL, combo);
             ia.HoldActions = actions;
@@ -120,8 +121,7 @@ namespace DeeSynk.Core.Systems
         private int CheckClick(float time, MouseArgs args, int idx, Vector2 parentLocation, out Vector2 clickLocation)
         {
             clickLocation = new Vector2(0.0f, 0.0f);
-            Vector2 clickPos = _screenCenter - new Vector2(args.X, args.Y) + _relativeCenter;
-            clickPos = new Vector2(MainWindow.width - clickPos.X, clickPos.Y);
+            Vector2 clickPos = new Vector2(args.X, MainWindow.height - args.Y);
             var elem = _ui.ElementComps[idx].Element;
             var pos = parentLocation + elem.Position + elem.ReferenceCoord - ReferenceConverter.GetReferenceOffset2(PositionReference.CORNER_BOTTOM_LEFT, new Vector2(elem.Width, elem.Height));
             if (clickPos.X >= pos.X && clickPos.X <= pos.X + elem.Width && clickPos.Y >= pos.Y && clickPos.Y <= pos.Y + elem.Height)
@@ -143,7 +143,6 @@ namespace DeeSynk.Core.Systems
                 clickLocation = clickPos - pos;
                 return idx;
             }
-
             return -1;
         }
 

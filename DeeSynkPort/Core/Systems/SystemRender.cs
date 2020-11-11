@@ -17,6 +17,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace DeeSynk.Core.Systems
 {
@@ -170,8 +171,14 @@ namespace DeeSynk.Core.Systems
 
             RenderDepthMaps(ref systemTransform);
             RenderScene(ref systemTransform);
+
+            //float[] data = new float[10000];
+            //GL.GetTextureSubImage(1, 0, 500, 500, 0, 100, 100, 0, PixelFormat.Rgba, PixelType.Float, 10000 * 4, data);
+
             RenderPost(ref systemTransform);
             RenderUI(ref systemTransform);
+
+            //Debug.WriteLine(GL.GetError());
         }
 
         public void RunCompute(ref SystemTransform systemTransform)
@@ -334,7 +341,6 @@ namespace DeeSynk.Core.Systems
             GL.GetInteger(GetPName.Viewport, currentViewPort);  //automate this somehow, feels clunky
 
             _fbos[0].Bind(true);
-
             BindShadowMaps();
 
             for (int idx = 0; idx < _world.ObjectMemory; idx++)
@@ -509,12 +515,19 @@ namespace DeeSynk.Core.Systems
                     Component comps = _world.GameObjects[idx].Components;
                     if (comps.HasFlag(RenderQualfier) && _renderComps[idx].IsFinalRenderPlane)
                     {
-                        Bind(idx, true, _world);
+                        Bind(1, true, _world);
+                        //var s = ShaderManager.GetInstance().GetProgram("shadowTextured2");
+                        //GL.UseProgram(s);
+
 
                         if (comps.HasFlag(Component.TEXTURE))
                         {
-                            GL.ActiveTexture(TextureUnit.Texture0);
-                            GL.BindTexture(TextureTarget.Texture2D, _fbos[0].Texture.TextureId);
+                            _fbos[0].Texture.Bind();
+                            //GL.ActiveTexture(TextureUnit.Texture0);
+                            //GL.BindTexture(TextureTarget.Texture2D, _fbos[0].Texture.TextureId);
+                            //Debug.WriteLine(_fbos[0].Texture.TextureId);
+                            //Debug.WriteLine(GL.GetInteger(GetPName.ActiveTexture));
+
                         }
 
                         systemTransform.PushModelMatrix(idx, _world);

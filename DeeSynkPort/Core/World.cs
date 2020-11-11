@@ -51,7 +51,7 @@ namespace DeeSynk.Core
 
         public override void InitData()
         {
-            _fbos[0] = new FBO(MainWindow.width, MainWindow.height);
+            _fbos[0] = new FBO(1920, 1080);
         }
 
 

@@ -85,7 +85,7 @@ namespace DeeSynk.Core.Managers
 
         private Vector3 DefaultOrder { get { return new Vector3(0.0f, 1.0f, 2.0f); } }
 
-        private const string FILE_PATH = @"..\..\Resources\Models\";
+        private const string FILE_PATH = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Models\";
         private static ModelManager _modelManager;
 
         private const int MAX_INDEX_SIZE = 10000;

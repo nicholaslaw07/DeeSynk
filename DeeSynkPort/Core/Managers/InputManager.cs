@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Internal;
 using OpenTK.Graphics.ES11;
 using OpenTK.Input;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common.Input;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
@@ -125,11 +126,11 @@ namespace DeeSynk.Core.Managers
         private int _sleep;
         public int Sleep { get => _sleep; }
 
-        private MouseState _msRaw;
-        public MouseState MouseStateRaw { get => _msRaw; set => _msRaw = value; }
+        private Vector2 _msRaw;
+        public Vector2 MouseStateRaw { get => _msRaw; set => _msRaw = value; }
 
-        private MouseCursor _msScreen;
-        public MouseCursor MouseStateScreen { get => _msScreen; set => _msScreen = value; }
+        private Vector2 _msScreen;
+        public Vector2 MouseStateScreen { get => _msScreen; set => _msScreen = value; }
 
         private Stopwatch _kSw;
 
@@ -150,27 +151,19 @@ namespace DeeSynk.Core.Managers
 
         private MainWindow _window;
 
-        private InputManager(MainWindow window)
+        private InputManager(ref MainWindow window)
         {
             _window = window;
             Load();
             _rawMouseInput = true;
         }
 
-        public static ref InputManager GetInstance(MainWindow window)
-        {
-            if (_inputManager == null)
-            {
-                _inputManager = new InputManager(window);
-            }
-
-            return ref _inputManager;
-        }
-
         public static ref InputManager GetInstance()
         {
             if (_inputManager == null)
-                throw new Exception("Window reference is null.");
+            {
+                _inputManager = new InputManager(ref Program.window);
+            }
 
             return ref _inputManager;
         }
@@ -218,8 +211,8 @@ namespace DeeSynk.Core.Managers
         private void InputListen() //stopwatch should never need to be restarted in theory
         {
             _isInputThreadRunning = true;
-            _msRaw = _window.MouseState;
-            _msScreen = _window.Cursor;
+            _msRaw = _window.MousePosition;
+            _msScreen = new Vector2(_window.Cursor.X, _window.Cursor.Y);
             _kSw.Start();
             _t.Start();
             do
@@ -228,12 +221,15 @@ namespace DeeSynk.Core.Managers
                 var msRaw = _window.MouseState;
                 var msScreen = _window.Cursor;
 
+                var msRAW = _window.MousePosition;
+                var msSCREEN = new Vector2(msScreen.X, msScreen.Y);
+
                 long t = _kSw.ElapsedTicks;
 
-                bool mouseMoveRaw = ((msRaw.X - _msRaw.X) != 0) || ((msRaw.Y - _msRaw.Y) != 0);
-                bool mouseScroll = (msRaw.Scroll.X - _msRaw.Scroll.X) != 0;
+                bool mouseMoveRaw = ((_window.MousePosition.X - _msRaw.X) != 0) || ((_window.MousePosition.Y - _msRaw.Y) != 0);
+                bool mouseScroll = (_window.MouseState.ScrollDelta) != Vector2.Zero;
 
-                for (int idx = 1; idx < 132; idx++)
+                for (int idx = 1; idx < (int)Keys.LastKey; idx++)
                 {
                     Keys k = (Keys)idx;
                     var ie = new InputEvent(new Press(k), t);
@@ -249,12 +245,13 @@ namespace DeeSynk.Core.Managers
                     }
                 }
 
-                for (int idx = 0; idx < 13; idx++)
+                for (int idx = 0; idx < (int)MouseButton.Last; idx++)
                 {
                     MouseButton b = (MouseButton)idx;
                     var ie = new InputEvent(new Press((MouseButton)idx), t);
-                    if (msRaw.IsButtonDown(b))
+                    if (_window.IsMouseButtonDown(b))
                     {
+                        //Debug.WriteLine(b);
                         if (!IsEventRegistered(b))
                             _events.Add(ie);
                     }
@@ -267,15 +264,20 @@ namespace DeeSynk.Core.Managers
 
                 float mDt = _mouseTimer.ElapsedTicks / 10000000.0f; //converts ticks to seconds
                 _mouseTimer.Restart();
-                MouseArgs args = (_activeConfig.RawMouse) ? new MouseArgs(_rawMouseInput, msRaw.X - _msRaw.X, msRaw.Y - _msRaw.Y, msRaw.X, msRaw.Y, msRaw.Scroll, msRaw.Scroll - _msRaw.Scroll, t) :
-                    new MouseArgs(_activeConfig.RawMouse, msScreen.X - _msScreen.X, msScreen.Y - _msScreen.Y, msScreen.X, msScreen.Y, msRaw.Scroll, msRaw.Scroll - _msRaw.Scroll, t);
+                MouseArgs args = new MouseArgs(_activeConfig.RawMouse, _window.MousePosition.X - _msRaw.X, _window.MousePosition.Y - _msRaw.Y, _window.MousePosition.X, _window.MousePosition.Y, msRaw.Scroll, msRaw.ScrollDelta, t);
 
-                foreach (InputAction inputAction in _activeConfig.InputActions)
+                foreach (InputAction ia in _activeConfig.InputActions)
                 {
+                    var inputAction = ia;
                     bool pass = true;
-                    var first = inputAction.InputCombination.First();
-                    var last = inputAction.InputCombination.Last();
+                    var first = inputAction.InputCombination.ElementAt(0);
+                    var last = inputAction.InputCombination.ElementAt(inputAction.InputCombination.Count-1);
                     var q = inputAction.Qualifiers;
+                    if (first.InputType == InputType.MouseButton)
+                    {
+                        //Debug.WriteLine($"{args.dX} {args.dY}  {args.X} {args.Y}");
+                    }
+                    //Debug.WriteLine($"{mouseMoveRaw}  {mouseScroll}");
                     if ((first.InputType == InputType.MouseMove && mouseMoveRaw) || (first.InputType == InputType.MouseScroll && mouseScroll))
                     {
                         inputAction.RunDownActions(mDt, args);
@@ -284,19 +286,20 @@ namespace DeeSynk.Core.Managers
 
                     if (!q.HasFlag(Qualifiers.IGNORE_BEFORE)) //This requires that the first key pressed be the first key of the sequence (Only Ctrl+LShift+Y   not   A+Ctrl+Shift+Y)
                     {
-                        if (_events.First().Press != new Press(first))
+                        if (_events.ElementAt(0).Press != new Press(first))
                             continue;
                     }
 
                     if (!q.HasFlag(Qualifiers.IGNORE_AFTER)) //This requires that the last key pressed be the first key of the sequence (Only Ctrl+LShift+Y   not   Ctrl+Shift+Y+A)
                     {
-                        if (_events.Last().Press != new Press(last))
+                        if (_events.ElementAt(_events.Count - 1).Press != new Press(last))
                             continue;
                     }
 
                     int endOffset = 0;
                     bool mUpdate = (mouseMoveRaw) || (mouseScroll);
-                    if (last.InputType == InputType.MouseMove || last.InputType == InputType.MouseScroll)
+
+                    if (((inputAction.InputCombination).Last().InputType == InputType.MouseMove) || ((inputAction.InputCombination.Last()).InputType == InputType.MouseScroll))
                     {
                         if (mUpdate)
                             endOffset = -1;
@@ -304,7 +307,7 @@ namespace DeeSynk.Core.Managers
                             continue;
                     }
 
-                    var press = (List<Press>)_events.Select(ie => ie.Press);
+                    var press = _events.Select(ie => ie.Press).ToList<Press>();
                     int index = press.IndexOf(new Press(first));
                     
 
@@ -402,8 +405,8 @@ namespace DeeSynk.Core.Managers
 
                 if (mouseMoveRaw || mouseScroll)
                 {
-                    _msRaw = msRaw;
-                    _msScreen = msScreen;
+                    _msRaw = msRAW;
+                    _msScreen = msSCREEN;
                 }
 
                 var elapsed = _t.ElapsedTicks;
@@ -448,7 +451,7 @@ namespace DeeSynk.Core.Managers
 
         private bool Remove(Keys k)
         {
-            int idx = ((List<Press>)_events.Select(ie => ie.Press)).IndexOf(new Press(k));
+            int idx = _events.Select(ie => ie.Press).ToList<Press>().IndexOf(new Press(k));
             if (idx > -1)
             {
                 _events.RemoveAt(idx);
@@ -459,7 +462,7 @@ namespace DeeSynk.Core.Managers
 
         private bool Remove(MouseButton b)
         {
-            int idx = ((List<Press>)_events.Select(ie => ie.Press)).IndexOf(new Press(b));
+            int idx = _events.Select(ie => ie.Press).ToList<Press>().IndexOf(new Press(b));
             if (idx > -1)
             {
                 _events.RemoveAt(idx);

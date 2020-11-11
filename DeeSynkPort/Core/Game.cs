@@ -397,7 +397,7 @@ namespace DeeSynk.Core
             _systemTransform.Update(time);
             _systemUI.Update(time);
 
-            //Console.WriteLine(GL.GetError().ToString());
+            //Console.WriteLine(GL.().ToString());
         }
 
         public void Render()

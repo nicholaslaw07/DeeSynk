@@ -24,8 +24,8 @@ namespace DeeSynk.Core.Managers
 
         private static int callCount = 0;
 
-        private const string TEXTURE_PATH = @"..\..\Resources\Textures\Single_Textures\";  //Location of individual texture files
-        private const string ATLAS_PATH = @"..\..\Resources\Textures\Atlases\"; //Location of atlas group folders
+        private const string TEXTURE_PATH = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Textures\Single_Textures\";  //Location of individual texture files
+        private const string ATLAS_PATH = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Textures\Atlases\"; //Location of atlas group folders
         private const string FILE_TYPE = ".bmp";
 
         #region BitmapHeaderOffsets
@@ -84,7 +84,7 @@ namespace DeeSynk.Core.Managers
         /// </summary>
         public void Load()
         {
-            
+            Debug.WriteLine(GL.GetError());
             string[] fileNames = Directory.GetFiles(TEXTURE_PATH)
                          .Select(Path.GetFileNameWithoutExtension)
                          .ToArray();
@@ -101,7 +101,7 @@ namespace DeeSynk.Core.Managers
                 if (Directory.GetDirectories(folder).Count() == 0 && fileCount > 1)
                     InitTextureAtlas(folder, fileCount);
             }
-
+            //Debug.WriteLine(GL.GetError());
         }
 
         /// <summary>
@@ -115,9 +115,10 @@ namespace DeeSynk.Core.Managers
             int texture = GL.GenTexture();
 
             GL.BindTexture(TextureTarget.Texture2D, texture);
+
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
+
             GL.TextureSubImage2D(texture, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.Float, data);
-            GL.Enable(EnableCap.Texture2D);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear); // defines sampling behavior when scaling image down
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear); // defines sampling behavior when scaling image up
@@ -176,8 +177,6 @@ namespace DeeSynk.Core.Managers
 
             _loadedTextureCount++;
 
-            GL.Enable(EnableCap.Texture2D);
-
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.NearestMipmapNearest); // defines sampling behavior when scaling image down
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest); // defines sampling behavior when scaling image up
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the x directions
@@ -232,7 +231,7 @@ namespace DeeSynk.Core.Managers
                         values[i] = outArr[i + pixelDataOffset] / 255f;
                 }
             }
-
+            //Debug.WriteLine(GL.GetError());
             return values;
         }
 
@@ -250,6 +249,7 @@ namespace DeeSynk.Core.Managers
                     for (int i = 0; i < IMAGE_HEIGHT_B; i++) { height += outArr[i + IMAGE_HEIGHT] << (i * 8); }
                 }
             }
+            //Debug.WriteLine(GL.GetError());
             return new Size(width, height);
         }
 

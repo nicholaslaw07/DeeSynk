@@ -60,7 +60,7 @@ namespace DeeSynk.Core
             loadTimer.Start();
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
 
-            this.Bounds = new Box2i(new Vector2i(500, 500), new Vector2i(500 + width, 500 + height));
+            this.Size = new Vector2i(width, height);
 
             VSync = VSyncMode.Off;
             center = new Vector2i(width / 2, height/ 2);
@@ -140,8 +140,9 @@ namespace DeeSynk.Core
 
             _game = new Game(ref _camera);
 
-            CursorVisible = true;
-            _centerMouse = true;
+            //CursorVisible = true;
+            //_centerMouse = true;
+            this.CursorGrabbed = true;
             this.Cursor = MouseCursor.Empty;
             Action<float, MouseArgs> c = CenterMouse;
             var im = InputManager.GetInstance();
@@ -167,7 +168,7 @@ namespace DeeSynk.Core
             }
             im.StartThreads(1);
 
-            Console.WriteLine(GL.GetString(StringName.Renderer));
+            Debug.WriteLine("\n\n\n"+GL.GetString(StringName.Renderer));
             _game.LoadGameData();
 
             _game.PushCameraRef(ref _camera);
@@ -175,7 +176,7 @@ namespace DeeSynk.Core
             GCCollectDebug();
 
             loadTimer.Stop();
-            Console.WriteLine("Window loaded in {0} seconds", ((float)loadTimer.ElapsedMilliseconds) / 1000.0f);
+            Debug.WriteLine("Window loaded in {0} seconds", ((float)loadTimer.ElapsedMilliseconds) / 1000.0f);
 
             sw.Start();
             sw2.Start();
@@ -199,7 +200,7 @@ namespace DeeSynk.Core
             if (_game.Init)
             {
                 if (_game.SystemInput.ShutDownProgram)
-                    this.DestroyWindow();
+                    OnUnload();
 
                 _camera.UpdateRotation();
                 _camera.UpdateMatrices();
@@ -224,19 +225,17 @@ namespace DeeSynk.Core
 
                 if (sw.ElapsedMilliseconds % 20 == 0)
                 {
-                    var p = new Point(Cursor.X, Cursor.Y);
                     var t = InputManager.GetInstance().AverageTime / 10000.0f;
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {width}x{height} | {RoundVector(_camera.Location, 2)} | {p.X}, {p.Y} | {t}ms";
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {width}x{height} | {RoundVector(_camera.Location, 2)} | {MousePosition.X}, {MousePosition.Y} | {t}ms";
                 }
 
                 if (sw.ElapsedMilliseconds > 1000 / 120)
                 {
-                    var p = new Point(Cursor.X, Cursor.Y);
                     var t = InputManager.GetInstance().AverageTime / 10000.0f;
                     sw.Stop();
                     //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                     fpsOld = (long)(1f / timeCount * ((float)frameCount));
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {width}x{height} | {RoundVector(_camera.Location, 2)} | {p.X}, {p.Y} | {t}ms"; // adds miscellaneous information to the title bar of the window
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {width}x{height} | {RoundVector(_camera.Location, 2)} | {MousePosition.X}, {MousePosition.Y} | {t}ms"; // adds miscellaneous information to the title bar of the window
                     timeCount = 0d;
                     frameCount = 0;
                     sw.Reset();
@@ -257,21 +256,23 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnUnload()
         {
-            Console.WriteLine("I listen to you sleep...");
+            Debug.WriteLine("I listen to you sleep...");
             InputManager.GetInstance().IsInputThreadRunning = false;
+            DestroyWindow();
         }
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
-            if(_centerMouse)
-                MousePosition = new Vector2(mousePos.X, mousePos.Y);
+            //if(_centerMouse)
+            //    MousePosition = new Vector2(mousePos.X, mousePos.Y);
         }
 
         private void CenterMouse(float time, MouseArgs args)
         {
             if (_centerMouse)
             {
-                this.Cursor = _cursor;
+                CursorVisible = true;
+                Cursor = _cursor;
                 var im = InputManager.GetInstance();
                 im.SetConfig("unlocked mouse");
                 MousePosition = new Vector2(mousePos.X, mousePos.Y); //cursor only appears after an update
@@ -281,7 +282,8 @@ namespace DeeSynk.Core
             }
             else
             {
-                this.Cursor = MouseCursor.Empty;
+                CursorVisible = false;
+                Cursor = MouseCursor.Empty;
                 var im = InputManager.GetInstance();
                 im.SetConfig("primary move");
                 MousePosition = new Vector2(mousePos.X, mousePos.Y); //cursor only disappears after an update
@@ -289,6 +291,8 @@ namespace DeeSynk.Core
                 im.RawMouseInput = true;
             }
             _centerMouse = !_centerMouse;
+
+            MousePosition = new Vector2(mousePos.X, mousePos.Y);
         }
 
         /// <summary>
