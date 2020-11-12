@@ -104,7 +104,7 @@ namespace DeeSynk.Core.Managers
             }
             //Debug.WriteLine(GL.GetError());
 
-            CreateFontBitmap();
+            //CreateFontBitmap();
         }
 
         /// <summary>

@@ -11,6 +11,7 @@ using DeeSynk.Core.Components.Input;
 using DeeSynk.Core.Managers;
 using OpenTK;
 using OpenTK.Graphics;
+using System.Windows.Media;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 using OpenTK.Mathematics;
@@ -30,7 +31,7 @@ namespace DeeSynk.Core
     {
         private Game _game;
 
-        private Color4 clearColor = Color4.White;     // the color that OpenGL uses to clear the color buffer on each frame
+        private Color4 clearColor = Color4.Black;     // the color that OpenGL uses to clear the color buffer on each frame
 
         public Camera _camera = new Camera();
 
@@ -178,6 +179,17 @@ namespace DeeSynk.Core
 
             loadTimer.Stop();
             Debug.WriteLine($"Initial program data loaded in {loadTimer.ElapsedTicks / ((double)Stopwatch.Frequency)}s");
+
+            {
+                GlyphTypeface g = new GlyphTypeface(new Uri(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\OfficeCodePro-Light\OfficeCodePro-Light.otf"));
+                if (g.CharacterToGlyphMap.TryGetValue(41, out ushort v))
+                {
+                    var geo = g.GetGlyphOutline(v, 1.0d, 1.0d);
+                    Debug.WriteLine(geo.GetArea());
+                    Debug.WriteLine(geo.ToString());
+                }
+            }
+
             sw.Start();
             sw2.Start();
         }

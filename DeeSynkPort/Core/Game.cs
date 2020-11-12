@@ -188,7 +188,7 @@ namespace DeeSynk.Core
             //_world.TransComps[0].RotationXComp.InterpolateRotation(10.0f, 15, InterpolationMode.LINEAR);
 
             {
-                _world.TextureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("bitmap_0"), 0);
+                _world.TextureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
 
                 var sm = ShaderManager.GetInstance();
 
