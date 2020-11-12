@@ -445,6 +445,7 @@ namespace DeeSynk.Core.Managers
 
         #endregion
 
+        //I am not including this into the other section until this is more compelte.  This is currently only setup for a specific format.
         #region PLY_PARSER
         private void LoadPLY(string path, string name)
         {

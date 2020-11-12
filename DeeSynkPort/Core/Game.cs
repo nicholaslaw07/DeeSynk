@@ -158,8 +158,8 @@ namespace DeeSynk.Core
 
                 Texture t = TextureManager.GetInstance().GetTexture("wood");  //input
 
-                var v14 = new Vector3(1 / 20f * t.AspectRatio, 0f, 1 / 20f);
-                //var v14 = new Vector3(0);
+                //var v14 = new Vector3(1 / 20f * t.AspectRatio, 0f, 1 / 20f);
+                var v14 = new Vector3(0.05f);
                 _world.StaticModelComps[1] = new ComponentModelStatic(ModelProperties.VERTICES_UVS_ELEMENTS, ModelTemplates.PlaneXZ);  //input
                 _world.StaticModelComps[1].TemplateData = new Plane(_world.StaticModelComps[1].ModelProperties, new Vector2(100.0f, 100.0f), t.SubTextureLocations[0].UVOffset, t.SubTextureLocations[0].UVScale); //kinda input
                 tComps = TransformComponents.TRANSLATION | TransformComponents.SCALE;
@@ -188,7 +188,7 @@ namespace DeeSynk.Core
             //_world.TransComps[0].RotationXComp.InterpolateRotation(10.0f, 15, InterpolationMode.LINEAR);
 
             {
-                _world.TextureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("wood"), 0);
+                _world.TextureComps[1] = new ComponentTexture(TextureManager.GetInstance().GetTexture("bitmap_0"), 0);
 
                 var sm = ShaderManager.GetInstance();
 

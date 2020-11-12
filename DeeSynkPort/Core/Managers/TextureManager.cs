@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -102,6 +103,8 @@ namespace DeeSynk.Core.Managers
                     InitTextureAtlas(folder, fileCount);
             }
             //Debug.WriteLine(GL.GetError());
+
+            CreateFontBitmap();
         }
 
         /// <summary>
@@ -130,6 +133,33 @@ namespace DeeSynk.Core.Managers
             Texture tex = new Texture(texture, width, height, 1);
             tex.AddSubTextureLocation(new SubTextureLocation(new Vector2(0f, 0f), new Vector2(1f, 1f)));
             loadedTextures.Add(fileName, _loadedTextureCount);
+
+            _loadedTextures[_loadedTextureCount] = tex;
+            _loadedTextureCount++;
+        }
+
+        private void CreateFontBitmap()
+        {
+            int width, height;
+            var data = LoadTexture("arial", 15, Color.White, out width, out height);
+            int texture = GL.GenTexture();
+
+            GL.BindTexture(TextureTarget.Texture2D, texture);
+
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Bgra, PixelType.Float, IntPtr.Zero);
+
+            GL.TextureSubImage2D(texture, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.Float, data);
+
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear); // defines sampling behavior when scaling image down
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear); // defines sampling behavior when scaling image up
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the x directions
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder); // defines border behavior in the y directions
+
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+
+            Texture tex = new Texture(texture, width, height, 1);
+            tex.AddSubTextureLocation(new SubTextureLocation(new Vector2(0f, 0f), new Vector2(1f, 1f)));
+            loadedTextures.Add("bitmap_0", _loadedTextureCount);
 
             _loadedTextures[_loadedTextureCount] = tex;
             _loadedTextureCount++;
@@ -233,6 +263,83 @@ namespace DeeSynk.Core.Managers
             }
             //Debug.WriteLine(GL.GetError());
             return values;
+        }
+
+        private float[] LoadTexture(string font, int size, Color color, out int width, out int height)
+        {
+            float[] values = new float[0];
+            float[] values2 = new float[0];
+
+            using (var bitmap = new Bitmap(8000, 8000))
+            {
+                var b = new SolidBrush(Color.White);
+                var g = Graphics.FromImage(bitmap);
+                Font f = new Font(font, size);
+                int s = size;
+
+                for(int idx = 0; idx < 256; idx++)
+                {
+                    for(int jdx = 0; jdx < 256; jdx++)
+                    {
+                        g.DrawString(Convert.ToChar(idx * 128 + jdx).ToString(), f, b, new PointF(jdx * s + s * jdx, idx * s + s * idx * 1.25f));
+                    }
+                }
+
+                //g.DrawString("B", f, b, new PointF(size * (1.0f + 0.1f) + s * 0, 0.0f));
+                //g.DrawString("AB", f, b, new PointF(size * (1.0f + 0.2f) + s * 1, 0.0f));
+                //g.DrawString("WARi iiiiA", f, b, new PointF(size * (1.0f + 0.2f) + s * 1, 0.0f));
+
+                g.SmoothingMode = SmoothingMode.HighQuality;
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+                    var outArr = ms.ToArray();
+
+                    if (outArr[0] != (byte)67 && outArr[1] != (byte)77)                                                //ensuring the first two characters are 'B' and 'M'  (66 & 77, respectively)
+                        throw new Exception("Invalid file header format - 'B' and 'M' expected.");
+
+                    width = 0;
+                    height = 0;
+
+                    int pixelDataOffset = 0;
+                    int colorPlanes = 0;
+                    int bitsPerPixel = 0;
+                    int bytesPerPixel = 0;
+
+                    for (int i = 0; i <= PIXEL_ARRAY_B - 1; i++) { pixelDataOffset += outArr[i + PIXEL_ARRAY] << (i * 8); }      //gets the offset of where the pixel data of stored, consists of four bytes starting at index 10
+
+                    for (int i = 0; i <= IMAGE_WIDTH_B - 1; i++) { width += (int)(outArr[i + IMAGE_WIDTH] << (i * 8)); }         //retrieves width
+                    for (int i = 0; i <= IMAGE_HEIGHT_B - 1; i++) { height += (int)(outArr[i + IMAGE_HEIGHT] << (i * 8)); }      //retrieves height
+
+                    for (int i = 0; i <= COLOR_PLANES_B - 1; i++) { colorPlanes += (int)(outArr[i + COLOR_PLANES] << (i * 8)); } //retrieves value for number of color planes and checks its value (should always be one)
+                    if (colorPlanes != 1)
+                        throw new Exception("Invalid number of colors planes in DIB - a value of 1 is expected.");
+
+                    for (int i = 0; i <= BITS_PER_PIXEL_B - 1; i++) { bitsPerPixel += (int)(outArr[i + BITS_PER_PIXEL] << (i * 8)); }  //retrieves the number of bits per pixel within the image
+                    bytesPerPixel = bitsPerPixel / 8;                                                                                  //takes bpp and converts it to bytes to determine the size of one pixel in the array
+
+                    int totalValues = width * height * bytesPerPixel;   //total number of bytes in the image data
+
+                    values = new float[totalValues];
+
+                    for (int i = 0; i < totalValues; i++)               //reads the array sequentially and outputs to the image array
+                        values[i] = outArr[i + pixelDataOffset] / 255f;
+
+                    values2 = new float[values.Length];
+                    for(int idx = 0; idx < bitmap.Height; idx++)
+                    {
+                        for(int jdx = 0; jdx < bitmap.Width; jdx++)
+                        {
+                            values2[idx * bitmap.Width * 4 + (bitmap.Width - jdx - 1) * 4 + 0] = values[idx * bitmap.Width * 4 + jdx * 4 + 0];
+                            values2[idx * bitmap.Width * 4 + (bitmap.Width - jdx - 1) * 4 + 1] = values[idx * bitmap.Width * 4 + jdx * 4 + 1];
+                            values2[idx * bitmap.Width * 4 + (bitmap.Width - jdx - 1) * 4 + 2] = values[idx * bitmap.Width * 4 + jdx * 4 + 2];
+                            values2[idx * bitmap.Width * 4 + (bitmap.Width - jdx - 1) * 4 + 3] = values[idx * bitmap.Width * 4 + jdx * 4 + 3];
+                        }
+                    }
+                }
+            }
+
+            return values2;
         }
 
         private Size GetImageDimensions(string filePath)

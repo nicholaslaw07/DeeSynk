@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using DeeSynk.Core.Components;
@@ -18,6 +18,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Common.Input;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.IO;
 
 namespace DeeSynk.Core
 {
@@ -29,7 +30,7 @@ namespace DeeSynk.Core
     {
         private Game _game;
 
-        private Color4 clearColor = Color4.Black;     // the color that OpenGL uses to clear the color buffer on each frame
+        private Color4 clearColor = Color4.White;     // the color that OpenGL uses to clear the color buffer on each frame
 
         public Camera _camera = new Camera();
 
@@ -133,7 +134,7 @@ namespace DeeSynk.Core
             SetGLState();
 
             //_camera = new Camera(1.0f, (float)Width, (float)Height, 0.001f, 300f);
-            _camera = new Camera(1.0f, (float)width, (float)height, 0.1f, 10f);
+            _camera = new Camera(1.0f, (float)width, (float)height, 0.001f, 100f);
             _camera.OverrideLookAtVector = true;
             _camera.Location = new Vector3(0.0f, 0.25f, 1.0f);
             _camera.UpdateMatrices();
@@ -176,8 +177,7 @@ namespace DeeSynk.Core
             GCCollectDebug();
 
             loadTimer.Stop();
-            Debug.WriteLine("Window loaded in {0} seconds", ((float)loadTimer.ElapsedMilliseconds) / 1000.0f);
-
+            Debug.WriteLine($"Initial program data loaded in {loadTimer.ElapsedTicks / ((double)Stopwatch.Frequency)}s");
             sw.Start();
             sw2.Start();
         }
@@ -225,13 +225,13 @@ namespace DeeSynk.Core
 
                 if (sw.ElapsedMilliseconds % 20 == 0)
                 {
-                    var t = InputManager.GetInstance().AverageTime / 10000.0f;
+                    var t = InputManager.GetInstance().AverageTime / ((float)Stopwatch.Frequency) * 1000;
                     Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {width}x{height} | {RoundVector(_camera.Location, 2)} | {MousePosition.X}, {MousePosition.Y} | {t}ms";
                 }
 
                 if (sw.ElapsedMilliseconds > 1000 / 120)
                 {
-                    var t = InputManager.GetInstance().AverageTime / 10000.0f;
+                    var t = InputManager.GetInstance().AverageTime / ((float)Stopwatch.Frequency) * 1000;
                     sw.Stop();
                     //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                     fpsOld = (long)(1f / timeCount * ((float)frameCount));

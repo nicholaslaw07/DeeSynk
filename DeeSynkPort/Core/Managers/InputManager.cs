@@ -262,7 +262,7 @@ namespace DeeSynk.Core.Managers
                     }
                 }
 
-                float mDt = _mouseTimer.ElapsedTicks / 10000000.0f; //converts ticks to seconds
+                float mDt = _mouseTimer.ElapsedTicks / ((float)Stopwatch.Frequency); //converts ticks to seconds
                 _mouseTimer.Restart();
                 MouseArgs args = new MouseArgs(_activeConfig.RawMouse, _window.MousePosition.X - _msRaw.X, _window.MousePosition.Y - _msRaw.Y, _window.MousePosition.X, _window.MousePosition.Y, msRaw.Scroll, msRaw.ScrollDelta, t);
 
@@ -273,10 +273,10 @@ namespace DeeSynk.Core.Managers
                     var first = inputAction.InputCombination.ElementAt(0);
                     var last = inputAction.InputCombination.ElementAt(inputAction.InputCombination.Count-1);
                     var q = inputAction.Qualifiers;
-                    if (first.InputType == InputType.MouseButton)
-                    {
+                    //if (first.InputType == InputType.MouseButton)
+                    //{
                         //Debug.WriteLine($"{args.dX} {args.dY}  {args.X} {args.Y}");
-                    }
+                    //}
                     //Debug.WriteLine($"{mouseMoveRaw}  {mouseScroll}");
                     if ((first.InputType == InputType.MouseMove && mouseMoveRaw) || (first.InputType == InputType.MouseScroll && mouseScroll))
                     {
