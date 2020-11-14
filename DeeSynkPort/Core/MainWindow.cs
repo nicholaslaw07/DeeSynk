@@ -47,7 +47,7 @@ namespace DeeSynk.Core
         public static int width =  1920;
         public static int height = 1080;
 
-        private Stopwatch loadTimer;
+        private Stopwatch loadTimer, timeTracker;
 
         private MouseCursor _cursor;
 
@@ -59,6 +59,7 @@ namespace DeeSynk.Core
         public MainWindow() : base(new GameWindowSettings(), new NativeWindowSettings())
         {
             loadTimer = new Stopwatch();
+            timeTracker = new Stopwatch();
             loadTimer.Start();
             Title += " | The WIP Student Video Game | OpenGL Version: " + GL.GetString(StringName.Version);
 
@@ -127,10 +128,25 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnLoad()
         {
+            DebugLoadStart("ModelManager");
             Managers.ModelManager.GetInstance().Load();
+            DebugLoadFinish();
+
+            DebugLoadStart("ShaderManager");
             Managers.ShaderManager.GetInstance().Load();
+            DebugLoadFinish();
+
+            DebugLoadStart("TextureManager");
             Managers.TextureManager.GetInstance().Load();
+            DebugLoadFinish();
+
+            DebugLoadStart("InputManager");
             Managers.InputManager.GetInstance().Load();
+            DebugLoadFinish();
+
+            DebugLoadStart("FontManager");
+            Managers.FontManager.GetInstance().Load();
+            DebugLoadFinish();
 
             SetGLState();
 
@@ -170,7 +186,7 @@ namespace DeeSynk.Core
             }
             im.StartThreads(1);
 
-            Debug.WriteLine("\n\n\n"+GL.GetString(StringName.Renderer));
+            Debug.WriteLine(TimeText() + GL.GetString(StringName.Renderer));
             _game.LoadGameData();
 
             _game.PushCameraRef(ref _camera);
@@ -178,13 +194,16 @@ namespace DeeSynk.Core
             GCCollectDebug();
 
             loadTimer.Stop();
-            Debug.WriteLine($"Initial program data loaded in {loadTimer.ElapsedTicks / ((double)Stopwatch.Frequency)}s");
+            Debug.WriteLine(TimeText() + "Initial program data loaded");
 
+            
             {
                 GlyphTypeface g = new GlyphTypeface(new Uri(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\OfficeCodePro-Light\OfficeCodePro-Light.otf"));
-                if (g.CharacterToGlyphMap.TryGetValue(41, out ushort v))
+                if (g.CharacterToGlyphMap.TryGetValue(54, out ushort v))
                 {
                     var geo = g.GetGlyphOutline(v, 1.0d, 1.0d);
+                    var pGeo = geo.GetFlattenedPathGeometry();
+                    //Debug.WriteLine(pGeo.Figures);
                     Debug.WriteLine(geo.GetArea());
                     Debug.WriteLine(geo.ToString());
                 }
@@ -339,6 +358,47 @@ namespace DeeSynk.Core
                                (float)Math.Round(v.Y, decimals),
                                (float)Math.Round(v.Z, decimals),
                                (float)Math.Round(v.W, decimals));
+        }
+
+        private void StartTimeTracking(Stopwatch sw)
+        {
+            sw.Start();
+        }
+
+        private void StartTime()
+        {
+            StartTimeTracking(timeTracker);
+        }
+
+        private float GetTimeDelta(Stopwatch sw, bool pause, bool reset)
+        {
+            float time = sw.ElapsedTicks / ((float)Stopwatch.Frequency);
+            if (pause)
+                sw.Stop();
+            if (reset)
+                sw.Reset();
+
+            return time;
+        }
+
+        private float TimeDelta()
+        {
+            return GetTimeDelta(timeTracker, true, true);
+        }
+
+        private void DebugLoadStart(string name)
+        {
+            Debug.Write($"[{GetTimeDelta(loadTimer, false, false)}]: Loading {name}... "); StartTime();
+        }
+
+        private void DebugLoadFinish()
+        {
+            Debug.Write($"Loaded in {TimeDelta()} seconds\n");
+        }
+
+        private string TimeText()
+        {
+            return $"[{ GetTimeDelta(loadTimer, false, false)}]: ";
         }
     }
 }

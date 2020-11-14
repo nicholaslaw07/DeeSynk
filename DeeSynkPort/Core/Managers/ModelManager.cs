@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -44,6 +45,11 @@ namespace DeeSynk.Core.Managers
 
         VERTEX_INDEX = 30
     }
+
+    //LoadColladaModel(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Models\Collada\Moo.dae");
+    //string[] models = Directory.GetFiles(FILE_PATH);
+    //string[] fileNames = models.Select(Path.GetFileNameWithoutExtension).ToArray();
+    //string[] fileExtensions = models.Select(Path.GetExtension).ToArray();
 
     public struct PlyPropertySimple
     {
@@ -90,6 +96,7 @@ namespace DeeSynk.Core.Managers
 
         private const int MAX_INDEX_SIZE = 10000;
 
+        object _lockObject = new object();
         private Dictionary<string, Model> _modelLibrary;
 
         private ModelManager()
@@ -109,21 +116,76 @@ namespace DeeSynk.Core.Managers
 
         public void Load()
         {
-            LoadColladaModel(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Models\Collada\Moo.dae");
-            string[] models = Directory.GetFiles(FILE_PATH);
-            string[] fileNames = models.Select(Path.GetFileNameWithoutExtension).ToArray();
-            string[] fileExtensions = models.Select(Path.GetExtension).ToArray();
+            LoadColladaLibrary();
 
             //LoadPLYLibrary();
+        }
+
+        private void LoadColladaLibrary()
+        {
+            int count = CountFiles(FILE_PATH + @"Collada\");
+            LoadColladaFolder(FILE_PATH + @"Collada\");
+            while (_modelLibrary.Keys.Count() < count)
+                Thread.Sleep(50);
         }
 
         private void LoadPLYLibrary()
         {
             string path0 = @"C:\Users\Nicholas\Documents\complete";
-            LoadFolder(path0);
+            LoadPlyFolder(path0);
         }
 
-        private void LoadFolder(string folderPath)
+        private void LoadColladaFolder(string folderPath)
+        {
+            var directories = Directory.GetDirectories(folderPath);
+            if (directories.Count() == 0)
+            {
+                var files = Directory.GetFiles(folderPath);
+
+                int fileCount = files.Count();
+
+                foreach (string f in files)
+                {
+                    string name = Path.GetFileName(f);
+                    int idx = name.IndexOf('.');
+                    name = name.Substring(0, idx);
+                    (new Thread(unused => LoadColladaModel(f, name))).Start();
+                }
+            }
+            else
+            {
+                foreach (string f in directories)
+                {
+                    if (f == folderPath + @"Schema")
+                        continue;
+                    LoadColladaFolder(f);
+                }
+            }
+        }
+
+        private int CountFiles(string folderPath)
+        {
+            var directories = Directory.GetDirectories(folderPath);
+            int count = 0;
+            if(directories.Count() == 0)
+            {
+                var files = Directory.GetFiles(folderPath);
+
+                count += files.Count();
+            }
+            else
+            {
+                foreach (string f in directories)
+                {
+                    if (f == folderPath + @"Schema")
+                        continue;
+                    count += CountFiles(f);
+                }
+            }
+            return count;
+        }
+
+        private void LoadPlyFolder(string folderPath)
         {
             var directories = Directory.GetDirectories(folderPath);
             if(directories.Count() == 0)
@@ -137,21 +199,11 @@ namespace DeeSynk.Core.Managers
                     name = name.Substring(0, idx);
                     LoadPLY(f, name);
                 }
-
-                
-                /*Parallel.ForEach(files, (f) =>
-                {
-                    string name = Path.GetFileName(f);
-                    int idx = name.IndexOf('.');
-                    name = name.Substring(0, idx);
-                    LoadPLY(f, name);
-                });*/
-                
             }
             else
             {
                 foreach (string f in directories)
-                    LoadFolder(f);
+                    LoadPlyFolder(f);
             }
         }
 
@@ -245,7 +297,7 @@ namespace DeeSynk.Core.Managers
 
         #region Parsers and File Loading
 
-        public void LoadColladaModel(string filePath)
+        public void LoadColladaModel(string filePath, string name)
         {
             try
             {
@@ -423,7 +475,8 @@ namespace DeeSynk.Core.Managers
                 //model.Normals = normals;
                 model.Elements = vOrder;
                 model.SetReadOnly(true, true);
-                _modelLibrary.Add("TestCube", model);
+                lock(_lockObject)
+                    _modelLibrary.Add(name, model);
 
             }
             catch(Exception e)
@@ -460,10 +513,10 @@ namespace DeeSynk.Core.Managers
             byte[] lookup;
 
             lookup = asc.GetBytes("element vertex ");
-            int a = FindIndex(ref file, ref lookup, 0), l, b, vC, fC;
+            int a = FindIndex(in file, in lookup, 0), l, b, vC, fC;
             l = lookup.Length;
             lookup = asc.GetBytes("\n");
-            b = FindIndex(ref file, ref lookup, a + l);
+            b = FindIndex(in file, in lookup, a + l);
             var cT = asc.GetChars(file, a + l, b - a - l);
             int vb = b - a - l;
             foreach (char ch in cT)
@@ -473,10 +526,10 @@ namespace DeeSynk.Core.Managers
             sb.Clear();
 
             lookup = asc.GetBytes("element face ");
-            a = FindIndex(ref file, ref lookup, 0);
+            a = FindIndex(in file, in lookup, 0);
             l = lookup.Length;
             lookup = asc.GetBytes("\n");
-            b = FindIndex(ref file, ref lookup, a + l);
+            b = FindIndex(in file, in lookup, a + l);
             cT = asc.GetChars(file, a + l, b - a - l);
             int fb = b - a - l;
             foreach (char ch in cT)
@@ -484,7 +537,7 @@ namespace DeeSynk.Core.Managers
             Int32.TryParse(sb.ToString(), out fC);
 
             lookup = asc.GetBytes("\nend_header\n");
-            a = FindIndex(ref file, ref lookup, a);
+            a = FindIndex(in file, in lookup, a);
             a += lookup.Length;
 
             lookup = asc.GetBytes("ply\nformat binary_big_endian 1.0\nelement vertex \nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nproperty float nx\nproperty float ny\nproperty float nz\nelement face \nproperty list uchar int vertex_indices\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n");
@@ -505,9 +558,9 @@ namespace DeeSynk.Core.Managers
             {
                 for (int i = 0; i < vC; i++)
                 {
-                    float x = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
-                    float y = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
-                    float z = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
+                    float x = BitConverter.ToSingle(GetSubsetLE(in file, a += 4, 4), 0);
+                    float y = BitConverter.ToSingle(GetSubsetLE(in file, a += 4, 4), 0);
+                    float z = BitConverter.ToSingle(GetSubsetLE(in file, a += 4, 4), 0);
 
                     vertices[i] = new Vector4(x, y, z, 1.0f);
 
@@ -517,9 +570,9 @@ namespace DeeSynk.Core.Managers
 
                     colors[i] = new Color4(R, G, B, 255);
 
-                    float nx = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
-                    float ny = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
-                    float nz = BitConverter.ToSingle(GetSubsetLE(ref file, a += 4, 4), 0);
+                    float nx = BitConverter.ToSingle(GetSubsetLE(in file, a += 4, 4), 0);
+                    float ny = BitConverter.ToSingle(GetSubsetLE(in file, a += 4, 4), 0);
+                    float nz = BitConverter.ToSingle(GetSubsetLE(in file, a += 4, 4), 0);
 
                     normals[i] = new Vector3(nx, ny, nz);
                 }
@@ -528,9 +581,9 @@ namespace DeeSynk.Core.Managers
             {
                 for (int i = 0; i < vC; i++)
                 {
-                    float x = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
-                    float y = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
-                    float z = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
+                    float x = BitConverter.ToSingle(GetSubsetBE(in file, a += 4, 4), 0);
+                    float y = BitConverter.ToSingle(GetSubsetBE(in file, a += 4, 4), 0);
+                    float z = BitConverter.ToSingle(GetSubsetBE(in file, a += 4, 4), 0);
 
                     vertices[i] = new Vector4(x, y, z, 1.0f);
 
@@ -540,9 +593,9 @@ namespace DeeSynk.Core.Managers
 
                     colors[i] = new Color4(R, G, B, 255);
 
-                    float nx = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
-                    float ny = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
-                    float nz = BitConverter.ToSingle(GetSubsetBE(ref file, a += 4, 4), 0);
+                    float nx = BitConverter.ToSingle(GetSubsetBE(in file, a += 4, 4), 0);
+                    float ny = BitConverter.ToSingle(GetSubsetBE(in file, a += 4, 4), 0);
+                    float nz = BitConverter.ToSingle(GetSubsetBE(in file, a += 4, 4), 0);
 
                     normals[i] = new Vector3(nx, ny, nz);
                 }
@@ -574,7 +627,7 @@ namespace DeeSynk.Core.Managers
                         throw new Exception("Uh oh");
                     ap -= 3;
                     for (int j = 0; j < A; j++)
-                        elements[i+j] = (uint)BitConverter.ToInt32(GetSubsetLE(ref file, ap += 4, 4), 0);
+                        elements[i+j] = (uint)BitConverter.ToInt32(GetSubsetLE(in file, ap += 4, 4), 0);
                     byte R = file[ap += 4];
                     byte G = file[++ap];
                     byte B = file[++ap];
@@ -591,7 +644,7 @@ namespace DeeSynk.Core.Managers
                         throw new Exception("Uh oh");
                     ap -= 3;
                     for (int j = 0; j < A; j++)
-                        elements[i+j] = (uint)BitConverter.ToInt32(GetSubsetBE(ref file, ap += 4, 4), 0);
+                        elements[i+j] = (uint)BitConverter.ToInt32(GetSubsetBE(in file, ap += 4, 4), 0);
                     byte R = file[ap += 4];
                     byte G = file[++ap];
                     byte B = file[++ap];
@@ -619,7 +672,7 @@ namespace DeeSynk.Core.Managers
                 _modelLibrary.Add(_modelLibrary.Count().ToString(), model);
             }
         }
-        private int FindIndex(ref byte[] arr, ref byte[] val, int start)
+        private int FindIndex(in byte[] arr, in byte[] val, int start)
         {
             for (int i = start; i < arr.Length; i++)
             {
@@ -637,7 +690,7 @@ namespace DeeSynk.Core.Managers
             return -1;
         }
 
-        private byte[] GetSubsetLE(ref byte[] data, int offset, int count)
+        private byte[] GetSubsetLE(in byte[] data, int offset, int count)
         {
             byte[] val = new byte[count];
             for (int i = 0; i < count; i++)
@@ -645,7 +698,7 @@ namespace DeeSynk.Core.Managers
             return val;
         }
 
-        private byte[] GetSubsetBE(ref byte[] data, int offset, int count)
+        private byte[] GetSubsetBE(in byte[] data, int offset, int count)
         {
             byte[] val = new byte[count];
             for (int i = 0; i < count; i++)
@@ -653,14 +706,14 @@ namespace DeeSynk.Core.Managers
             return val;
         }
 
-        private void GetSubsetLE(ref byte[] data, int offset, int count, out byte[] val)
+        private void GetSubsetLE(in byte[] data, int offset, int count, out byte[] val)
         {
             val = new byte[count];
             for (int i = 0; i < count; i++)
                 val[i] = data[offset + count - 1 - i];
         }
 
-        private void GetSubsetBE(ref byte[] data, int offset, int count, out byte[] val)
+        private void GetSubsetBE(in byte[] data, int offset, int count, out byte[] val)
         {
             val = new byte[count];
             for (int i = 0; i < count; i++)

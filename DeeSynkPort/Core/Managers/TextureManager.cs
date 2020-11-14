@@ -85,7 +85,6 @@ namespace DeeSynk.Core.Managers
         /// </summary>
         public void Load()
         {
-            Debug.WriteLine(GL.GetError());
             string[] fileNames = Directory.GetFiles(TEXTURE_PATH)
                          .Select(Path.GetFileNameWithoutExtension)
                          .ToArray();
@@ -102,7 +101,6 @@ namespace DeeSynk.Core.Managers
                 if (Directory.GetDirectories(folder).Count() == 0 && fileCount > 1)
                     InitTextureAtlas(folder, fileCount);
             }
-            //Debug.WriteLine(GL.GetError());
 
             //CreateFontBitmap();
         }

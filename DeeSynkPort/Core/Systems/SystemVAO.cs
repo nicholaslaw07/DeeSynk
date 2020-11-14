@@ -273,8 +273,6 @@ namespace DeeSynk.Core.Systems
             GL.VertexAttribFormat(3, 4, VertexAttribType.Float, false, 0);
             GL.VertexAttribBinding(3, 3);
             GL.VertexAttribDivisor(3, verticesPerInstance);
-
-            Console.WriteLine(GL.GetError().ToString());
         }
 
         // INTERLEAVED DATA :  VERTEX | NORMAL | UV | VERTEX | NORMNAL | UV | VERTEX | NORMAL | UV ...

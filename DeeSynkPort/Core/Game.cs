@@ -151,7 +151,7 @@ namespace DeeSynk.Core
             //the models are added
             {
                 float s = 0.25f;
-                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_ELEMENTS, "TestCube");
+                _world.StaticModelComps[0] = new ComponentModelStatic(ModelProperties.VERTICES_NORMALS_ELEMENTS, "Moo");
                 _world.MaterialComps[0] = new ComponentMaterial(Color4.White);  //input
                 var tComps = TransformComponents.TRANSLATION | TransformComponents.SCALE;
                 _world.TransComps[0] = new ComponentTransform(tComps, true, locY: 0.29f, sclX: s, sclY: s, sclZ: s);  //input
