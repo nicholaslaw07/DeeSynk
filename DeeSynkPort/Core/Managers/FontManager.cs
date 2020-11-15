@@ -60,19 +60,29 @@ namespace DeeSynk.Core.Managers
             {
                 switch (entry.Table)
                 {
-                    case (0x43464620 /*CFF*/): ParseCFFTable(in file, entry); break;
+                    case (0x43464620 /*CFF*/): font.CFFTable = ParseCFFTable(in file, entry); break;
                     default: break;
                 }
             }
         }
 
-        private bool ExistsAtLocation(in byte[] data, int start, int count, int compare) { return GetAtLocation(in data, start, count) == compare; }
+        private bool ExistsAtLocation(in byte[] data, int start, int count, int compare) { return GetAtLocation4(in data, start, count) == compare; }
 
-        private int GetAtLocation(in byte[] data, int start, int count)
+        private int GetAtLocation4(in byte[] data, int start, int count)
         {
+            if (count > 4) throw new ArgumentOutOfRangeException("The number of bytes read can only correspond to a 32-bit value.");
             int d = 0;
             for (int idx = 0; idx < count; idx++)
-                d += (int)data[idx + start] << (8 * (count - 1 - idx));
+                d += (int)(data[idx + start] << (8 * (count - 1 - idx)));
+            return d;
+        }
+
+        private short GetAtLocation2(in byte[] data, int start, int count)
+        {
+            if (count > 2) throw new ArgumentOutOfRangeException("The number of bytes read can only correspond to a 16-bit value.");
+            short d = 0;
+            for (int idx = 0; idx < count; idx++)
+                d += (short)(data[idx + start] << (8 * (count - 1 - idx)));
             return d;
         }
 
@@ -86,22 +96,49 @@ namespace DeeSynk.Core.Managers
             List<int> hNames = new List<int>(Font.headerNames);
             do
             {
-                int testVal = GetAtLocation(in data, offset += _off4, _off4);
+                int testVal = GetAtLocation4(in data, offset += _off4, _off4);
                 stillChecking = hNames.Contains(testVal);
                 if (stillChecking)
                 {
                     int table = testVal;
-                    int checkSum = GetAtLocation(in data, offset += _off4, _off4);
-                    int off = GetAtLocation(in data, offset += _off4, _off4);
-                    int size = GetAtLocation(in data, offset += _off4, _off4);
+                    int checkSum = GetAtLocation4(in data, offset += _off4, _off4);
+                    int off = GetAtLocation4(in data, offset += _off4, _off4);
+                    int size = GetAtLocation4(in data, offset += _off4, _off4);
                     headerEntries.Add(new FileHeaderEntry(table, checkSum, off, size));
                 }
             } while (stillChecking);
         }
 
-        private void ParseCFFTable(in byte[] data, FileHeaderEntry entry)
+        private CFFTable ParseCFFTable(in byte[] data, FileHeaderEntry entry)
         {
+            int startIndex = entry.Offset;
+            CFFTable table = new CFFTable();
+            table.CFFHeader = new CFFHeader(data[startIndex + 0], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
+            startIndex += table.CFFHeader.HeaderSize;
+            table.IndexName = ParseCFFIndex(in data, startIndex, out startIndex);
+            return table;
+        }
 
+        private CFFIndex ParseCFFIndex(in byte[] data, int startIndex, out int newStart)
+        {
+            newStart = startIndex;
+            short count = GetAtLocation2(in data, startIndex, 2);
+            byte offset = data[newStart += _off2];
+            newStart += _off1;
+            CFFIndex index = new CFFIndex(count, offset);
+            int dataSize = 0;
+            for(int idx = 0; idx < index.Offsets.Length; idx++)
+            {
+                int value = GetAtLocation4(in data, newStart, offset)-1;
+                index.Offsets[idx] = value;
+                newStart += offset;
+                dataSize += value;
+            }
+            index.Data = new byte[dataSize];
+            for(int idx = 0; idx < index.Data.Length; idx++)
+                index.Data[idx] = data[newStart + idx];
+
+            return index;
         }
 
         private byte[] GetSubsetLE(in byte[] data, int offset, int count)
@@ -111,7 +148,6 @@ namespace DeeSynk.Core.Managers
                 val[i] = data[offset + count - 1 - i];
             return val;
         }
-
         private byte[] GetSubsetBE(in byte[] data, int offset, int count)
         {
             byte[] val = new byte[count];
@@ -119,14 +155,12 @@ namespace DeeSynk.Core.Managers
                 val[i] = data[offset + i];
             return val;
         }
-
         private void GetSubsetLE(in byte[] data, int offset, int count, out byte[] val)
         {
             val = new byte[count];
             for (int i = 0; i < count; i++)
                 val[i] = data[offset + count - 1 - i];
         }
-
         private void GetSubsetBE(in byte[] data, int offset, int count, out byte[] val)
         {
             val = new byte[count];
