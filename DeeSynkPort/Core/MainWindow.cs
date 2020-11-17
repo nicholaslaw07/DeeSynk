@@ -196,7 +196,7 @@ namespace DeeSynk.Core
             loadTimer.Stop();
             Debug.WriteLine(TimeText() + "Initial program data loaded");
 
-            
+            /*
             {
                 GlyphTypeface g = new GlyphTypeface(new Uri(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\OfficeCodePro-Light\OfficeCodePro-Light.otf"));
                 if (g.CharacterToGlyphMap.TryGetValue(54, out ushort v))
@@ -208,6 +208,7 @@ namespace DeeSynk.Core
                     Debug.WriteLine(geo.ToString());
                 }
             }
+            */
 
             sw.Start();
             sw2.Start();
