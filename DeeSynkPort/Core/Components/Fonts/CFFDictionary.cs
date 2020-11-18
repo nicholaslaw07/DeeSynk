@@ -148,7 +148,10 @@ namespace DeeSynk.Core.Components.Types.Fonts
     {
         public static readonly byte TWO_BYTE_OP_DELIMINATOR = 0xc;
 
-        public CFFDictionary() : base() {}
+        private int _offset;
+        public int Offset { get => _offset; }
+
+        public CFFDictionary(int offset) : base() { _offset = offset; }
 
         //Honestly, this can be simplified and the whole intermediate enum of OperatorDataTypes can be eliminated.
         public static OperatorDataTypes GetDataType(Operators op)

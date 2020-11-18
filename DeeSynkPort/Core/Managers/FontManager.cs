@@ -34,7 +34,8 @@ namespace DeeSynk.Core.Managers
 
         public void Load()
         {
-            LoadFontGeometry(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\OfficeCodePro-Light\OfficeCodePro-Light.otf", "OfficeCodePro-Light.otf");
+            //LoadFontGeometry(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\OfficeCodePro-Light\OfficeCodePro-Light.otf", "OfficeCodePro-Light.otf");
+            LoadFontGeometry(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\Mechanical\Mechanical-g5Y5.otf", "Mechanical-g5Y5");
         }
 
         public void UnLoad()
@@ -46,6 +47,7 @@ namespace DeeSynk.Core.Managers
         //Documentation references:
         //https://wwwimages2.adobe.com/content/dam/acom/en/devnet/font/pdfs/5176.CFF.pdf
         //https://simoncozens.github.io/fonts-and-layout/opentype.html
+        //https://www.adobe.com/content/dam/acom/en/devnet/font/pdfs/5177.Type2.pdf
         private void LoadFontGeometry(string path, string name)
         {
             byte[] file = File.ReadAllBytes(path);
@@ -117,8 +119,8 @@ namespace DeeSynk.Core.Managers
             int startIndex = entry.Offset;
             int newStart = startIndex;
             CFFTable table = new CFFTable(startIndex);
-            table.CFFHeader = new CFFHeader(data[startIndex + 0], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
-            startIndex += table.CFFHeader.HeaderSize;
+            table.Header = new CFFHeader(data[startIndex + 0], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
+            startIndex += table.Header.HeaderSize;
             //NAME Index  //Should be limited to 127 characters with no special characteres (33- 126)
             table.IndexName = ParseCFFIndex(in data, startIndex, out startIndex);
             table.TopDictionaryIndex = ParseCFFDictionaryIndex(in data, startIndex, out startIndex);
@@ -133,16 +135,30 @@ namespace DeeSynk.Core.Managers
             if (table.TopDictionaryIndex.Data[0].TryGetValue(Operators.Private, out Operand[] privateOperands))
             {
                 if (privateOperands.Length == 2)
-                    table.PrivateDictionary = ParseCFFDictionary(data, table.StartIndex + privateOperands[1].IntegerValue, privateOperands[0].IntegerValue, out newStart);
+                    table.PrivateDictionary = ParseCFFDictionary(in data, table.StartIndex + privateOperands[1].IntegerValue, privateOperands[0].IntegerValue, out newStart);
             }
+            if (table.TopDictionaryIndex.Data[0].TryGetValue(Operators.charset, out Operand[] charsetOperands))
+            {
+                if (charsetOperands.Length == 1)
+                    table.Charsets = ParseCFFCharsets(in data, table.CharStringCommands.Length, table.StartIndex + charsetOperands[0].IntegerValue, out newStart);
+            }
+            var gsub19 = table.IndexCharStrings.GetDataAtIndex(19);
             int x = 1;
             return table;
         }
+        //add parsers in the constructors of the classes that are being used
+
+        //Add real number support
+        //Add fixed value support
+        //Link charsets to charstrings
+        //Decipher the mess that is poscript code
+        //Understand where the subroutines are stored, if anywhere
 
         private void ParseCFFIndexHeader(in byte[] data, int startIndex, out int newStart, out short count, out byte offset)
         {
             newStart = startIndex;
             count = GetAtLocation2(in data, startIndex, 2);
+            //if(count == 0)
             offset = data[newStart += _off2];
             newStart += _off1;
         }
@@ -183,12 +199,8 @@ namespace DeeSynk.Core.Managers
 
         private CFFDictionary ParseCFFDictionary(in byte[] data, int startIndex, int dataSize, out int newStart)
         {
-            //Determine number type (integer or real) through the first byte.
-            //Parse the number based on the first byte.
-            //Read the next value.
-            //If value is again a number, then
             newStart = startIndex;
-            var dict = new CFFDictionary();
+            var dict = new CFFDictionary(startIndex);
             OperandNumberTypes dataType = GetNumberType(data[newStart]);
             while (dataType != OperandNumberTypes.UNDEFINED && (newStart - startIndex) < dataSize)
             {
@@ -237,9 +249,9 @@ namespace DeeSynk.Core.Managers
             return (b0 >= 0x20 && b0 <= 0xfe) || (b0 >= 0x1c && b0 <= 0x1d);
         }
 
-        private bool ValidShortStart(byte b0)
+        private bool ValidNumberStart(byte b0)
         {
-            return (b0 >= 0x20 && b0 <= 0xfe) || (b0 == 0x1c);
+            return (b0 >= 0x20 && b0 <= 0xff) || (b0 == 0x1c);
         }
 
         private bool ValidRealStart(byte b0)
@@ -270,58 +282,111 @@ namespace DeeSynk.Core.Managers
         private CFFCharStringCommands[] ParseCFFCharStrings(CFFIndex indexCharStrings)
         {
             CFFCharStringCommands[] commands = new CFFCharStringCommands[indexCharStrings.Count];
+            int count = 0;
             for(int idx = 0; idx < indexCharStrings.Count; idx++)
             {
                 commands[idx] = new CFFCharStringCommands();
                 var code = indexCharStrings.GetDataAtIndex(idx);
+                if(code.Length == 1 && code[0] == 0x0e) //this is for the space character.  the minimum number of commands in a CharString is 1 and it must be the operand free operator of endchar (0x0e)
+                {
+                    commands[idx].Add(new CharStringFunction(CSOperators.endchar, new CSOperand[0]));
+                    continue;
+                }
                 var dataType = GetCSNumberType(code[0]);
                 int dataSize = indexCharStrings.OffsetGaps[idx];
                 int startIndex = 0;
                 int newStart = startIndex;
+
                 while ((newStart - startIndex) < dataSize)
                 {
-                    if (dataType == CSOperandNumberTypes.Short)
-                    {
-                        var operands = ParseCFFShorts(in code, newStart, out newStart);
-                        commands[idx].Add(new CharStringOperation(ParseCFFCSOperator(in code, newStart, out newStart), operands.ToArray()));
+                    var operands = ParseCFFOperands(in code, newStart, out newStart);
+                    commands[idx].Add(new CharStringFunction(ParseCFFCSOperator(in code, newStart, out newStart), operands.ToArray()));
 
-                    }
-                    else if (dataType == CSOperandNumberTypes.Fixed)
-                    {
-                        break;
-                        //throw new NotImplementedException("Real numbers are not supported currently.");
-                    }
-                    else
-                        break;
-                    //    throw new Exception("Invalid leading byte value, cannot parse CharString command.");
-
-                    //Debug.WriteLine(newStart - startIndex + "   " + dataSize);
+                    if (dataType == CSOperandNumberTypes.UNDEFINED)
+                        throw new Exception("Invalid leading byte value, cannot parse CharString command.");
                 }
+
+                //TEST
+                if (commands[idx].Count > 0)
+                {
+                    var com = commands[idx].ToArray();
+                    if (com[commands[idx].Count - 1].Operator != CSOperators.endchar && 
+                        com[commands[idx].Count - 1].Operator != CSOperators.callgsubr &&
+                        com[commands[idx].Count - 1].Operator != CSOperators.callsubr)
+                    {
+                        count++;
+                        Debug.WriteLine("This is not okay.  Count: {0}   Index: {1}", count, idx);
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine("This still isn't okay.  Index: {0}", idx);
+                }
+                //ENDTEST
+
             }
             return commands;
         }
 
-        private List<CSOperand> ParseCFFShorts(in byte[] data, int startIndex, out int newStart)
+        private List<CSOperand> ParseCFFOperands(in byte[] data, int startIndex, out int i)
         {
-            newStart = startIndex;
+            i = startIndex;
             List<CSOperand> operands = new List<CSOperand>();
-            while (ValidShortStart(data[newStart]))
+            while (ValidNumberStart(data[i]))
             {
-                switch (data[newStart])
+                switch (data[i])  //as specified in the adobe charstring spec (src 3) type 2 values beginning with 255 are fixed values.  we interpret this as standard fixed-point arithmetic (A16/B16)
                 {
-                    case byte b when (b >= 0x20 && b <= 0xf6): operands.Add(new CSOperand(data[newStart] - 139)); newStart += 1; break;
-                    case byte b when (b >= 0xf7 && b <= 0xfa): operands.Add(new CSOperand((data[newStart] - 247) * 256 + data[newStart + 1] + 108)); newStart += 2; break;
-                    case byte b when (b >= 0xfb && b <= 0xfe): operands.Add(new CSOperand(-(data[newStart] - 251) * 256 - data[newStart + 1] - 108)); newStart += 2; break;
-                    case (0x1c): operands.Add(new CSOperand(data[newStart + 1] << 8 | data[newStart + 2])); newStart += 3; break;
+                    case byte b when (b >= 0x20 && b <= 0xf6): operands.Add(new CSOperand(CSOperandNumberTypes.Short, (short)(data[i] - 139), 0.0f)); i += 1; break;
+                    case byte b when (b >= 0xf7 && b <= 0xfa): operands.Add(new CSOperand(CSOperandNumberTypes.Short, (short)((data[i] - 247) * 256 + data[i + 1] + 108), 0.0f)); i += 2; break;
+                    case byte b when (b >= 0xfb && b <= 0xfe): operands.Add(new CSOperand(CSOperandNumberTypes.Short, (short)(-(data[i] - 251) * 256 - data[i + 1] - 108), 0.0f)); i += 2; break;
+                    case (0x1c): operands.Add(new CSOperand(CSOperandNumberTypes.Short, (short)(data[i + 1] << 8 | data[i + 2]), 0.0f)); i += 3; break;
+                    case (0xff): operands.Add(new CSOperand(CSOperandNumberTypes.Fixed, 0, (short)(data[i + 1] << 8 | data[i + 2]) + (data[i + 3] << 8 | data[i + 4]) * (float)1.5258789E-05)); i += 5; break;
                 }
             }
             return operands;
         }
-
         private CSOperators ParseCFFCSOperator(in byte[] data, int startIndex, out int newStart)
         {
             newStart = startIndex + ((data[startIndex] == 0xc) ? 2 : 1);
             return (CSOperators)((data[startIndex] == 0xc) ? (short)(data[startIndex] << 8 | data[startIndex + 1]) : data[startIndex]);
+        }
+
+        private CFFCharsets ParseCFFCharsets(in byte[] data, int nGlyphs, int startIndex, out int newStart)
+        {
+            newStart = startIndex;
+            byte format = data[startIndex];
+            CFFCharsets charset = new CFFCharsets(format);
+            int idx = 0;
+            switch (format)
+            {
+                case (0):
+                    for (newStart = startIndex + 1; newStart < startIndex + 2 * nGlyphs; newStart+=2)
+                        charset.Add((short)(data[newStart] << 8 | data[newStart + 1]));
+                    break;
+                case (1):
+                    while(idx < nGlyphs)
+                    {
+                        short first = (short)(data[newStart] << 8 | data[newStart + 1]);
+                        byte nLeft = data[newStart + 2];
+                        for (byte jdx = 0; jdx <= nLeft; jdx++)
+                            charset.Add((short)(first + jdx));
+                        idx += nLeft + 1;
+                        newStart += 3;
+                    }
+                    break;
+                case (2):
+                    while (idx < nGlyphs)
+                    {
+                        short first = (short)(data[newStart] << 8 | data[newStart + 1]);
+                        short nLeft = (short)(data[newStart + 2] << 8 | data[newStart + 3]);
+                        for (short jdx = 0; jdx <= nLeft; jdx++)
+                            charset.Add((short)(first + jdx));
+                        idx += nLeft + 1;
+                        newStart += 4;
+                    }
+                    break;
+            }
+            return charset;
         }
 
 

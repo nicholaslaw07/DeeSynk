@@ -32,8 +32,8 @@ namespace DeeSynk.Core.Components.Types.Fonts
         private int _startIndex;
         public int StartIndex { get => _startIndex; }
 
-        private CFFHeader _cffHeader;
-        public CFFHeader CFFHeader { get => _cffHeader; set => _cffHeader = value; }
+        private CFFHeader _header;
+        public CFFHeader Header { get => _header; set => _header = value; }
 
         private CFFIndex _indexName;
         public CFFIndex IndexName { get => _indexName; set => _indexName = value; }
@@ -55,6 +55,9 @@ namespace DeeSynk.Core.Components.Types.Fonts
 
         private CFFDictionary _privateDict;
         public CFFDictionary PrivateDictionary { get => _privateDict; set => _privateDict = value; }
+
+        private CFFCharsets _charsets;
+        public CFFCharsets Charsets { get => _charsets; set => _charsets = value; }
 
         public CFFTable(int startIndex) { _startIndex = startIndex; }
     }

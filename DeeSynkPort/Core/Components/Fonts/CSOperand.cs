@@ -11,50 +11,45 @@ namespace DeeSynk.Core.Components.Fonts
         Fixed = 2  //nibbling
     }
 
-    public class CSOperand
+    public struct CSOperand
     {
         private CSOperandNumberTypes _numberType;
         public CSOperandNumberTypes NumberType { get => _numberType; }
 
-        private int _intValue;
-        public int IntegerValue
+        private short _shortValue;
+        public short ShortValue
         {
             get
             {
-                if (_numberType == CSOperandNumberTypes.Short)
-                    return _intValue;
-                else
-                    throw new FieldAccessException("Read operation does not match the value type for this Operand.  Expected a call to RealValue.");
+                //if (_numberType == CSOperandNumberTypes.Short)
+                    return _shortValue;
+                //else
+                //    throw new FieldAccessException("Read operation does not match the value type for this Operand.  Expected a call to RealValue.");
             }
         }
 
-        private double _realValue;
-        public double RealValue
+        private float _fixedValue;
+        public float FixedValue
         {
             get
             {
-                if (_numberType == CSOperandNumberTypes.Fixed)
-                    return _realValue;
-                else
-                    throw new FieldAccessException("Read operation does not match the value type for this Operand.  Expected a call to IntegerValue.");
+                //if (_numberType == CSOperandNumberTypes.Fixed)
+                    return _fixedValue;
+                //else
+                //    throw new FieldAccessException("Read operation does not match the value type for this Operand.  Expected a call to IntegerValue.");
             }
         }
 
-        public CSOperand()
+        public CSOperand(CSOperandNumberTypes type, short s, float f)
         {
-            _numberType = CSOperandNumberTypes.UNDEFINED;
+            _numberType = type;
+            _shortValue = s;
+            _fixedValue = f;
         }
 
-        public CSOperand(short val)
+        public override string ToString()
         {
-            _numberType = CSOperandNumberTypes.Short;
-            _intValue = val;
-        }
-
-        public CSOperand(float val)
-        {
-            _numberType = CSOperandNumberTypes.Fixed;
-            _realValue = val;
+            return $"[{_numberType}  {_shortValue}  {_fixedValue}]";
         }
     }
 }

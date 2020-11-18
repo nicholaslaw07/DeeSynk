@@ -128,6 +128,11 @@ namespace DeeSynk.Core
         /// <param name="e"></param>
         protected override void OnLoad()
         {
+
+            DebugLoadStart("FontManager");
+            Managers.FontManager.GetInstance().Load();
+            DebugLoadFinish();
+
             DebugLoadStart("ModelManager");
             Managers.ModelManager.GetInstance().Load();
             DebugLoadFinish();
@@ -142,10 +147,6 @@ namespace DeeSynk.Core
 
             DebugLoadStart("InputManager");
             Managers.InputManager.GetInstance().Load();
-            DebugLoadFinish();
-
-            DebugLoadStart("FontManager");
-            Managers.FontManager.GetInstance().Load();
             DebugLoadFinish();
 
             SetGLState();
