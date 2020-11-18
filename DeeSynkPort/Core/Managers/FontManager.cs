@@ -204,23 +204,14 @@ namespace DeeSynk.Core.Managers
             OperandNumberTypes dataType = GetNumberType(data[newStart]);
             while (dataType != OperandNumberTypes.UNDEFINED && (newStart - startIndex) < dataSize)
             {
-                if (dataType == OperandNumberTypes.Integer)
-                {
-                    var operands = ParseCFFIntegers(in data, newStart, out newStart);
-                    dict.Add(ParseCFFOperator(in data, newStart, out newStart), operands.ToArray());
-                }
-                else if (dataType == OperandNumberTypes.Real)
-                {
-                    throw new NotImplementedException("Real numbers are not supported currently.");
-                }
-                else
-                    throw new Exception("Invalid leading byte value, cannot parse dictionary entry.");
+                var operands = ParseCFFOperands(in data, newStart, out newStart);
+                dict.Add(ParseCFFOperator(in data, newStart, out newStart), operands.ToArray());
             }
 
             return dict;
         }
 
-        private List<Operand> ParseCFFIntegers(in byte[] data, int startIndex, out int newStart)
+        private List<Operand> ParseCFFOperands(in byte[] data, int startIndex, out int newStart)
         {
             newStart = startIndex;
             List<Operand> operands = new List<Operand>();
@@ -231,11 +222,64 @@ namespace DeeSynk.Core.Managers
                     case byte b when (b >= 0x20 && b <= 0xf6): operands.Add(new Operand(data[newStart] - 139)); newStart += 1; break;
                     case byte b when (b >= 0xf7 && b <= 0xfa): operands.Add(new Operand((data[newStart] - 247) * 256 + data[newStart+1] + 108)); newStart += 2; break;
                     case byte b when (b >= 0xfb && b <= 0xfe): operands.Add(new Operand(-(data[newStart] - 251) * 256 - data[newStart + 1] - 108)); newStart += 2; break;
-                    case(0x1c): operands.Add(new Operand(data[newStart+1]<<8 | data[newStart+2])); newStart += 3; break;
+                    case (0x1c): operands.Add(new Operand(data[newStart+1]<<8 | data[newStart+2])); newStart += 3; break;
                     case (0x1d): operands.Add(new Operand(data[newStart + 1] << 24 | data[newStart + 2] << 16 | data[newStart + 3] << 8 | data[newStart + 4])); newStart += 5; break;
+                    case (0x1e): operands.Add(new Operand(ParseCFFReal(in data, startIndex, out newStart))); break;
                 }
             }
             return operands;
+        }
+
+        private double ParseCFFReal(in byte[] data, int startIndex, out int newStart)
+        {
+            newStart = startIndex;
+
+            byte[] firstNibble = SplitByte(data[newStart += 1]);
+            double beforeDec = ((firstNibble[0] == 0xe) ? -firstNibble[1] : firstNibble[0]);
+            double afterDec = 0;
+            double exponent = 0;
+            int afterDecCount = 0;
+            int phase = ((firstNibble[1] == 0xa) ? 1 : 0);  //0 = beforeDec  1 = afterDec  2 = postivie exponent  3 = negative exponent
+
+            bool done = false;
+
+            while (!done)
+            {
+                byte[] nibble = SplitByte(data[newStart += 1]);
+                for(int idx = 0; idx < 2; idx++)
+                {
+                    switch (nibble[idx])
+                    {
+                        case (0xa): phase = 1; break;
+                        case (0xb): phase = 2; break;
+                        case (0xc): phase = 3; break;
+                        case (0xd): throw new Exception("Reserved token, invalid nibble format.");
+                        case (0xe): throw new Exception("Second minus token, invalid nibble format.");
+                        case (0xf): done = true; break;
+                        default:
+                            switch (phase)
+                            {
+                                case (0): beforeDec = beforeDec * 10 + nibble[idx]; break;
+                                case (1): afterDec = afterDec * 10 + nibble[idx]; afterDecCount--; break;
+                                default: exponent = exponent * 10 + nibble[idx]; break;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            double outValue = (beforeDec + afterDec * Math.Pow(10, afterDecCount) * ((beforeDec < 0) ? -1 : 1));
+            if (phase > 1)
+                outValue = outValue * Math.Pow(10, ((phase == 2) ? exponent : -exponent));
+            return outValue;
+        }
+
+        private byte[] SplitByte(byte value)
+        {
+            byte[] output = new byte[2];
+            output[0] = (byte)(value >> 4);
+            output[1] = (byte)(value & 0x0f);
+            return output;
         }
 
         private Operators ParseCFFOperator(in byte[] data, int startIndex, out int newStart)
@@ -299,11 +343,8 @@ namespace DeeSynk.Core.Managers
 
                 while ((newStart - startIndex) < dataSize)
                 {
-                    var operands = ParseCFFOperands(in code, newStart, out newStart);
+                    var operands = ParseCFFOperandsCS(in code, newStart, out newStart);
                     commands[idx].Add(new CharStringFunction(ParseCFFCSOperator(in code, newStart, out newStart), operands.ToArray()));
-
-                    if (dataType == CSOperandNumberTypes.UNDEFINED)
-                        throw new Exception("Invalid leading byte value, cannot parse CharString command.");
                 }
 
                 //TEST
@@ -328,7 +369,7 @@ namespace DeeSynk.Core.Managers
             return commands;
         }
 
-        private List<CSOperand> ParseCFFOperands(in byte[] data, int startIndex, out int i)
+        private List<CSOperand> ParseCFFOperandsCS(in byte[] data, int startIndex, out int i)
         {
             i = startIndex;
             List<CSOperand> operands = new List<CSOperand>();
