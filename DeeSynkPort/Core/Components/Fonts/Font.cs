@@ -26,6 +26,9 @@ namespace DeeSynk.Core.Components.Types.Fonts
         public static readonly int[] headerNames = { CFF, FFTM, GDEF, GPOS, GSUB, OSs2, cmap, head, hhea, hmtx, maxp, name, post };
         #endregion
 
+        private string _path;
+        public string Path { get => _path; }
+
         private string _name;
         public string Name { get => _name; }
 
@@ -35,7 +38,7 @@ namespace DeeSynk.Core.Components.Types.Fonts
         private CFFTable _cffTable;
         public CFFTable CFFTable { get => _cffTable; set => _cffTable = value; }
 
-        public Font(string name)
+        public Font(string filePath, string name)
         {
             _name = name;
         }

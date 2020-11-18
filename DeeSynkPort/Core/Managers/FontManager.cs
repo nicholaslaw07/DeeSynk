@@ -46,7 +46,6 @@ namespace DeeSynk.Core.Managers
             throw new NotImplementedException();
         }
 
-        #region Parser
         //Documentation references:
         //https://wwwimages2.adobe.com/content/dam/acom/en/devnet/font/pdfs/5176.CFF.pdf
         //https://simoncozens.github.io/fonts-and-layout/opentype.html
@@ -55,7 +54,7 @@ namespace DeeSynk.Core.Managers
         {
             byte[] file = File.ReadAllBytes(path);
 
-            Font font = new Font(name);
+            Font font = new Font(path, name);
 
             if (!HasOTTOHeader(in file))
                 throw new Exception("File does not contain valid header for OpenType format");
@@ -118,8 +117,7 @@ namespace DeeSynk.Core.Managers
                 }
             } while (stillChecking);
         }
-
-        //OpenType/CFF Stuff
+        //OpenType7/CFF Stuff
 
         private CFFTable ParseCFFTable(in byte[] data, FileHeaderEntry entry)
         {
@@ -136,13 +134,20 @@ namespace DeeSynk.Core.Managers
             if (table.TopDictionaryIndex.Data[0].TryGetValue(Operators.CharStrings, out Operand[] charStringIdx))
             {
                 if (charStringIdx.Length == 1)
-                    table.IndexCharStrings = ParseCFFIndex(in data, table.StartIndex + charStringIdx[0].IntegerValue, out newStart);
+                    table.IndexCharStrings = ParseCFFIndex(in data, table.StartIndex + charStringIdx[0].IntegerValue);
             }
             table.CharStringCommands = ParseCFFCharStrings(table.IndexCharStrings);
             if (table.TopDictionaryIndex.Data[0].TryGetValue(Operators.Private, out Operand[] privateOperands))
             {
                 if (privateOperands.Length == 2)
-                    table.PrivateDictionary = ParseCFFDictionary(in data, table.StartIndex + privateOperands[1].IntegerValue, privateOperands[0].IntegerValue, out newStart);
+                {
+                    table.PrivateDictionary = ParseCFFDictionary(in data, table.StartIndex + privateOperands[1].IntegerValue, privateOperands[0].IntegerValue);
+                    if(table.PrivateDictionary.TryGetValue(Operators.Subrs, out Operand[] subrsOperands))
+                    {
+                        if(subrsOperands.Length == 1)
+                            table.IndexLocalSubr = ParseCFFIndex(in data, table.StartIndex + privateOperands[1].IntegerValue + subrsOperands[0].IntegerValue);
+                    }
+                }
             }
             if (table.TopDictionaryIndex.Data[0].TryGetValue(Operators.charset, out Operand[] charsetOperands))
             {
@@ -154,13 +159,88 @@ namespace DeeSynk.Core.Managers
             return table;
         }
 
-        //add parsers in the constructors of the classes that are being used
+        //=====================================//
+        //           -Feature note-            //
+        // Remove all of the parser stuff from //
+        // here and add the respective methods //
+        // inside of the classes where they    //
+        // belong.  For example, ParseCFFIndex //
+        // should go inside of the CFFIndex    //
+        // class as we can easily pass file    //
+        // data around.  It does not have to   //
+        // be stored, only referenced (in).    //
+        // Since we're going for a an approach //
+        // of strongly partitioned methods and //
+        // heavily divided classes (as one     //
+        // should), we will keep FontManager   //
+        // small in size and focused in its    //
+        // functions.  This same philsophy     //
+        // should be applied in our other      //
+        // parsers.                            //
+        // Additionally, moving all of these   //
+        // functions out of here will make     //
+        // future TrueType implementation much //
+        // easier and visually more appealing  //
+        // to look at.                         //
+        // Keep FontManager at simply loading  //
+        // and storing fonts.  It initiates    //
+        // the parsing routines by creating a  //
+        // new Font object with the specified  //
+        // directory.  The Font object handles //
+        // the parsing operations.             //
+        // For now, we will keep CFF functions //
+        // here purely for debugging purposes. //
+        //=====================================//
 
-        //Add real number support
-        //Add fixed value support
-        //Link charsets to charstrings
-        //Decipher the mess that is poscript code
-        //Understand where the subroutines are stored, if anywhere
+        //=====================================//
+        //        -Point of Uncertainy-        //
+        // There some mysterious behavior in   //
+        // the global subroutines.  There is a //
+        // mysterious global subroutine that   //
+        // begins WITH an operator and is then //
+        // followed by normal operands and     //
+        // operators.  This is not the case    //
+        // for all global subroutines.  My     //
+        // hypothesis is that it may have      //
+        // something to do with how they are   //
+        // added to the stack of commands.     //
+        // More specifically, these may be     //
+        // added to the stack in such a way    //
+        // that operands are passed from the   //
+        // primary charstring command list or  //
+        // the subroutine is appended directly //
+        // after the raw binary of the         //
+        // charstring commands.  If true, then //
+        // the methods of parsing charstring   //
+        // commands will need to be different. //
+        // It may become the case that global  //
+        // subroutines are parsed into the     //
+        // charstrings upon the initial parse  //
+        // so as to avoid subroutines at all.  //
+        // If this were the case, then this    //
+        // should not cause issues since we    //
+        // not drawing fonts directly from the //
+        // code and most vector font and bmp   //
+        // font data will be baked.            //
+        //=====================================//
+
+        //====================================//
+        //             -Addendum-             //
+        // We need to add Geometry to VAO     //
+        // functionality.  This will require  //
+        // interpreting the functions and     //
+        // in the case of baked geometry,     //
+        // creating it on the CPU.  When we   //
+        // have baked textures, we bake on    //
+        // the CPU and render on the GPU      //
+        // When we have adaptive font vectors //
+        // we need to upload custom VAO data  //
+        // to the GPU and have it utilize     //
+        // custom tessellation shaders to add //
+        // just the right level of detail     //
+        // for the expected size on the       //
+        // display.                           //
+        //====================================//
 
         private void ParseCFFIndexHeader(in byte[] data, int startIndex, out int newStart, out short count, out byte offset)
         {
@@ -194,6 +274,19 @@ namespace DeeSynk.Core.Managers
             return index;
         }
 
+        private CFFIndex ParseCFFIndex(in byte[] data, int startIndex)
+        {
+            ParseCFFIndexHeader(in data, startIndex, out startIndex, out short count, out byte offset);
+            CFFIndex index = new CFFIndex(count, offset);
+            ParseCFFIndexOffsets(in data, startIndex, index.Offset, ref index.OffsetsRef, ref index.OffsetGapsRef, out startIndex);
+            int size = index.DataSize;
+            index.Data = new byte[size];
+            for (int idx = 0; idx < index.Data.Length; idx++)
+                index.Data[idx] = data[startIndex + idx];
+
+            return index;
+        }
+
         private CFFDictionaryIndex ParseCFFDictionaryIndex(in byte[] data, int startIndex, out int newStart)
         {
             newStart = startIndex;
@@ -208,6 +301,20 @@ namespace DeeSynk.Core.Managers
         private CFFDictionary ParseCFFDictionary(in byte[] data, int startIndex, int dataSize, out int newStart)
         {
             newStart = startIndex;
+            var dict = new CFFDictionary(startIndex);
+            OperandNumberTypes dataType = GetNumberType(data[newStart]);
+            while (dataType != OperandNumberTypes.UNDEFINED && (newStart - startIndex) < dataSize)
+            {
+                var operands = ParseCFFOperands(in data, newStart, out newStart);
+                dict.Add(ParseCFFOperator(in data, newStart, out newStart), operands.ToArray());
+            }
+
+            return dict;
+        }
+
+        private CFFDictionary ParseCFFDictionary(in byte[] data, int startIndex, int dataSize)
+        {
+            int newStart = startIndex;
             var dict = new CFFDictionary(startIndex);
             OperandNumberTypes dataType = GetNumberType(data[newStart]);
             while (dataType != OperandNumberTypes.UNDEFINED && (newStart - startIndex) < dataSize)
@@ -433,6 +540,44 @@ namespace DeeSynk.Core.Managers
             return charset;
         }
 
+        private CFFCharsets ParseCFFCharsets(in byte[] data, int nGlyphs, int startIndex)
+        {
+            int newStart = startIndex;
+            byte format = data[startIndex];
+            CFFCharsets charset = new CFFCharsets(format);
+            int idx = 0;
+            switch (format)
+            {
+                case (0):
+                    for (newStart = startIndex + 1; newStart < startIndex + 2 * nGlyphs; newStart += 2)
+                        charset.Add((short)(data[newStart] << 8 | data[newStart + 1]));
+                    break;
+                case (1):
+                    while (idx < nGlyphs)
+                    {
+                        short first = (short)(data[newStart] << 8 | data[newStart + 1]);
+                        byte nLeft = data[newStart + 2];
+                        for (byte jdx = 0; jdx <= nLeft; jdx++)
+                            charset.Add((short)(first + jdx));
+                        idx += nLeft + 1;
+                        newStart += 3;
+                    }
+                    break;
+                case (2):
+                    while (idx < nGlyphs)
+                    {
+                        short first = (short)(data[newStart] << 8 | data[newStart + 1]);
+                        short nLeft = (short)(data[newStart + 2] << 8 | data[newStart + 3]);
+                        for (short jdx = 0; jdx <= nLeft; jdx++)
+                            charset.Add((short)(first + jdx));
+                        idx += nLeft + 1;
+                        newStart += 4;
+                    }
+                    break;
+            }
+            return charset;
+        }
+
 
 
         private byte[] GetSubsetLE(in byte[] data, int offset, int count)
@@ -461,6 +606,5 @@ namespace DeeSynk.Core.Managers
             for (int i = 0; i < count; i++)
                 val[i] = data[offset + i];
         }
-        #endregion
     }
 }

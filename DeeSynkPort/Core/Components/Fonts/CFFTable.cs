@@ -47,11 +47,17 @@ namespace DeeSynk.Core.Components.Types.Fonts
         private CFFIndex _indexGlobalSubr;
         public CFFIndex IndexGlobalSubr { get => _indexGlobalSubr; set => _indexGlobalSubr = value; }
 
+        private CFFIndex _indexLocalSubr;
+        public CFFIndex IndexLocalSubr { get => _indexLocalSubr; set => _indexLocalSubr = value; }
+
         private CFFIndex _indexCharStrings;
         public CFFIndex IndexCharStrings { get => _indexCharStrings; set => _indexCharStrings = value; }
 
         private CFFCharStringCommands[] _charStringCommands;
         public CFFCharStringCommands[] CharStringCommands { get => _charStringCommands; set => _charStringCommands = value; }
+
+        private CFFCharStringCommands[] _localSubrCommands;
+        public CFFCharStringCommands[] LocalSubrCommands { get => _localSubrCommands; set => _localSubrCommands = value; }
 
         private CFFDictionary _privateDict;
         public CFFDictionary PrivateDictionary { get => _privateDict; set => _privateDict = value; }
