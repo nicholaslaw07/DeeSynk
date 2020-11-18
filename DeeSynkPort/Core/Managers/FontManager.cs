@@ -119,6 +119,8 @@ namespace DeeSynk.Core.Managers
             } while (stillChecking);
         }
 
+        //OpenType/CFF Stuff
+
         private CFFTable ParseCFFTable(in byte[] data, FileHeaderEntry entry)
         {
             int startIndex = entry.Offset;
@@ -147,7 +149,7 @@ namespace DeeSynk.Core.Managers
                 if (charsetOperands.Length == 1)
                     table.Charsets = ParseCFFCharsets(in data, table.CharStringCommands.Length, table.StartIndex + charsetOperands[0].IntegerValue, out newStart);
             }
-            var gsub19 = table.IndexCharStrings.GetDataAtIndex(19);
+            //var gsub19 = table.IndexCharStrings.GetDataAtIndex(19);
             int x = 1;
             return table;
         }
@@ -296,17 +298,12 @@ namespace DeeSynk.Core.Managers
 
         private bool ValidIntegerStart(byte b0)
         {
-            return (b0 >= 0x20 && b0 <= 0xfe) || (b0 >= 0x1c && b0 <= 0x1d);
+            return (b0 >= 0x20 && b0 <= 0xfe) || (b0 >= 0x1c && b0 <= 0x1e);
         }
 
         private bool ValidNumberStart(byte b0)
         {
             return (b0 >= 0x20 && b0 <= 0xff) || (b0 == 0x1c);
-        }
-
-        private bool ValidRealStart(byte b0)
-        {
-            return b0 == 0x1e;
         }
 
         private OperandNumberTypes GetNumberType(byte b0)
