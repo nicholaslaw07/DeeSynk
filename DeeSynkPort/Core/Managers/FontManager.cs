@@ -159,89 +159,6 @@ namespace DeeSynk.Core.Managers
             return table;
         }
 
-        //=====================================//
-        //           -Feature note-            //
-        // Remove all of the parser stuff from //
-        // here and add the respective methods //
-        // inside of the classes where they    //
-        // belong.  For example, ParseCFFIndex //
-        // should go inside of the CFFIndex    //
-        // class as we can easily pass file    //
-        // data around.  It does not have to   //
-        // be stored, only referenced (in).    //
-        // Since we're going for a an approach //
-        // of strongly partitioned methods and //
-        // heavily divided classes (as one     //
-        // should), we will keep FontManager   //
-        // small in size and focused in its    //
-        // functions.  This same philsophy     //
-        // should be applied in our other      //
-        // parsers.                            //
-        // Additionally, moving all of these   //
-        // functions out of here will make     //
-        // future TrueType implementation much //
-        // easier and visually more appealing  //
-        // to look at.                         //
-        // Keep FontManager at simply loading  //
-        // and storing fonts.  It initiates    //
-        // the parsing routines by creating a  //
-        // new Font object with the specified  //
-        // directory.  The Font object handles //
-        // the parsing operations.             //
-        // For now, we will keep CFF functions //
-        // here purely for debugging purposes. //
-        //=====================================//
-
-        //=====================================//
-        //        -Point of Uncertainy-        //
-        // There some mysterious behavior in   //
-        // the global subroutines.  There is a //
-        // mysterious global subroutine that   //
-        // begins WITH an operator and is then //
-        // followed by normal operands and     //
-        // operators.  This is not the case    //
-        // for all global subroutines.  My     //
-        // hypothesis is that it may have      //
-        // something to do with how they are   //
-        // added to the stack of commands.     //
-        // More specifically, these may be     //
-        // added to the stack in such a way    //
-        // that operands are passed from the   //
-        // primary charstring command list or  //
-        // the subroutine is appended directly //
-        // after the raw binary of the         //
-        // charstring commands.  If true, then //
-        // the methods of parsing charstring   //
-        // commands will need to be different. //
-        // It may become the case that global  //
-        // subroutines are parsed into the     //
-        // charstrings upon the initial parse  //
-        // so as to avoid subroutines at all.  //
-        // If this were the case, then this    //
-        // should not cause issues since we    //
-        // not drawing fonts directly from the //
-        // code and most vector font and bmp   //
-        // font data will be baked.            //
-        //=====================================//
-
-        //====================================//
-        //             -Addendum-             //
-        // We need to add Geometry to VAO     //
-        // functionality.  This will require  //
-        // interpreting the functions and     //
-        // in the case of baked geometry,     //
-        // creating it on the CPU.  When we   //
-        // have baked textures, we bake on    //
-        // the CPU and render on the GPU      //
-        // When we have adaptive font vectors //
-        // we need to upload custom VAO data  //
-        // to the GPU and have it utilize     //
-        // custom tessellation shaders to add //
-        // just the right level of detail     //
-        // for the expected size on the       //
-        // display.                           //
-        //====================================//
-
         private void ParseCFFIndexHeader(in byte[] data, int startIndex, out int newStart, out short count, out byte offset)
         {
             newStart = startIndex;
@@ -578,33 +495,87 @@ namespace DeeSynk.Core.Managers
             return charset;
         }
 
+        //=====================================//
+        //           -Feature note-            //
+        // Remove all of the parser stuff from //
+        // here and add the respective methods //
+        // inside of the classes where they    //
+        // belong.  For example, ParseCFFIndex //
+        // should go inside of the CFFIndex    //
+        // class as we can easily pass file    //
+        // data around.  It does not have to   //
+        // be stored, only referenced (in).    //
+        // Since we're going for a an approach //
+        // of strongly partitioned methods and //
+        // heavily divided classes (as one     //
+        // should), we will keep FontManager   //
+        // small in size and focused in its    //
+        // functions.  This same philsophy     //
+        // should be applied in our other      //
+        // parsers.                            //
+        // Additionally, moving all of these   //
+        // functions out of here will make     //
+        // future TrueType implementation much //
+        // easier and visually more appealing  //
+        // to look at.                         //
+        // Keep FontManager at simply loading  //
+        // and storing fonts.  It initiates    //
+        // the parsing routines by creating a  //
+        // new Font object with the specified  //
+        // directory.  The Font object handles //
+        // the parsing operations.             //
+        // For now, we will keep CFF functions //
+        // here purely for debugging purposes. //
+        //=====================================//
 
+        //=====================================//
+        //        -Point of Uncertainy-        //
+        // There some mysterious behavior in   //
+        // the global subroutines.  There is a //
+        // mysterious global subroutine that   //
+        // begins WITH an operator and is then //
+        // followed by normal operands and     //
+        // operators.  This is not the case    //
+        // for all global subroutines.  My     //
+        // hypothesis is that it may have      //
+        // something to do with how they are   //
+        // added to the stack of commands.     //
+        // More specifically, these may be     //
+        // added to the stack in such a way    //
+        // that operands are passed from the   //
+        // primary charstring command list or  //
+        // the subroutine is appended directly //
+        // after the raw binary of the         //
+        // charstring commands.  If true, then //
+        // the methods of parsing charstring   //
+        // commands will need to be different. //
+        // It may become the case that global  //
+        // subroutines are parsed into the     //
+        // charstrings upon the initial parse  //
+        // so as to avoid subroutines at all.  //
+        // If this were the case, then this    //
+        // should not cause issues since we    //
+        // not drawing fonts directly from the //
+        // code and most vector font and bmp   //
+        // font data will be baked.            //
+        //=====================================//
 
-        private byte[] GetSubsetLE(in byte[] data, int offset, int count)
-        {
-            byte[] val = new byte[count];
-            for (int i = 0; i < count; i++)
-                val[i] = data[offset + count - 1 - i];
-            return val;
-        }
-        private byte[] GetSubsetBE(in byte[] data, int offset, int count)
-        {
-            byte[] val = new byte[count];
-            for (int i = 0; i < count; i++)
-                val[i] = data[offset + i];
-            return val;
-        }
-        private void GetSubsetLE(in byte[] data, int offset, int count, out byte[] val)
-        {
-            val = new byte[count];
-            for (int i = 0; i < count; i++)
-                val[i] = data[offset + count - 1 - i];
-        }
-        private void GetSubsetBE(in byte[] data, int offset, int count, out byte[] val)
-        {
-            val = new byte[count];
-            for (int i = 0; i < count; i++)
-                val[i] = data[offset + i];
-        }
+        //====================================//
+        //             -Addendum-             //
+        // We need to add Geometry to VAO     //
+        // functionality.  This will require  //
+        // interpreting the functions and     //
+        // in the case of baked geometry,     //
+        // creating it on the CPU.  When we   //
+        // have baked textures, we bake on    //
+        // the CPU and render on the GPU      //
+        // When we have adaptive font vectors //
+        // we need to upload custom VAO data  //
+        // to the GPU and have it utilize     //
+        // custom tessellation shaders to add //
+        // just the right level of detail     //
+        // for the expected size on the       //
+        // display.                           //
+        //====================================//
     }
 }
