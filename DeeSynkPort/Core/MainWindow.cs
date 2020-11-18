@@ -389,12 +389,12 @@ namespace DeeSynk.Core
 
         private void DebugLoadStart(string name)
         {
-            Debug.Write($"[{GetTimeDelta(loadTimer, false, false)}]: Loading {name}... "); StartTime();
+            Debug.WriteLine($"[{GetTimeDelta(loadTimer, false, false)}]: Loading {name}... "); StartTime();
         }
 
         private void DebugLoadFinish()
         {
-            Debug.Write($"Loaded in {TimeDelta()} seconds\n");
+            Debug.WriteLine($"[{GetTimeDelta(loadTimer, false, false)}]: Loaded in {TimeDelta()} seconds");
         }
 
         private string TimeText()

@@ -13,6 +13,9 @@ namespace DeeSynk.Core.Managers
 
         private static FontManager _fontManager;
 
+        private Dictionary<string, Font> _fonts;
+        public Dictionary<string, Font> Fonts { get => _fonts; }
+
         #region STANDARD_VARS
         private readonly int _off1 = 1;
         private readonly int _off2 = 2;
@@ -21,7 +24,7 @@ namespace DeeSynk.Core.Managers
 
         private FontManager()
         {
-
+            _fonts = new Dictionary<string, Font>();
         }
 
         public static ref FontManager GetInstance()
@@ -70,6 +73,8 @@ namespace DeeSynk.Core.Managers
                     default: break;
                 }
             }
+
+            _fonts.Add(name, font);
         }
         private bool ExistsAtLocation(in byte[] data, int start, int count, int compare) { return GetAtLocation4(in data, start, count) == compare; }
 
@@ -146,6 +151,7 @@ namespace DeeSynk.Core.Managers
             int x = 1;
             return table;
         }
+
         //add parsers in the constructors of the classes that are being used
 
         //Add real number support
@@ -254,7 +260,7 @@ namespace DeeSynk.Core.Managers
                         case (0xb): phase = 2; break;
                         case (0xc): phase = 3; break;
                         case (0xd): throw new Exception("Reserved token, invalid nibble format.");
-                        case (0xe): throw new Exception("Second minus token, invalid nibble format.");
+                        case (0xe): if (phase == 0) { phase = 1; } else { throw new Exception("More than one minus token, invalid nibble format."); } break;
                         case (0xf): done = true; break;
                         default:
                             switch (phase)
