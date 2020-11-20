@@ -41,8 +41,8 @@ namespace DeeSynk.Core.Managers
         {
             //LoadFontGeometry(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\OfficeCodePro-Light\OfficeCodePro-Light.otf", "OfficeCodePro-Light.otf");
             //LoadFontGeometry(@"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\OfficeCodePro-Light\OfficeCodePro-Light.otf", "OfficeCodePro-Light.otf");
-            //LoadFontGeometry(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\Mechanical\Mechanical-g5Y5.otf", "Mechanical-g5Y5");
-            LoadFontGeometry(@"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\Mechanical\Mechanical-g5Y5.otf", "Mechanical-g5Y5");
+            LoadFontGeometry(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\Mechanical\Mechanical-g5Y5.otf", "Mechanical-g5Y5");
+            //LoadFontGeometry(@"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\Mechanical\Mechanical-g5Y5.otf", "Mechanical-g5Y5");
         }
 
         public void UnLoad()
@@ -89,15 +89,15 @@ namespace DeeSynk.Core.Managers
             List<int> hNames = new List<int>(Font.headerNames);
             do
             {
-                int testVal = DataHelper.GetAtLocation4(in data, offset += _off4, _off4);
+                int testVal = DataHelper.GetAtLocationInt(in data, offset += _off4, _off4);
                 stillChecking = hNames.Contains(testVal);
                 if (stillChecking)
                 {
                     headerEntries.Add(new FileHeaderEntry(
                         testVal,
-                        DataHelper.GetAtLocation4(in data, offset += _off4, _off4),
-                        DataHelper.GetAtLocation4(in data, offset += _off4, _off4),
-                        DataHelper.GetAtLocation4(in data, offset += _off4, _off4)));
+                        DataHelper.GetAtLocationInt(in data, offset += _off4, _off4),
+                        DataHelper.GetAtLocationInt(in data, offset += _off4, _off4),
+                        DataHelper.GetAtLocationInt(in data, offset += _off4, _off4)));
                 }
             } while (stillChecking);
         }
@@ -154,7 +154,7 @@ namespace DeeSynk.Core.Managers
         private void ParseCFFIndexHeader(in byte[] data, int startIndex, out int newStart, out short count, out byte offset)
         {
             newStart = startIndex;
-            count = DataHelper.GetAtLocation2(in data, startIndex, 2);
+            count = DataHelper.GetAtLocationShort(in data, startIndex, 2);
             if(count > 0)
                 offset = data[newStart += _off2];
             else
@@ -166,9 +166,9 @@ namespace DeeSynk.Core.Managers
         private void ParseCFFIndexOffsets(in byte[] data, int startIndex, byte offset, ref int[] offsets, ref int[] offsetGaps, out int newStart)
         {
             newStart = startIndex - offset;
-            offsets[0] = DataHelper.GetAtLocation4(in data, newStart += offset, offset) - 1;
+            offsets[0] = DataHelper.GetAtLocationInt(in data, newStart += offset, offset) - 1;
             for (int idx = 0; idx < offsets.Length - 1; idx++)
-                offsetGaps[idx] = (offsets[idx + 1] = DataHelper.GetAtLocation4(in data, newStart += offset, offset) - 1) - offsets[idx];
+                offsetGaps[idx] = (offsets[idx + 1] = DataHelper.GetAtLocationInt(in data, newStart += offset, offset) - 1) - offsets[idx];
             newStart += offset;
         }
 

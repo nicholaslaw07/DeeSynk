@@ -17,7 +17,7 @@ namespace DeeSynk.Core.Components.Fonts.Tables
 
         private int _version;
 
-        private int _xAvgCharWidth;
+        private short _xAvgCharWidth;
 
         private int _usWeightClass, _usWidthClass;
 
@@ -57,7 +57,66 @@ namespace DeeSynk.Core.Components.Fonts.Tables
         private void ParseTableData(in byte[] data, FileHeaderEntry entry)
         {
             int index = entry.Offset;
-            _version = DataHelper.GetAtLocation4(in data, index, out index);
+            _version = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+            switch (_version)
+            {
+                case (VERSION_5):
+                    //ADD VERSION_5 stuff
+                    goto case VERSION_2;
+                case (VERSION_4):
+                    goto case VERSION_2;
+                case (VERSION_3):
+                    goto case VERSION_2;
+                case (VERSION_2):
+                    //ADD VERSION_2 stuff
+                    goto case VERSION_1;
+                case (VERSION_1):
+                    //ADD VERSION_1 stuff
+                    goto case VERSION_0;
+                case (VERSION_0):
+                    _xAvgCharWidth = DataHelper.GetAtLocationShort(in data, index, out index);
+
+                    _usWeightClass = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+                    _usWidthClass = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+
+                    _fsType = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+
+                    _ySubscriptXSize = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _ySubscriptYSize = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _ySubscriptXOffset = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _ySubscriptYOffset = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _ySuperscriptXSize = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _ySuperscriptYSize = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _ySuperscriptXOffset = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _ySuperscriptYOffset = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _yStrikeoutSize = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _yStrikeoutPosition = DataHelper.GetAtLocationShort(in data, index, out index);
+
+                    _sFamilyClass = DataHelper.GetAtLocationShort(in data, index, out index);
+
+                    _panose = new short[10];
+                    for(int idx = 0; idx < 10; idx++)
+                        _panose[idx] = DataHelper.GetAtLocationShort(in data, index, 1, out index);
+
+                    _ulUnicodeRange1 = DataHelper.GetAtLocationLong(in data, index, 4, out index);
+                    _ulUnicodeRange2 = DataHelper.GetAtLocationLong(in data, index, 4, out index);
+                    _ulUnicodeRange3 = DataHelper.GetAtLocationLong(in data, index, 4, out index);
+                    _ulUnicodeRange4 = DataHelper.GetAtLocationLong(in data, index, 4, out index);
+
+                    _achVendID = new short[4];
+                    for (int idx = 0; idx < 4; idx++)
+                        _achVendID[idx] = DataHelper.GetAtLocationShort(in data, index, 1, out index);
+
+                    _fsSelection = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+
+                    _usFirstCharIndex = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+                    _usLastCharIndex = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+
+                    _sTypoAscender = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _sTypoDescender = DataHelper.GetAtLocationShort(in data, index, out index);
+                    _sTypoLineGap = DataHelper.GetAtLocationShort(in data, index, out index);
+                    break;
+            }
         }
     }
 }

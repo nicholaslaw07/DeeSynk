@@ -25,10 +25,10 @@ namespace DeeSynk.Core.Managers
 
         private static int callCount = 0;
 
-        //private const string TEXTURE_PATH = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Textures\Single_Textures\";  //Location of individual texture files
-        //private const string ATLAS_PATH = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Textures\Atlases\"; //Location of atlas group folders
-        private const string TEXTURE_PATH = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Textures\Single_Textures\";  //Location of individual texture files
-        private const string ATLAS_PATH = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Textures\Atlases\"; //Location of atlas group folders
+        private const string TEXTURE_PATH = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Textures\Single_Textures\";  //Location of individual texture files
+        private const string ATLAS_PATH = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Textures\Atlases\"; //Location of atlas group folders
+        //private const string TEXTURE_PATH = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Textures\Single_Textures\";  //Location of individual texture files
+        //private const string ATLAS_PATH = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Textures\Atlases\"; //Location of atlas group folders
         private const string FILE_TYPE = ".bmp";
 
         #region BitmapHeaderOffsets
