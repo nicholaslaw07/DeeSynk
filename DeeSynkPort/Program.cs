@@ -1,4 +1,5 @@
 ﻿using DeeSynk.Core;
+using OpenTK.Windowing.Desktop;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,7 +23,14 @@ namespace DeeSynk
         [STAThread]
         static void Main()
         {
-            window = new MainWindow();
+            GameWindowSettings gs = new GameWindowSettings();
+            //gs.IsMultiThreaded = true;
+            NativeWindowSettings ns = new NativeWindowSettings();
+            //ns.API = OpenTK.Windowing.Common.ContextAPI.OpenGL;
+            ns.APIVersion = Version.Parse("4.6");
+            ns.AutoLoadBindings = true;
+            //ns.IsFullscreen = false;
+            window = new MainWindow(gs, ns);
             window.Run();
         }
     }

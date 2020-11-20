@@ -56,7 +56,7 @@ namespace DeeSynk.Core
         /// passed to the parent class constructor. The title of the window is then set with
         /// additional information, including the current OpenGL version.
         /// </summary>
-        public MainWindow() : base(new GameWindowSettings(), new NativeWindowSettings())
+        public MainWindow(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings)
         {
             loadTimer = new Stopwatch();
             timeTracker = new Stopwatch();
@@ -71,6 +71,7 @@ namespace DeeSynk.Core
             _centerMouse = true;
             sw = new Stopwatch();
             sw2 = new Stopwatch();
+
             int w = 21;
             int h = 21;
             byte[] data = new byte[w * h * 4];
