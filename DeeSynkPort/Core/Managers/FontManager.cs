@@ -74,7 +74,8 @@ namespace DeeSynk.Core.Managers
                 {
                     case (0x43464620 /*CFF */): font.CFFTable = ParseCFFTable(in file, entry); break;
                     case (0x6d617870 /*maxp*/): font.MaxP = new MaximumProfile(in file, entry); break;
-                    default: break;
+                    case (0x4f532f32 /*OS/2*/): font.OS2 = new OS2(in file, entry); break;
+                    default: Debug.WriteLine("Unknown or unsupported table."); break;
                 }
             }
 

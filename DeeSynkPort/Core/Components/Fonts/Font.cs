@@ -43,6 +43,9 @@ namespace DeeSynk.Core.Components.Types.Fonts
         private MaximumProfile _maxp;
         public MaximumProfile MaxP { get => _maxp; set => _maxp = value; }
 
+        private OS2 _os2;
+        public OS2 OS2 { get => _os2; set => _os2 = value; }
+
         public Font(string filePath, string name)
         {
             _name = name;

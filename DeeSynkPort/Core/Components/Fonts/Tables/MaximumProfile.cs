@@ -50,8 +50,8 @@ namespace DeeSynk.Core.Components.Fonts.Tables
         {
             int index = entry.Offset;
 
-            _version = DataHelper.GetAtLocation4(in data, index, out index);
-            _numGlyphs = DataHelper.GetAtLocation4(in data, index, 2, out index);
+            _version = DataHelper.GetAtLocationInt(in data, index, out index);
+            _numGlyphs = DataHelper.GetAtLocationInt(in data, index, 2, out index);
             switch (_version)
             {
                 case (VERSION_0_5): return;
@@ -62,24 +62,24 @@ namespace DeeSynk.Core.Components.Fonts.Tables
 
         private void ParseVersion1Data(in byte[] data, int index)
         {
-            _maxPoints = DataHelper.GetAtLocation4(in data, index, 2, out index);
-            _maxContours = DataHelper.GetAtLocation4(in data, index, 2, out index);
+            _maxPoints = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+            _maxContours = DataHelper.GetAtLocationInt(in data, index, 2, out index);
 
-            _maxCompositePoints = DataHelper.GetAtLocation4(in data, index, 2, out index);
-            _maxCompositeContours = DataHelper.GetAtLocation4(in data, index, 2, out index);
+            _maxCompositePoints = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+            _maxCompositeContours = DataHelper.GetAtLocationInt(in data, index, 2, out index);
 
-            _maxZones = DataHelper.GetAtLocation4(in data, index, 2, out index);
-            _maxTwilightPoints = DataHelper.GetAtLocation4(in data, index, 2, out index);
-            _maxStorage = DataHelper.GetAtLocation4(in data, index, 2, out index);
+            _maxZones = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+            _maxTwilightPoints = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+            _maxStorage = DataHelper.GetAtLocationInt(in data, index, 2, out index);
 
-            _maxFunctionDefs = DataHelper.GetAtLocation4(in data, index, 2, out index);
-            _maxInstructionDefs = DataHelper.GetAtLocation4(in data, index, 2, out index);
+            _maxFunctionDefs = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+            _maxInstructionDefs = DataHelper.GetAtLocationInt(in data, index, 2, out index);
 
-            _maxStackElements = DataHelper.GetAtLocation4(in data, index, 2, out index);
-            _maxSizeOfInstructions = DataHelper.GetAtLocation4(in data, index, 2, out index);
+            _maxStackElements = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+            _maxSizeOfInstructions = DataHelper.GetAtLocationInt(in data, index, 2, out index);
 
-            _maxComponentElements = DataHelper.GetAtLocation4(in data, index, 2, out index);
-            _maxComponentDepth = DataHelper.GetAtLocation4(in data, index, 2, out index);
+            _maxComponentElements = DataHelper.GetAtLocationInt(in data, index, 2, out index);
+            _maxComponentDepth = DataHelper.GetAtLocationInt(in data, index, 2, out index);
         }
     }
 }
