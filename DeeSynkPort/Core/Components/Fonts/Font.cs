@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DeeSynk.Core.Components.Fonts.Tables;
+using DeeSynk.Core.Components.Fonts.Tables.CFF;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -37,6 +39,9 @@ namespace DeeSynk.Core.Components.Types.Fonts
 
         private CFFTable _cffTable;
         public CFFTable CFFTable { get => _cffTable; set => _cffTable = value; }
+
+        private MaximumProfile _maxp;
+        public MaximumProfile MaxP { get => _maxp; set => _maxp = value; }
 
         public Font(string filePath, string name)
         {

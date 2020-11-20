@@ -1,4 +1,6 @@
 ﻿using DeeSynk.Core.Components.Fonts;
+using DeeSynk.Core.Components.Fonts.Tables;
+using DeeSynk.Core.Components.Fonts.Tables.CFF;
 using DeeSynk.Core.Components.Types.Fonts;
 using System;
 using System.Collections.Generic;
@@ -56,7 +58,7 @@ namespace DeeSynk.Core.Managers
 
             Font font = new Font(path, name);
 
-            if (!HasOTTOHeader(in file))
+            if (!DataHelper.HasOTTOHeader(in file))
                 throw new Exception("File does not contain valid header for OpenType format");
 
             {
@@ -68,34 +70,14 @@ namespace DeeSynk.Core.Managers
             {
                 switch (entry.Table)
                 {
-                    case (0x43464620 /*CFF*/): font.CFFTable = ParseCFFTable(in file, entry); break;
+                    case (0x43464620 /*CFF */): font.CFFTable = ParseCFFTable(in file, entry); break;
+                    case (0x6d617870 /*maxp*/): font.MaxP = new MaximumProfile(in file, entry); break;
                     default: break;
                 }
             }
 
             _fonts.Add(name, font);
         }
-        private bool ExistsAtLocation(in byte[] data, int start, int count, int compare) { return GetAtLocation4(in data, start, count) == compare; }
-
-        private int GetAtLocation4(in byte[] data, int start, int count)
-        {
-            if (count > 4) throw new ArgumentOutOfRangeException("The number of bytes read can only correspond to a 32-bit value.");
-            int d = 0;
-            for (int idx = 0; idx < count; idx++)
-                d += (int)(data[idx + start] << (8 * (count - 1 - idx)));
-            return d;
-        }
-
-        private short GetAtLocation2(in byte[] data, int start, int count)
-        {
-            if (count > 2) throw new ArgumentOutOfRangeException("The number of bytes read can only correspond to a 16-bit value.");
-            short d = 0;
-            for (int idx = 0; idx < count; idx++)
-                d += (short)(data[idx + start] << (8 * (count - 1 - idx)));
-            return d;
-        }
-
-        private bool HasOTTOHeader(in byte[] data) { return ExistsAtLocation(in data, 0, 4, Font.OTTO); }
 
         private void GetFileHeaderEntries(in byte[] data, int start, out List<FileHeaderEntry> headerEntries)
         {
@@ -105,15 +87,15 @@ namespace DeeSynk.Core.Managers
             List<int> hNames = new List<int>(Font.headerNames);
             do
             {
-                int testVal = GetAtLocation4(in data, offset += _off4, _off4);
+                int testVal = DataHelper.GetAtLocation4(in data, offset += _off4, _off4);
                 stillChecking = hNames.Contains(testVal);
                 if (stillChecking)
                 {
                     headerEntries.Add(new FileHeaderEntry(
-                        testVal, 
-                        GetAtLocation4(in data, offset += _off4, _off4), 
-                        GetAtLocation4(in data, offset += _off4, _off4),
-                        GetAtLocation4(in data, offset += _off4, _off4)));
+                        testVal,
+                        DataHelper.GetAtLocation4(in data, offset += _off4, _off4),
+                        DataHelper.GetAtLocation4(in data, offset += _off4, _off4),
+                        DataHelper.GetAtLocation4(in data, offset += _off4, _off4)));
                 }
             } while (stillChecking);
         }
@@ -131,12 +113,17 @@ namespace DeeSynk.Core.Managers
             table.TopDictionaryIndex = ParseCFFDictionaryIndex(in data, startIndex, out startIndex);
             table.IndexString = ParseCFFIndex(in data, startIndex, out startIndex);  //values are accessed at index of idx+390
             table.IndexGlobalSubr = ParseCFFIndex(in data, startIndex, out startIndex);
+            if (!table.IndexGlobalSubr.IsBlank)
+                table.GlobalSubrCommands = ParseCFFCharStrings(table.IndexGlobalSubr, true);
+
             if (table.TopDictionaryIndex.Data[0].TryGetValue(Operators.CharStrings, out Operand[] charStringIdx))
             {
                 if (charStringIdx.Length == 1)
                     table.IndexCharStrings = ParseCFFIndex(in data, table.StartIndex + charStringIdx[0].IntegerValue);
             }
-            table.CharStringCommands = ParseCFFCharStrings(table.IndexCharStrings);
+
+            table.CharStringCommands = ParseCFFCharStrings(table.IndexCharStrings, false);
+
             if (table.TopDictionaryIndex.Data[0].TryGetValue(Operators.Private, out Operand[] privateOperands))
             {
                 if (privateOperands.Length == 2)
@@ -145,7 +132,10 @@ namespace DeeSynk.Core.Managers
                     if(table.PrivateDictionary.TryGetValue(Operators.Subrs, out Operand[] subrsOperands))
                     {
                         if(subrsOperands.Length == 1)
+                        {
                             table.IndexLocalSubr = ParseCFFIndex(in data, table.StartIndex + privateOperands[1].IntegerValue + subrsOperands[0].IntegerValue);
+                            table.LocalSubrCommands = ParseCFFCharStrings(table.IndexLocalSubr, true);
+                        }
                     }
                 }
             }
@@ -154,7 +144,7 @@ namespace DeeSynk.Core.Managers
                 if (charsetOperands.Length == 1)
                     table.Charsets = ParseCFFCharsets(in data, table.CharStringCommands.Length, table.StartIndex + charsetOperands[0].IntegerValue, out newStart);
             }
-            //var gsub19 = table.IndexCharStrings.GetDataAtIndex(19);
+            var value = table.IndexCharStrings.GetDataAtIndex(7);
             int x = 1;
             return table;
         }
@@ -162,24 +152,31 @@ namespace DeeSynk.Core.Managers
         private void ParseCFFIndexHeader(in byte[] data, int startIndex, out int newStart, out short count, out byte offset)
         {
             newStart = startIndex;
-            count = GetAtLocation2(in data, startIndex, 2);
-            //if(count == 0)
-            offset = data[newStart += _off2];
+            count = DataHelper.GetAtLocation2(in data, startIndex, 2);
+            if(count > 0)
+                offset = data[newStart += _off2];
+            else
+                offset = 0;
+
             newStart += _off1;
         }
 
         private void ParseCFFIndexOffsets(in byte[] data, int startIndex, byte offset, ref int[] offsets, ref int[] offsetGaps, out int newStart)
         {
             newStart = startIndex - offset;
-            offsets[0] = GetAtLocation4(in data, newStart += offset, offset) - 1;
+            offsets[0] = DataHelper.GetAtLocation4(in data, newStart += offset, offset) - 1;
             for (int idx = 0; idx < offsets.Length - 1; idx++)
-                offsetGaps[idx] = (offsets[idx + 1] = GetAtLocation4(in data, newStart += offset, offset) - 1) - offsets[idx];
+                offsetGaps[idx] = (offsets[idx + 1] = DataHelper.GetAtLocation4(in data, newStart += offset, offset) - 1) - offsets[idx];
             newStart += offset;
         }
 
         private CFFIndex ParseCFFIndex(in byte[] data, int startIndex, out int newStart)
         {
             ParseCFFIndexHeader(in data, startIndex, out startIndex, out short count, out byte offset);
+            if (count == 0){
+                newStart = startIndex + _off2;
+                return new CFFIndex();
+            }
             CFFIndex index = new CFFIndex(count, offset);
             ParseCFFIndexOffsets(in data, startIndex, index.Offset, ref index.OffsetsRef, ref index.OffsetGapsRef, out startIndex);
             int size = index.DataSize;
@@ -194,6 +191,8 @@ namespace DeeSynk.Core.Managers
         private CFFIndex ParseCFFIndex(in byte[] data, int startIndex)
         {
             ParseCFFIndexHeader(in data, startIndex, out startIndex, out short count, out byte offset);
+            if (count == 0)
+                return new CFFIndex();
             CFFIndex index = new CFFIndex(count, offset);
             ParseCFFIndexOffsets(in data, startIndex, index.Offset, ref index.OffsetsRef, ref index.OffsetGapsRef, out startIndex);
             int size = index.DataSize;
@@ -350,7 +349,7 @@ namespace DeeSynk.Core.Managers
             }
         }
 
-        private CFFCharStringCommands[] ParseCFFCharStrings(CFFIndex indexCharStrings)
+        private CFFCharStringCommands[] ParseCFFCharStrings(CFFIndex indexCharStrings, bool ignoreEndConditions)
         {
             CFFCharStringCommands[] commands = new CFFCharStringCommands[indexCharStrings.Count];
             int count = 0;
@@ -374,21 +373,30 @@ namespace DeeSynk.Core.Managers
                     commands[idx].Add(new CharStringFunction(ParseCFFCSOperator(in code, newStart, out newStart), operands.ToArray()));
                 }
 
-                //TEST
-                if (commands[idx].Count > 0)
+                foreach (CharStringFunction f in commands[idx])
                 {
-                    var com = commands[idx].ToArray();
-                    if (com[commands[idx].Count - 1].Operator != CSOperators.endchar && 
-                        com[commands[idx].Count - 1].Operator != CSOperators.callgsubr &&
-                        com[commands[idx].Count - 1].Operator != CSOperators.callsubr)
-                    {
-                        count++;
-                        Debug.WriteLine("This is not okay.  Count: {0}   Index: {1}", count, idx);
-                    }
+                    if (f.Operator == CSOperators.rturn && commands[idx].ToArray()[commands[idx].ToArray().Length - 1].Operator != CSOperators.rturn)
+                        Debug.WriteLine("This is not supposed to happen {0} {1}", idx, ++count);
                 }
-                else
+
+                //TEST
+                if (!ignoreEndConditions)
                 {
-                    Debug.WriteLine("This still isn't okay.  Index: {0}", idx);
+                    if (commands[idx].Count > 0)
+                    {
+                        var com = commands[idx].ToArray();
+                        if (com[commands[idx].Count - 1].Operator != CSOperators.endchar &&
+                            com[commands[idx].Count - 1].Operator != CSOperators.callgsubr &&
+                            com[commands[idx].Count - 1].Operator != CSOperators.callsubr)
+                        {
+                            count++;
+                            Debug.WriteLine("This is not okay.  Count: {0}   Index: {1}", count, idx);
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine("This still isn't okay.  Index: {0}", idx);
+                    }
                 }
                 //ENDTEST
 
@@ -577,5 +585,17 @@ namespace DeeSynk.Core.Managers
         // for the expected size on the       //
         // display.                           //
         //====================================//
+
+        //===================================//
+        //             -Hinting-             //
+        // The hinting given by the hintmask //
+        // operation seems to be followed by //
+        // a bit mask.  We neeed to parse    //
+        // this bit mask as it seems to be   //
+        // causing rogue return and zero     //
+        // functions that directly follow    //
+        // hintmask.  This should be easily  //
+        // fixable.                          //
+        //===================================//
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DeeSynk.Core.Components.Fonts
+namespace DeeSynk.Core.Components.Fonts.Tables.CFF
 {
     public enum CSOperandNumberTypes : short
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DeeSynk.Core.Components.Fonts
+namespace DeeSynk.Core.Components.Fonts.Tables.CFF
 {
     public enum CSOperators : short
     {
@@ -14,6 +14,7 @@ namespace DeeSynk.Core.Components.Fonts
         vlineto = 0x07,
         rrcurveto = 0x08,
         callsubr = 0x0a,
+        rturn = 0x0b,
         escape = 0x0c,
         endchar = 0x0e,
         vsindex = 0x0f,

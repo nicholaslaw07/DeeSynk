@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace DeeSynk.Core.Components.Types.Fonts
+namespace DeeSynk.Core.Components.Fonts.Tables.CFF
 {
     //Pulled from adobe CFF spec
     //https://wwwimages2.adobe.com/content/dam/acom/en/devnet/font/pdfs/5176.CFF.pdf

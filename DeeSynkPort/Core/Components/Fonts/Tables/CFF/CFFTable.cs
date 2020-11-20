@@ -1,9 +1,10 @@
 ﻿using DeeSynk.Core.Components.Fonts;
+using DeeSynk.Core.Components.Fonts.Tables.CFF;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace DeeSynk.Core.Components.Types.Fonts
+namespace DeeSynk.Core.Components.Fonts.Tables.CFF
 {
     public struct CFFHeader
     {
@@ -55,6 +56,9 @@ namespace DeeSynk.Core.Components.Types.Fonts
 
         private CFFCharStringCommands[] _charStringCommands;
         public CFFCharStringCommands[] CharStringCommands { get => _charStringCommands; set => _charStringCommands = value; }
+
+        private CFFCharStringCommands[] _globalSubrCommands;
+        public CFFCharStringCommands[] GlobalSubrCommands { get => _globalSubrCommands; set => _globalSubrCommands = value; }
 
         private CFFCharStringCommands[] _localSubrCommands;
         public CFFCharStringCommands[] LocalSubrCommands { get => _localSubrCommands; set => _localSubrCommands = value; }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DeeSynk.Core.Components.Types.Fonts
+namespace DeeSynk.Core.Components.Fonts.Tables.CFF
 {
     /*set
 {
@@ -32,12 +32,23 @@ namespace DeeSynk.Core.Components.Types.Fonts
         public ref byte[] DataRef { get => ref _data; }
         public byte[] Data { get => _data; set => _data = value; }
 
-        public int DataSize { get => _offsets[_offsets.Length - 1] - _offsets[0]; }
+        public int DataSize { get => (IsBlank) ? 0 : _offsets[_offsets.Length - 1] - _offsets[0]; }
+
+        public bool IsBlank { get => _count == 0 && _offset == 0 && _offsets.Length == 0 && _offsetGaps.Length == 0; }
+
+        public CFFIndex()
+        {
+            _count = 0;
+            _offset = 0;
+            _offsets = new int[0];
+            _offsetGaps = new int[0];
+        }
 
         public CFFIndex(short count, byte offset)
         {
             _count = count;
             _offset = offset;
+            _offsets = new int[count + ((_count == 0) ? 0 : 1)];
             _offsets = new int[count + 1];
             _offsetGaps = new int[count];
         }
