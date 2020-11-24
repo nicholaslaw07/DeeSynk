@@ -5,17 +5,6 @@ using System.Text;
 
 namespace DeeSynk.Core.Components.Fonts.Tables.CFF
 {
-    public struct CSOperatorOperandSpec
-    {
-        //Add a compact but readable way to represent the operand requirements for each operator.
-        //This will require require and optional arguments
-        //Repeated operators by repeated argument multiples (rrcurveto) or additions beyond a minimum count (hvlineto)
-        //Specify if operand additions are additive atomically or in groups
-        //Specify location of the operands
-
-        //In the future, add direct method linkages for the operators and C# methods (mostly for cff to raw vector geometry conversion)
-        //This will be included in a seperate geometry constructor class.  (static)
-    }
     public enum CSOperators : short
     {
         hstem = 0x01,
@@ -125,13 +114,13 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
 
         public CFFCharStringCommands() : base(){ _width = new CSOperand(CSOperandNumberTypes.Short, -1, -1); }
 
-        public static CFFCharStringCommands[] ParseCharStrings(CFFIndex indexCharStrings, bool ignoreEndConditions)
+        public static CFFCharStringCommands[] ParseCharStrings(CFFIndex indexCharStrings, bool ignoreStartConditions, bool ignoreEndConditions)
         {
             CFFCharStringCommands[] commands = new CFFCharStringCommands[indexCharStrings.Count];
             int count = 0;
             for (int idx = 0; idx < indexCharStrings.Count; idx++)
             {
-                //must begin with one of the following  width (1-5) hstem (2n) hstemhm (2n) vstem (2n) vstemhm (2n) hmoveto (1) vmoveto (1) rrmoveto (2) endchar
+                //must begin with one of the following  width (1-5) hstem (2n) hstemhm (2n) vstem (2n) vstemhm (2n) hmoveto (1) vmoveto (1) rmoveto (2) endchar
 
                 commands[idx] = new CFFCharStringCommands();
                 var code = indexCharStrings.GetDataAtIndex(idx);
@@ -149,7 +138,8 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
                 int hintCount = 0;
                 int maskByteCount = 0;
 
-                bool isFirstOperator = true;
+                bool isFirstOperator = !ignoreStartConditions;
+                //bool isFirstOperator = true;
 
                 //Investigate if there is a way to add highly parallelized, hinted font rendering for gpu applications.
 
@@ -160,10 +150,22 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
 
                     bool isHintOperator = op == CSOperators.hstem || op == CSOperators.vstem || op == CSOperators.hstemhm || op == CSOperators.vstemhm;
 
-                    //REMOVE
+                    if (inHintSection)
+                    {
+                        if (isHintOperator)
+                            hintCount++;
+                        else
+                        {
+                            inHintSection = false;
+                            maskByteCount = (hintCount % 8 != 0) ? hintCount / 8 + 1 : hintCount / 8;
+                        }
+                    }
+                    else if (isHintOperator)
+                        throw new Exception("Invalid charstring command stack.  Hint operators can only be declared at the beginning of the sequence.");
+
                     if (isFirstOperator) //I know that this could be modified and moved outside of the loop, but this isn't a time pressing operation as of now.
                     {
-                        bool isValidFirstOperator = isHintOperator || op == CSOperators.hmoveto || op == CSOperators.vmoveto || op == CSOperators.rrcurveto || op == CSOperators.endchar;
+                        bool isValidFirstOperator = isHintOperator || op == CSOperators.hmoveto || op == CSOperators.vmoveto || op == CSOperators.rmoveto || op == CSOperators.endchar;
                         if (isValidFirstOperator)
                         {
                             CSOperand[] tempOperands = operands.ToArray();
@@ -226,28 +228,14 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
                                     }
                                     break;
                             }
-                            isFirstOperator = false;
                         }
-                        //else
-                            Debug.WriteLine("{0} {1}", idx, op);
-                        //throw new Exception("Invalid charstring sequence, must begin with a valid width, hint, move, or endchar.");
-                    }
-                    //END-REMOVE
-
-                    if (inHintSection)
-                    {
-                        if (isHintOperator)
-                            hintCount++;
                         else
-                        {
-                            inHintSection = false;
-                            maskByteCount = (hintCount % 8 != 0) ? hintCount / 8 + 1 : hintCount / 8;
-                        }
+                            Debug.WriteLine("{0} {1}", idx, op);
+                        //    throw new Exception("Invalid charstring sequence, must begin with a valid width, hint, move, or endchar.");
+
+                        isFirstOperator = false;
+                        commands[idx].Add(new CharStringFunction(operands.ToArray(), op));
                     }
-
-                    if (isHintOperator && !inHintSection)
-                        throw new Exception("Invalid charstring command stack.  Hint operators can only be declared at the beginning of the sequence.");
-
                     else if (op == CSOperators.hintmask || op == CSOperators.cntrmask)
                     {
                         long mask1 = DataHelper.GetAtLocationLong(in code, newStart, (maskByteCount < 8) ? maskByteCount : 8, out newStart);

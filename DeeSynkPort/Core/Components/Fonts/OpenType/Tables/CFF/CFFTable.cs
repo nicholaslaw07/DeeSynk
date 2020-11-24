@@ -83,7 +83,7 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
             _indexString = new CFFIndex(in data, startIndex, out startIndex);  //values are accessed at index of idx+390
             _indexGlobalSubr = new CFFIndex(in data, startIndex, out startIndex);
             if (!IndexGlobalSubr.IsBlank)
-                _globalSubrCommands = CFFCharStringCommands.ParseCharStrings(_indexGlobalSubr, true);
+                _globalSubrCommands = CFFCharStringCommands.ParseCharStrings(_indexGlobalSubr, true, true);
 
             if (_topDictIndex.Data[0].TryGetValue(Operators.CharStrings, out Operand[] charStringIdx))
             {
@@ -91,7 +91,7 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
                     _indexCharStrings = new CFFIndex(in data, StartIndex + charStringIdx[0].IntegerValue);
             }
 
-            _charStringCommands = CFFCharStringCommands.ParseCharStrings(_indexCharStrings, false);
+            _charStringCommands = CFFCharStringCommands.ParseCharStrings(_indexCharStrings, false, false);
 
             if (TopDictionaryIndex.Data[0].TryGetValue(Operators.Private, out Operand[] privateOperands))
             {
@@ -103,7 +103,7 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
                         if(subrsOperands.Length == 1)
                         {
                             _indexLocalSubr = new CFFIndex(in data, StartIndex + privateOperands[1].IntegerValue + subrsOperands[0].IntegerValue);
-                            _localSubrCommands  = CFFCharStringCommands.ParseCharStrings(_indexLocalSubr, true);
+                            _localSubrCommands  = CFFCharStringCommands.ParseCharStrings(_indexLocalSubr, true, true);
                         }
                     }
                 }
