@@ -1,5 +1,6 @@
 ﻿using DeeSynk.Core.Components.Fonts;
 using DeeSynk.Core.Components.Fonts.Tables.CFF;
+using DeeSynk.Core.Components.Types.Fonts;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -34,41 +35,86 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
         public int StartIndex { get => _startIndex; }
 
         private CFFHeader _header;
-        public CFFHeader Header { get => _header; set => _header = value; }
+        public CFFHeader Header { get => _header; }
 
         private CFFIndex _indexName;
-        public CFFIndex IndexName { get => _indexName; set => _indexName = value; }
+        public CFFIndex IndexName { get => _indexName; }
 
         private CFFDictionaryIndex _topDictIndex;
-        public CFFDictionaryIndex TopDictionaryIndex { get => _topDictIndex; set => _topDictIndex = value; }
+        public CFFDictionaryIndex TopDictionaryIndex { get => _topDictIndex; }
 
         private CFFIndex _indexString;
-        public CFFIndex IndexString { get => _indexString; set => _indexString = value; }
+        public CFFIndex IndexString { get => _indexString; }
 
         private CFFIndex _indexGlobalSubr;
-        public CFFIndex IndexGlobalSubr { get => _indexGlobalSubr; set => _indexGlobalSubr = value; }
+        public CFFIndex IndexGlobalSubr { get => _indexGlobalSubr; }
 
         private CFFIndex _indexLocalSubr;
-        public CFFIndex IndexLocalSubr { get => _indexLocalSubr; set => _indexLocalSubr = value; }
+        public CFFIndex IndexLocalSubr { get => _indexLocalSubr; }
 
         private CFFIndex _indexCharStrings;
-        public CFFIndex IndexCharStrings { get => _indexCharStrings; set => _indexCharStrings = value; }
+        public CFFIndex IndexCharStrings { get => _indexCharStrings; }
 
         private CFFCharStringCommands[] _charStringCommands;
-        public CFFCharStringCommands[] CharStringCommands { get => _charStringCommands; set => _charStringCommands = value; }
+        public CFFCharStringCommands[] CharStringCommands { get => _charStringCommands; }
 
         private CFFCharStringCommands[] _globalSubrCommands;
-        public CFFCharStringCommands[] GlobalSubrCommands { get => _globalSubrCommands; set => _globalSubrCommands = value; }
+        public CFFCharStringCommands[] GlobalSubrCommands { get => _globalSubrCommands; }
 
         private CFFCharStringCommands[] _localSubrCommands;
-        public CFFCharStringCommands[] LocalSubrCommands { get => _localSubrCommands; set => _localSubrCommands = value; }
+        public CFFCharStringCommands[] LocalSubrCommands { get => _localSubrCommands; }
 
         private CFFDictionary _privateDict;
-        public CFFDictionary PrivateDictionary { get => _privateDict; set => _privateDict = value; }
+        public CFFDictionary PrivateDictionary { get => _privateDict; }
 
         private CFFCharsets _charsets;
-        public CFFCharsets Charsets { get => _charsets; set => _charsets = value; }
+        public CFFCharsets Charsets { get => _charsets; }
 
-        public CFFTable(int startIndex) { _startIndex = startIndex; }
+        public CFFTable(in byte[] data, FileHeaderEntry entry)
+        {
+            int startIndex = entry.Offset;
+            _startIndex = startIndex;
+            int newStart = startIndex;
+            _header = new CFFHeader(data[startIndex + 0], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
+            startIndex += Header.HeaderSize;
+            //NAME Index  //Should be limited to 127 characters with no special characteres (33- 126)
+            _indexName = new CFFIndex(in data, startIndex, out startIndex);
+            _topDictIndex = new CFFDictionaryIndex(in data, startIndex, out startIndex);
+            _indexString = new CFFIndex(in data, startIndex, out startIndex);  //values are accessed at index of idx+390
+            _indexGlobalSubr = new CFFIndex(in data, startIndex, out startIndex);
+            if (!IndexGlobalSubr.IsBlank)
+                _globalSubrCommands = CFFCharStringCommands.ParseCharStrings(_indexGlobalSubr, true);
+
+            if (_topDictIndex.Data[0].TryGetValue(Operators.CharStrings, out Operand[] charStringIdx))
+            {
+                if (charStringIdx.Length == 1)
+                    _indexCharStrings = new CFFIndex(in data, StartIndex + charStringIdx[0].IntegerValue);
+            }
+
+            _charStringCommands = CFFCharStringCommands.ParseCharStrings(_indexCharStrings, false);
+
+            if (TopDictionaryIndex.Data[0].TryGetValue(Operators.Private, out Operand[] privateOperands))
+            {
+                if (privateOperands.Length == 2)
+                {
+                    _privateDict = new CFFDictionary(in data, StartIndex + privateOperands[1].IntegerValue, privateOperands[0].IntegerValue);
+                    if(PrivateDictionary.TryGetValue(Operators.Subrs, out Operand[] subrsOperands))
+                    {
+                        if(subrsOperands.Length == 1)
+                        {
+                            _indexLocalSubr = new CFFIndex(in data, StartIndex + privateOperands[1].IntegerValue + subrsOperands[0].IntegerValue);
+                            _localSubrCommands  = CFFCharStringCommands.ParseCharStrings(_indexLocalSubr, true);
+                        }
+                    }
+                }
+            }
+            if (TopDictionaryIndex.Data[0].TryGetValue(Operators.charset, out Operand[] charsetOperands))
+            {
+                if (charsetOperands.Length == 1)
+                    _charsets = new CFFCharsets(in data, _charStringCommands.Length, StartIndex + charsetOperands[0].IntegerValue, out newStart);
+            }
+            var value = IndexCharStrings.GetDataAtIndex(1);
+            int x = 1;
+        }
     }
 }

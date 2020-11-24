@@ -259,7 +259,7 @@ namespace DeeSynk.Core
                 if (sw.ElapsedMilliseconds % 20 == 0)
                 {
                     var t = InputManager.GetInstance().AverageTime / ((float)Stopwatch.Frequency) * 1000;
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {width}x{height} | {RoundVector(_camera.Location, 2)} | {MousePosition.X}, {MousePosition.Y} | {t}ms";
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {width}x{height} | {RoundVector(_camera.Location, 2)} | {MousePosition.X}, {MousePosition.Y} | {MathF.Round(t, 4)}ms";
                 }
 
                 if (sw.ElapsedMilliseconds > 1000 / 120)
@@ -268,7 +268,7 @@ namespace DeeSynk.Core
                     sw.Stop();
                     //Title = $"DeeSynk | The WIP Student Video Game | OpenGL Version: {GL.GetString(StringName.Version)} | Vsync: {VSync} | FPS: {1f/timeCount * ((float)frameCount):0} | {_camera.Location.ToString()}"; // adds miscellaneous information to the title bar of the window
                     fpsOld = (long)(1f / timeCount * ((float)frameCount));
-                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {width}x{height} | {RoundVector(_camera.Location, 2)} | {MousePosition.X}, {MousePosition.Y} | {t}ms"; // adds miscellaneous information to the title bar of the window
+                    Title = $"DeeSynk | Vsync: {VSync} | FPS: {fpsOld} | {width}x{height} | {RoundVector(_camera.Location, 2)} | {MousePosition.X}, {MousePosition.Y} | {MathF.Round(t, 4)}ms"; // adds miscellaneous information to the title bar of the window
                     timeCount = 0d;
                     frameCount = 0;
                     sw.Reset();

@@ -151,7 +151,121 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
         private int _offset;
         public int Offset { get => _offset; }
 
-        public CFFDictionary(int offset) : base() { _offset = offset; }
+        public CFFDictionary(in byte[] data, int startIndex, int dataSize, out int newStart) : base()
+        {
+            newStart = startIndex;
+            _offset = startIndex;
+            OperandNumberTypes dataType = GetNumberType(data[newStart]);
+            while (dataType != OperandNumberTypes.UNDEFINED && (newStart - startIndex) < dataSize)
+            {
+                var operands = ParseCFFOperands(in data, newStart, out newStart);
+                Add(ParseCFFOperator(in data, newStart, out newStart), operands.ToArray());
+            }
+        }
+
+        public CFFDictionary(in byte[] data, int startIndex, int dataSize) : base()
+        {
+            int newStart = startIndex;
+            _offset = startIndex;
+            OperandNumberTypes dataType = GetNumberType(data[newStart]);
+            while (dataType != OperandNumberTypes.UNDEFINED && (newStart - startIndex) < dataSize)
+            {
+                var operands = ParseCFFOperands(in data, newStart, out newStart);
+                Add(ParseCFFOperator(in data, newStart, out newStart), operands.ToArray());
+            }
+        }
+
+        private OperandNumberTypes GetNumberType(byte b0)
+        {
+            switch (b0)
+            {
+                case byte b when ((b >= 0x20 && b <= 0xfe) || (b >= 0x1c && b <= 0x1d)): return OperandNumberTypes.Integer;
+                case (0x1e): return OperandNumberTypes.Real;
+                default: return OperandNumberTypes.UNDEFINED;
+            }
+        }
+
+        private Operators ParseCFFOperator(in byte[] data, int startIndex, out int newStart)
+        {
+            newStart = startIndex + ((data[startIndex] == 0xc) ? 2 : 1);
+            return (Operators)((data[startIndex] == 0xc) ? (short)(data[startIndex] << 8 | data[startIndex + 1]) : data[startIndex]);
+        }
+
+        private List<Operand> ParseCFFOperands(in byte[] data, int startIndex, out int newStart)
+        {
+            newStart = startIndex;
+            List<Operand> operands = new List<Operand>();
+            while (ValidIntegerStart(data[newStart]))
+            {
+                switch (data[newStart])
+                {
+                    case byte b when (b >= 0x20 && b <= 0xf6): operands.Add(new Operand(data[newStart] - 139)); newStart += 1; break;
+                    case byte b when (b >= 0xf7 && b <= 0xfa): operands.Add(new Operand((data[newStart] - 247) * 256 + data[newStart + 1] + 108)); newStart += 2; break;
+                    case byte b when (b >= 0xfb && b <= 0xfe): operands.Add(new Operand(-(data[newStart] - 251) * 256 - data[newStart + 1] - 108)); newStart += 2; break;
+                    case (0x1c): operands.Add(new Operand(data[newStart + 1] << 8 | data[newStart + 2])); newStart += 3; break;
+                    case (0x1d): operands.Add(new Operand(data[newStart + 1] << 24 | data[newStart + 2] << 16 | data[newStart + 3] << 8 | data[newStart + 4])); newStart += 5; break;
+                    case (0x1e): operands.Add(new Operand(ParseCFFReal(in data, startIndex, out newStart))); break;
+                }
+            }
+            return operands;
+        }
+
+        private double ParseCFFReal(in byte[] data, int startIndex, out int newStart)
+        {
+            newStart = startIndex;
+
+            byte[] firstNibble = SplitByte(data[newStart += 1]);
+            double beforeDec = ((firstNibble[0] == 0xe) ? -firstNibble[1] : firstNibble[0]);
+            double afterDec = 0;
+            double exponent = 0;
+            int afterDecCount = 0;
+            int phase = ((firstNibble[1] == 0xa) ? 1 : 0);  //0 = beforeDec  1 = afterDec  2 = postivie exponent  3 = negative exponent
+
+            bool done = false;
+
+            while (!done)
+            {
+                byte[] nibble = SplitByte(data[newStart += 1]);
+                for (int idx = 0; idx < 2; idx++)
+                {
+                    switch (nibble[idx])
+                    {
+                        case (0xa): phase = 1; break;
+                        case (0xb): phase = 2; break;
+                        case (0xc): phase = 3; break;
+                        case (0xd): throw new Exception("Reserved token, invalid nibble format.");
+                        case (0xe): if (phase == 0) { phase = 1; } else { throw new Exception("More than one minus token, invalid nibble format."); } break;
+                        case (0xf): done = true; break;
+                        default:
+                            switch (phase)
+                            {
+                                case (0): beforeDec = beforeDec * 10 + nibble[idx]; break;
+                                case (1): afterDec = afterDec * 10 + nibble[idx]; afterDecCount--; break;
+                                default: exponent = exponent * 10 + nibble[idx]; break;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            double outValue = (beforeDec + afterDec * Math.Pow(10, afterDecCount) * ((beforeDec < 0) ? -1 : 1));
+            if (phase > 1)
+                outValue = outValue * Math.Pow(10, ((phase == 2) ? exponent : -exponent));
+            return outValue;
+        }
+
+        private byte[] SplitByte(byte value)
+        {
+            byte[] output = new byte[2];
+            output[0] = (byte)(value >> 4);
+            output[1] = (byte)(value & 0x0f);
+            return output;
+        }
+
+        private bool ValidIntegerStart(byte b0)
+        {
+            return (b0 >= 0x20 && b0 <= 0xfe) || (b0 >= 0x1c && b0 <= 0x1e);
+        }
 
         //Honestly, this can be simplified and the whole intermediate enum of OperatorDataTypes can be eliminated.
         public static OperatorDataTypes GetDataType(Operators op)

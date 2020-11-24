@@ -416,13 +416,13 @@ namespace DeeSynk.Core.Managers
                 if (elapsed > _maxTime)
                     _maxTime = elapsed;
 
-                if(count == 1000)
-                {
+                //if(count > 0)
+                //{
                     _avgTime = totTime / count;
                     count = 0;
                     totTime = 0;
                     _maxTime = 0;
-                }
+                //}
                 _t.Reset();
 
                 Thread.Sleep(_sleep);
