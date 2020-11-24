@@ -60,26 +60,33 @@ namespace DeeSynk.Core.Managers
 
             Font font = new Font(path, name);
 
-            if (!DataHelper.HasOTTOHeader(in file))
-                throw new Exception("File does not contain valid header for OpenType format");
-
+            try
             {
-                GetFileHeaderEntries(in file, _off4 * 3, out List<FileHeaderEntry> mainHeaderList);
-                font.HeaderEntires = mainHeaderList;
-            }
+                if (!DataHelper.HasOTTOHeader(in file))
+                    throw new Exception("File does not contain valid header for OpenType format");
 
-            foreach(FileHeaderEntry entry in font.HeaderEntires)
-            {
-                switch (entry.Table)
                 {
-                    case (0x43464620 /*CFF */): font.CFFTable = ParseCFFTable(in file, entry); break;
-                    case (0x6d617870 /*maxp*/): font.MaxP = new MaximumProfile(in file, entry); break;
-                    case (0x4f532f32 /*OS/2*/): font.OS2 = new OS2(in file, entry); break;
-                    default: Debug.WriteLine("Unknown or unsupported table."); break;
+                    GetFileHeaderEntries(in file, _off4 * 3, out List<FileHeaderEntry> mainHeaderList);
+                    font.HeaderEntires = mainHeaderList;
                 }
-            }
 
-            _fonts.Add(name, font);
+                foreach (FileHeaderEntry entry in font.HeaderEntires)
+                {
+                    switch (entry.Table)
+                    {
+                        case (0x43464620 /*CFF */): font.CFFTable = ParseCFFTable(in file, entry); break;
+                        case (0x6d617870 /*maxp*/): font.MaxP = new MaximumProfile(in file, entry); break;
+                        case (0x4f532f32 /*OS/2*/): font.OS2 = new OS2(in file, entry); break;
+                        default: Debug.WriteLine("Unknown or unsupported table."); break;
+                    }
+                }
+
+                _fonts.Add(name, font);
+            }
+            catch(Exception e)
+            {
+                Debug.WriteLine($"Exception while parsing the font {name} at {path}.\n{e}");
+            }
         }
 
         private void GetFileHeaderEntries(in byte[] data, int start, out List<FileHeaderEntry> headerEntries)
@@ -455,7 +462,7 @@ namespace DeeSynk.Core.Managers
                         }
                         else
                             Debug.WriteLine("{0} {1}", idx, op);
-                        //    throw new Exception("Invalid charstring sequence, must begin with a valid width, hint, move, or endchar.");
+                            //throw new Exception("Invalid charstring sequence, must begin with a valid width, hint, move, or endchar.");
                     }
                     //END-REMOVE
 
