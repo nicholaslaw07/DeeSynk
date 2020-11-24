@@ -20,15 +20,15 @@ namespace DeeSynk.Core.Managers
     {
         private static ShaderManager _shaderManager;            //--DIF--//
 
-        private string _vertPath = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Vertex";
-        private string _geomPath = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Geometry";
-        private string _fragPath = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Fragment";
-        private string _compPath = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Compute";
+        //private string _vertPath = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Vertex";
+        //private string _geomPath = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Geometry";
+        //private string _fragPath = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Fragment";
+        //private string _compPath = @"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Compute";
 
-        //private string _vertPath = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Vertex";
-        //private string _geomPath = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Geometry";
-        //private string _fragPath = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Fragment";
-        //private string _compPath = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Compute";
+        private string _vertPath = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Vertex";
+        private string _geomPath = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Geometry";
+        private string _fragPath = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Fragment";
+        private string _compPath = @"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Shaders\Compute";
 
         private Dictionary<string, int> _programs;
 

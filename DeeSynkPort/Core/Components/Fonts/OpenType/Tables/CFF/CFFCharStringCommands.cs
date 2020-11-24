@@ -4,6 +4,17 @@ using System.Text;
 
 namespace DeeSynk.Core.Components.Fonts.Tables.CFF
 {
+    public struct CSOperatorOperandSpec
+    {
+        //Add a compact but readable way to represent the operand requirements for each operator.
+        //This will require require and optional arguments
+        //Repeated operators by repeated argument multiples (rrcurveto) or additions beyond a minimum count (hvlineto)
+        //Specify if operand additions are additive atomically or in groups
+        //Specify location of the operands
+
+        //In the future, add direct method linkages for the operators and C# methods (mostly for cff to raw vector geometry conversion)
+        //This will be included in a seperate geometry constructor class.  (static)
+    }
     public enum CSOperators : short
     {
         hstem = 0x01,
@@ -65,16 +76,35 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
 
     public class CharStringFunction
     {
+
         private CSOperators _operator;
         public CSOperators Operator { get => _operator; }
 
         private CSOperand[] _operands;
         public CSOperand[] Operands { get => _operands; }
 
-        public CharStringFunction(CSOperators op, CSOperand[] operands)
+        //this is only ever used for the hintmask and cntrmask operators
+
+        private long _mask1;
+        /// <summary>
+        /// The first 64 bits of the maximum 96-bit hint mask.
+        /// </summary>
+        public long Mask1 { get => _mask1; }
+
+        private int _mask2;
+        /// <summary>
+        /// The last 32 bits of the maximum 96-bit hint mask.
+        /// </summary>
+        public int Mask2 { get => _mask2; }
+
+        public bool HasValidMask { get => (_operator == CSOperators.hintmask || _operator == CSOperators.cntrmask) && _mask1 != 0 || _mask2 != 0; }
+
+        public CharStringFunction(CSOperand[] operands, CSOperators op, long mask1 = 0, int mask2 = 0)
         {
-            _operator = op;
             _operands = operands;
+            _operator = op;
+            _mask1 = mask1;
+            _mask2 = mask2;
         }
 
         public override string ToString()
@@ -87,6 +117,11 @@ namespace DeeSynk.Core.Components.Fonts.Tables.CFF
     }
     public class CFFCharStringCommands : List<CharStringFunction>
     {
-        public CFFCharStringCommands() : base(){}
+        private CSOperand _width;
+        public CSOperand Width { get => _width; set => _width = value; }
+
+        public bool HasWidthOverride { get => (_width.ShortValue > -1 && _width.NumberType == CSOperandNumberTypes.Short) || (_width.FixedValue > -1 && _width.NumberType == CSOperandNumberTypes.Fixed); }
+
+        public CFFCharStringCommands() : base(){ _width = new CSOperand(CSOperandNumberTypes.Short, -1, -1); }
     }
 }

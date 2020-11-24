@@ -41,8 +41,8 @@ namespace DeeSynk.Core.Managers
         {
             //LoadFontGeometry(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\OfficeCodePro-Light\OfficeCodePro-Light.otf", "OfficeCodePro-Light.otf");
             //LoadFontGeometry(@"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\OfficeCodePro-Light\OfficeCodePro-Light.otf", "OfficeCodePro-Light.otf");
-            LoadFontGeometry(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\Mechanical\Mechanical-g5Y5.otf", "Mechanical-g5Y5");
-            //LoadFontGeometry(@"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\Mechanical\Mechanical-g5Y5.otf", "Mechanical-g5Y5");
+            //LoadFontGeometry(@"C:\Users\Nicholas\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\Mechanical\Mechanical-g5Y5.otf", "Mechanical-g5Y5");
+            LoadFontGeometry(@"C:\Users\Chuck\source\repos\nicholaslaw07\DeeSynk\DeeSynkPort\Resources\Fonts\Mechanical\Mechanical-g5Y5.otf", "Mechanical-g5Y5");
         }
 
         public void UnLoad()
@@ -147,7 +147,7 @@ namespace DeeSynk.Core.Managers
                 if (charsetOperands.Length == 1)
                     table.Charsets = ParseCFFCharsets(in data, table.CharStringCommands.Length, table.StartIndex + charsetOperands[0].IntegerValue, out newStart);
             }
-            var value = table.IndexCharStrings.GetDataAtIndex(7);
+            var value = table.IndexCharStrings.GetDataAtIndex(1);
             int x = 1;
             return table;
         }
@@ -358,11 +358,13 @@ namespace DeeSynk.Core.Managers
             int count = 0;
             for(int idx = 0; idx < indexCharStrings.Count; idx++)
             {
+                //must begin with one of the following  width (1-5) hstem (2n) hstemhm (2n) vstem (2n) vstemhm (2n) hmoveto (1) vmoveto (1) rrmoveto (2) endchar
+
                 commands[idx] = new CFFCharStringCommands();
                 var code = indexCharStrings.GetDataAtIndex(idx);
                 if(code.Length == 1 && code[0] == 0x0e) //this is for the space character.  the minimum number of commands in a CharString is 1 and it must be the operand free operator of endchar (0x0e)
                 {
-                    commands[idx].Add(new CharStringFunction(CSOperators.endchar, new CSOperand[0]));
+                    commands[idx].Add(new CharStringFunction(new CSOperand[0], CSOperators.endchar));
                     continue;
                 }
                 var dataType = GetCSNumberType(code[0]);
@@ -370,10 +372,115 @@ namespace DeeSynk.Core.Managers
                 int startIndex = 0;
                 int newStart = startIndex;
 
+                bool inHintSection = true;
+                int hintCount = 0;
+                int maskByteCount = 0;
+
+                bool isFirstOperator = true;
+
                 while ((newStart - startIndex) < dataSize)
                 {
                     var operands = ParseCFFOperandsCS(in code, newStart, out newStart);
-                    commands[idx].Add(new CharStringFunction(ParseCFFCSOperator(in code, newStart, out newStart), operands.ToArray()));
+                    var op = ParseCFFCSOperator(in code, newStart, out newStart);
+
+                    bool isHintOperator = op == CSOperators.hstem || op == CSOperators.vstem || op == CSOperators.hstemhm || op == CSOperators.vstemhm;
+
+                    //REMOVE
+                    if (isFirstOperator) //I know that this could be modified and moved outside of the loop, but this isn't a time pressing operation as of now.
+                    {
+                        bool isValidFirstOperator = isHintOperator || op == CSOperators.hmoveto || op == CSOperators.vmoveto || op == CSOperators.rrcurveto || op == CSOperators.endchar;
+                        if (isValidFirstOperator)
+                        {
+                            CSOperand[] tempOperands = operands.ToArray();
+                            switch (op)
+                            {
+                                case (CSOperators.hstem):
+                                    if (operands.Count % 2 == 1)
+                                    {
+                                        commands[idx].Width = tempOperands[0];
+                                        operands.RemoveAt(0);
+                                    }
+                                    break;
+                                case (CSOperators.hstemhm):
+                                    if (operands.Count % 2 == 1)
+                                    {
+                                        commands[idx].Width = tempOperands[0];
+                                        operands.RemoveAt(0);
+                                    }
+                                    break;
+                                case (CSOperators.vstem):
+                                    if (operands.Count % 2 == 1)
+                                    {
+                                        commands[idx].Width = tempOperands[0];
+                                        operands.RemoveAt(0);
+                                    }
+                                    break;
+                                case (CSOperators.vstemhm):
+                                    if (operands.Count % 2 == 1)
+                                    {
+                                        commands[idx].Width = tempOperands[0];
+                                        operands.RemoveAt(0);
+                                    }
+                                    break;
+                                case (CSOperators.hmoveto):
+                                    if (operands.Count == 2)
+                                    {
+                                        commands[idx].Width = tempOperands[0];
+                                        operands.RemoveAt(0);
+                                    }
+                                    break;
+                                case (CSOperators.vmoveto):
+                                    if (operands.Count == 2)
+                                    {
+                                        commands[idx].Width = tempOperands[0];
+                                        operands.RemoveAt(0);
+                                    }
+                                    break;
+                                case (CSOperators.rmoveto):
+                                    if (operands.Count == 3)
+                                    {
+                                        commands[idx].Width = tempOperands[0];
+                                        operands.RemoveAt(0);
+                                    }
+                                    break;
+                                case (CSOperators.endchar):
+                                    if (operands.Count == 1)
+                                    {
+                                        commands[idx].Width = tempOperands[0];
+                                        operands.RemoveAt(0);
+                                    }
+                                    break;
+                            }
+                            isFirstOperator = false;
+                        }
+                        else
+                            Debug.WriteLine("{0} {1}", idx, op);
+                        //    throw new Exception("Invalid charstring sequence, must begin with a valid width, hint, move, or endchar.");
+                    }
+                    //END-REMOVE
+
+                    if (inHintSection)
+                    {
+                        if (isHintOperator)
+                            hintCount++;
+                        else
+                        {
+                            inHintSection = false;
+                            maskByteCount = (hintCount % 8 != 0) ? hintCount / 8 + 1: hintCount / 8;
+                        }
+                    }
+
+                    if (isHintOperator && !inHintSection)
+                        throw new Exception("Invalid charstring command stack.  Hint operators can only be declared at the beginning of the sequence.");
+
+                    else if (op == CSOperators.hintmask || op == CSOperators.cntrmask)
+                    {
+                        long mask1 = DataHelper.GetAtLocationLong(in code, newStart, (maskByteCount < 8) ? maskByteCount : 8, out newStart);
+                        int mask2 = DataHelper.GetAtLocationInt(in code, newStart, (maskByteCount > 8) ? maskByteCount - 8 : 0, out newStart);
+                        commands[idx].Add(new CharStringFunction(operands.ToArray(), op, mask1, mask2));
+                    }
+                    else
+                        commands[idx].Add(new CharStringFunction(operands.ToArray(), op));
                 }
 
                 foreach (CharStringFunction f in commands[idx])
@@ -424,6 +531,7 @@ namespace DeeSynk.Core.Managers
             }
             return operands;
         }
+
         private CSOperators ParseCFFCSOperator(in byte[] data, int startIndex, out int newStart)
         {
             newStart = startIndex + ((data[startIndex] == 0xc) ? 2 : 1);
@@ -598,7 +706,7 @@ namespace DeeSynk.Core.Managers
         // causing rogue return and zero     //
         // functions that directly follow    //
         // hintmask.  This should be easily  //
-        // fixable.                          //
+        // fixable.      Done.               //
         //===================================//
     }
 }

@@ -144,6 +144,7 @@ namespace DeeSynk.Core.Managers
         private Stopwatch _t;
         private long totTime;
         private long count;
+        public long Count { get => count; }
         private long _avgTime;
         private long _maxTime;
         public long AverageTime { get => _avgTime; }
