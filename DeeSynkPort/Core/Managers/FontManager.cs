@@ -111,40 +111,6 @@ namespace DeeSynk.Core.Managers
         }
 
         //=====================================//
-        //           -Feature note-            //
-        // Remove all of the parser stuff from //
-        // here and add the respective methods //
-        // inside of the classes where they    //
-        // belong.  For example, ParseCFFIndex //
-        // should go inside of the CFFIndex    //
-        // class as we can easily pass file    //
-        // data around.  It does not have to   //
-        // be stored, only referenced (in).    //
-        // Since we're going for a an approach //
-        // of strongly partitioned methods and //
-        // heavily divided classes (as one     //
-        // should), we will keep FontManager   //
-        // small in size and focused in its    //
-        // functions.  This same philsophy     //
-        // should be applied in our other      //
-        // parsers.                            //
-        // Additionally, moving all of these   //
-        // functions out of here will make     //
-        // future TrueType implementation much //
-        // easier and visually more appealing  //
-        // to look at.                         //
-        // Keep FontManager at simply loading  //
-        // and storing fonts.  It initiates    //
-        // the parsing routines by creating a  //
-        // new Font object with the specified  //
-        // directory.  The Font object handles //
-        // the parsing operations.             //
-        // For now, we will keep CFF functions //
-        // here purely for debugging purposes. //
-        // Done.                               //
-        //=====================================//
-
-        //=====================================//
         //        -Point of Uncertainy-        //
         // There some mysterious behavior in   //
         // the global subroutines.  There is a //
@@ -193,17 +159,5 @@ namespace DeeSynk.Core.Managers
         // for the expected size on the       //
         // display.                           //
         //====================================//
-
-        //===================================//
-        //             -Hinting-             //
-        // The hinting given by the hintmask //
-        // operation seems to be followed by //
-        // a bit mask.  We neeed to parse    //
-        // this bit mask as it seems to be   //
-        // causing rogue return and zero     //
-        // functions that directly follow    //
-        // hintmask.  This should be easily  //
-        // fixable.      Done.               //
-        //===================================//
     }
 }
