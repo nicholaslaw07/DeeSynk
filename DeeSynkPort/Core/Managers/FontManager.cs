@@ -385,6 +385,8 @@ namespace DeeSynk.Core.Managers
 
                 bool isFirstOperator = true;
 
+                //Investigate if there is a way to add highly parallelized, hinted font rendering for gpu applications.
+
                 while ((newStart - startIndex) < dataSize)
                 {
                     var operands = ParseCFFOperandsCS(in code, newStart, out newStart);
